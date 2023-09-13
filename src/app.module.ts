@@ -23,6 +23,7 @@ import { SalesModule } from './modules/sales/sales.module';
 import { RegionModule } from './modules/region/region.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
 import { ExchangRatesModule } from './modules/exchang-rates/exchang-rates.module';
+import { FileUploadModule } from './modules/file-upload/file-upload.module';
 
 
 @Module({
@@ -62,6 +63,7 @@ import { ExchangRatesModule } from './modules/exchang-rates/exchang-rates.module
     RegionModule,
     CurrenciesModule,
     ExchangRatesModule,
+    FileUploadModule,
   ],
   controllers: [],
   providers: [],
