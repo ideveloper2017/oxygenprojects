@@ -1,14 +1,19 @@
-import {Controller, Get, Post, Body, Patch, Param, Delete, Put, ParseIntPipe} from '@nestjs/common';
+import {Controller, Get, Post, Body, Patch, Param, Delete, Put, ParseIntPipe, UseGuards} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import {ApiTags} from "@nestjs/swagger";
+import {AuthGuard} from "@nestjs/passport";
+import {RolesGuard} from "../../common/guards/role.guard";
+import {Roles} from "../../common/decorators/role.decorator";
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
   @Get('/list/:id')
   findAll(@Param('id') id: number) {
     return this.usersService.getUsers(id).then(data => {
