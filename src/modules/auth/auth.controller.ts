@@ -1,10 +1,22 @@
-import {Controller, Get, Post, Body, Patch, Param, Delete, UseGuards} from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import {ApiTags} from "@nestjs/swagger";
-import {AuthLoginDto} from "./dto/AuthLoginDto";
-import {AuthUser} from "../../common/decorators/auth-user.decorator";
-import {AuthGuard} from "@nestjs/passport";
+import { ApiTags } from '@nestjs/swagger';
+import { AuthLoginDto } from './dto/AuthLoginDto';
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { CookieInterceptor } from '../../common/interceptor/cookie.interceptor';
 
+// @UseInterceptors(CookieInterceptor)
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -17,8 +29,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  getLoggedUser(@AuthUser() user: any){
+  getLoggedUser(@AuthUser() user: any) {
     return this.authService.getLoggedUser(user.userId);
   }
-
 }

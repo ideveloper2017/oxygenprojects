@@ -1,0 +1,119 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Res,
+} from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import { BuildingsService } from './buildings.service';
+import { CreateBuildingDto } from './dto/create-building.dto';
+import { UpdateBuildingDto } from './dto/update-building.dto';
+
+@ApiTags('Buildings')
+@Controller('buildings')
+export class BuildingsController {
+  constructor(private readonly buildingsService: BuildingsService) {}
+
+  @ApiOperation({ summary: 'Bino yaratish ichidagi kvartiralari bilan' })
+  @Post('/add')
+  addBuilding(@Body() createBuildingDto: CreateBuildingDto) {
+    return this.buildingsService
+      .createBuilding(createBuildingDto)
+      .then((response) => {
+        if (response.length != 0) {
+          return {
+            success: true,
+            data: response,
+            message: 'Building added successfully',
+          };
+        } else if (response) {
+          return {
+            success: true,
+            data: response,
+            message: 'Empty building added successfully',
+          };
+        }
+      });
+  }
+
+  @ApiOperation({ summary: 'id=0 -barcha binolar || id=4 bitta bino' })
+  @Get('/all/:id')
+  getAllBuildings(@Param('id', ParseIntPipe) id: number) {
+    return this.buildingsService
+      .findAllBuildings(id)
+      .then((data) => {
+        if (data !== null && data.length != 0) {
+          return { success: true, data, message: 'Data fetched successfully' };
+        } else {
+          return { success: false, message: 'No data found!' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
+  }
+
+  @Get('/:town_id')
+  getTestBuildings(@Param('town_id') town_id: number, @Res() res: Response) {
+    return this.buildingsService
+      .getBuldingsOfTown(town_id)
+      .then((data) => {
+        if (data.length > 0) {
+          return res.status(200).send({
+            success: true,
+            data,
+            message: 'found record!!!',
+          });
+        } else {
+          res.status(200).send({
+            success: false,
+            data: null,
+            message: 'not found record!!!',
+          });
+        }
+      })
+      .catch((error) => {
+        res
+          .status(200)
+          .send({ success: false, data: null, message: 'not found record!!!' });
+      });
+  }
+
+  @ApiOperation({ summary: 'Bino tahrirlash' })
+  @Patch('/edit/:id')
+  editBuilding(
+    @Param('id') id: number,
+    @Body() updateBuildingDto: UpdateBuildingDto,
+  ) {
+    return this.buildingsService
+      .updateBuilding(id, updateBuildingDto)
+      .then((data) => {
+        if (data.affected) {
+          return { success: true, message: 'Bino tahrirlandi.' };
+        } else {
+          return { success: false, message: 'Bino topilmadi.' };
+        }
+      })
+      .catch((error) => console.log(error));
+  }
+
+  @ApiOperation({ summary: "Bino o'chirish" })
+  @Delete('/delete/:id')
+  deleteBuilding(@Param('id') id: number) {
+    return this.buildingsService
+      .deleteBuilding(id)
+      .then((data) => {
+        if (data.affected != 0) {
+          return { success: true, message: "Bino o'chirildi" };
+        }
+        return { success: false, message: 'Bino topilmadi' };
+      })
+      .catch((error) => console.log(error));
+  }
+}
