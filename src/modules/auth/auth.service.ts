@@ -52,6 +52,7 @@ export class AuthService {
             where: {
                 id: user,
             },
+            relations:['roles','roles.permission']
         });
 
         delete loggedUser.password;
