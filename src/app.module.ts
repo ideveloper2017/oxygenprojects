@@ -4,6 +4,11 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseModule } from "./database/database.module";
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+
 
 
 @Module({
@@ -11,8 +16,7 @@ import { DatabaseModule } from "./database/database.module";
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    DatabaseModule,
-    //
+
     // TypeOrmModule.forRoot({
     //   type: process.env.DB_TYPE as any,
     //   host: process.env.DB_HOST,
@@ -23,8 +27,14 @@ import { DatabaseModule } from "./database/database.module";
     //   entities: [__dirname + '/../**/*.entity.{js,ts}'],
     //   synchronize: true,
     // }),
+    DatabaseModule,
+    AuthModule,
+    RolesModule,
+    PermissionsModule,
+    UsersModule,
+
   ],
   controllers: [],
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}
