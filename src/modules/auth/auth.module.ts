@@ -13,7 +13,7 @@ import { JwtStrategy } from './jwt.strategy';
       imports: [ConfigModule],
       useFactory: async () => ({
         secret: process.env.JWT_SECRET,
-        expiresIn: '60s',
+        expiresIn: '1h',
       }),
       inject: [ConfigService],
     }),
