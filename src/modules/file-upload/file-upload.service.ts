@@ -23,6 +23,7 @@ export class FileUploadService {
 
       const filePath = path.resolve(__dirname,'../..', 'images') // filelar yuklanishi uchun manzil
       
+      console.log(filePath); //shuni serverda chiqaringchi qanday natija qaytadi 
 
       if(!fs.existsSync(filePath)){
         
@@ -32,11 +33,9 @@ export class FileUploadService {
       
       fs.writeFileSync(path.join(filePath, fileName), file.buffer) // fileni belgilangan manzilga joylash
       
-      // file brauzerda korinishi uchun uni asosiy url bilan birlashtiradi
-      const imageLink = process.env.RETURN_LINK + fileName
-     
-      // yuklangan file ni tegishli tablitsaga joylash
-      const setImageLink = await this.repository.manager.getRepository(fileUploadDto.entity).update({id: fileUploadDto.record_id}, {image_link: imageLink})
+
+      // yuklangan file nomini tegishli tablitsaga joylash
+      const setImageLink = await this.repository.manager.getRepository(fileUploadDto.entity).update({id: fileUploadDto.record_id}, {image_link: fileName})
       
       return setImageLink
       
@@ -54,17 +53,19 @@ export class FileUploadService {
 
         // X Tablistadan id boyicha qidirib rasm saqlangan manzilni topadi
         const {image_link} = await this.repository.manager.getRepository(entity_name).findOne({where: {id: id}, select: ['image_link']})
-
+        
         // linkdan file nomini ajratib oladi
         const fileName = path.basename(image_link);
 
         //file nomini u joylashgan papka bilan birlashtiradi
         const filePath = path.resolve(__dirname, '../..', 'images', fileName);
         
+        const result = await this.repository.manager.getRepository(entity_name).update({id: id}, {image_link: null})
+
+        console.log(result);
         // fileni ochiradi -- fs.unlinkSync orqali 
         const res = fs.unlinkSync(filePath);
-
-
+        
         return res;
   
       } catch (error) {
