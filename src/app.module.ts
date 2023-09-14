@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -26,7 +24,6 @@ import { ExchangRatesModule } from './modules/exchang-rates/exchang-rates.module
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { resolve } from 'path';
-
 
 @Module({
   imports: [

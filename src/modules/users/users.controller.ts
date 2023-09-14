@@ -20,7 +20,7 @@ import { RolesGuard } from '../../common/guards/role.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
   // @Roles('admin')
   @Get('/list/:id')
   findAll(@Param('id') id: number) {
