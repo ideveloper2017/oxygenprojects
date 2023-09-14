@@ -31,9 +31,13 @@ async function bootstrap() {
     .addTag('Orders')
     .addTag('OrderItems')
     .addTag('CreditTable')
+    .addTag('FileUploads')
     .build();
+    
   const document = SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('api/docs', app, document);
+  
   await app.listen(configService.get<number>('PORT'), () => {
     console.log('Web', configService.get<string>('BASE_URL'));
   });

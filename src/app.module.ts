@@ -24,6 +24,8 @@ import { RegionModule } from './modules/region/region.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
 import { ExchangRatesModule } from './modules/exchang-rates/exchang-rates.module';
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { resolve } from 'path';
 
 
 @Module({
@@ -31,7 +33,9 @@ import { FileUploadModule } from './modules/file-upload/file-upload.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-
+    ServeStaticModule.forRoot({
+      rootPath: resolve(__dirname, '../src/', 'images'),
+    }),
     // TypeOrmModule.forRoot({
     //   type: process.env.DB_TYPE as any,
     //   host: process.env.DB_HOST,

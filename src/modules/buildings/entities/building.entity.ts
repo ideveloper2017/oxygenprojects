@@ -29,4 +29,7 @@ export class Buildings extends Model {
 
   @Column()
   mk_price: number;
+
+  @Column({nullable: true })
+  image_link: string
 }
