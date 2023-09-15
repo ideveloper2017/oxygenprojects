@@ -17,7 +17,7 @@ export class ClientsService {
     });
 
     if (client.length != 0) {
-      return { status: 409, data: [], message: 'Mijoz allaqachon mavjud!' };
+      return { status: 409, message: 'Mijoz allaqachon mavjud!' };
     }
 
     let newClient = new Clients();

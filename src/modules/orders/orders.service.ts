@@ -52,7 +52,7 @@ export class OrdersService {
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
     order.total_amount = 145200000;
-    order.quantity = createOrderDto.apartments.length;
+    order.quantity = createOrderDto.apartments?createOrderDto.apartments.length:1;
     order.is_accepted = createOrderDto.is_accepted;
     const savedOrder = await this.ordersRepository.save(order);
 
