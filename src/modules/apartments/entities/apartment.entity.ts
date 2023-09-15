@@ -3,6 +3,7 @@ import Model from '../../model/model.module';
 import { Floor } from '../../floor/entities/floor.entity';
 import { Price } from '../../price/entities/price.entity';
 import { OrderItems } from "../../order-items/entities/order-item.entity";
+import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
 
 @Entity('Apartments')
 export class Apartments extends Model {
@@ -33,4 +34,7 @@ export class Apartments extends Model {
 
   @OneToMany(() => OrderItems, (orderItems) => orderItems.apartments)
   orderItems: OrderItems[];
+  
+  @OneToMany(() => FileUpload, (files) => files.apartment, {nullable: true})
+  files: FileUpload[];
 }

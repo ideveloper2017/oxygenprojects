@@ -7,82 +7,126 @@ import { Repository } from 'typeorm';
 import { Towns } from '../towns/entities/town.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RemoveFileDto } from './dto/remove-file.dto';
+import { FileUpload } from './entities/file-upload.entity';
 
 @Injectable()
 export class FileUploadService {
-    constructor(@InjectRepository(Towns) private readonly repository: Repository<Towns>){}
+    constructor(@InjectRepository(FileUpload) private readonly fileRepository: Repository<FileUpload>){}
   
-    // file upload core module usuli fs module bilan
 
-  async uploadFile(file, fileUploadDto: CreateFileUploadDto) {
-    try {
-
-      // qaytarilmas nom bilan fileni nomlash
-      const fileName = uuidv4() + `.${file.originalname.split('.')[file.originalname.split('.').length -1]}`
-
-
-      const filePath = path.resolve(__dirname,'../..', 'images') // filelar yuklanishi uchun manzil
-      
-      console.log(filePath); //shuni serverda chiqaringchi qanday natija qaytadi 
-
-      if(!fs.existsSync(filePath)){
-        
-        // agarda filelar saqlanishi uchun manzil korsatilmagan bo'la uni o'zi ochadi
-        fs.mkdirSync(filePath, {recursive: true})
-      }
-      
-      fs.writeFileSync(path.join(filePath, fileName), file.buffer) // fileni belgilangan manzilga joylash
-      
-
-      // yuklangan file nomini tegishli tablitsaga joylash
-      const setImageLink = await this.repository.manager.getRepository(fileUploadDto.entity).update({id: fileUploadDto.record_id}, {image_link: fileName})
-      
-      return setImageLink
-      
-    } catch (error) {
+  async uploadFile(entityInfo: CreateFileUploadDto, fileName: string, fileContent: Express.Multer.File) {
     
-        new HttpException('Failed to upload file', HttpStatus.INTERNAL_SERVER_ERROR)
+    const file = new FileUpload();
+    file.name = fileName
+
+    if(entityInfo.entity == 'Apartments'){
+    
+      file.apartment_id =  entityInfo.record_id
+    
+    }else if(entityInfo.entity == 'Buildings'){
+    
+      file.building_id =  entityInfo.record_id
+      
+    }else if(entityInfo.entity == "Towns"){
+    
+      file.town_id =  entityInfo.record_id
     }
+    
+    file.content = Buffer.from(fileContent.buffer);
+
+
+
+    return this.fileRepository.save(file);
   }
-
-    async deleteFile(removeFileDto: RemoveFileDto) {
-
-      try {
-
-        const {entity_name, id} = removeFileDto // dto dan tablitsa nomi va rasmi o'chirilishi kerak bo'lgan qator id si keladi
-
-        // X Tablistadan id boyicha qidirib rasm saqlangan manzilni topadi
-        const {image_link} = await this.repository.manager.getRepository(entity_name).findOne({where: {id: id}, select: ['image_link']})
-        
-        // linkdan file nomini ajratib oladi
-        const fileName = path.basename(image_link);
-
-        //file nomini u joylashgan papka bilan birlashtiradi
-        const filePath = path.resolve(__dirname, '../..', 'images', fileName);
-        
-        const result = await this.repository.manager.getRepository(entity_name).update({id: id}, {image_link: null})
-
-        console.log(result);
-        // fileni ochiradi -- fs.unlinkSync orqali 
-        const res = fs.unlinkSync(filePath);
-        
-        return res;
   
-      } catch (error) {
-        // agar rasm yoq bo'lsa ogohlantirish bildirish  uchun controllerga false qaytaradi 
-        
-        if(error.message.substring('no such file or directory')){
-          return false
-        }
-        // kutilmagan xatolik yuz bersa istisno xabar qaytaradi
-        throw new HttpException(
-          'Failed to delete file',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    }
+
+  
+  async findOneFile(fileId: number) {
+
   }
 
+
+}
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  // file upload core module usuli fs module bilan
+  
+  // async uploadFile(file, fileUploadDto: CreateFileUploadDto) {
+  //   try {
+  
+  //     // qaytarilmas nom bilan fileni nomlash
+  //     const fileName = uuidv4() + `.${file.originalname.split('.')[file.originalname.split('.').length -1]}`
+  
+  
+  //     const filePath = path.resolve(__dirname,'../..', 'images') // filelar yuklanishi uchun manzil
+      
+  
+  //     if(!fs.existsSync(filePath)){
+        
+  //       // agarda filelar saqlanishi uchun manzil korsatilmagan bo'la uni o'zi ochadi
+  //       fs.mkdirSync(filePath, {recursive: true})
+  //     }
+      
+  //     fs.writeFileSync(path.join(filePath, fileName), file.buffer) // fileni belgilangan manzilga joylash
+      
+  //     // file brauzerda korinishi uchun uni asosiy url bilan birlashtiradi
+  //     const imageLink = process.env.RETURN_LINK + fileName
+     
+  //     // yuklangan file ni tegishli tablitsaga joylash
+  //     const setImageLink = await this.repository.manager.getRepository(fileUploadDto.entity).update({id: fileUploadDto.record_id}, {image_link: imageLink})
+  //     return setImageLink
+      
+  //   } catch (error) {
+    
+  //       new HttpException('Failed to upload file', HttpStatus.INTERNAL_SERVER_ERROR)
+  //   }
+  // }
+  
+  //   async deleteFile(removeFileDto: RemoveFileDto) {
+  
+  //     try {
+  
+  //       const {entity_name, id} = removeFileDto // dto dan tablitsa nomi va rasmi o'chirilishi kerak bo'lgan qator id si keladi
+  
+  //       // X Tablistadan id boyicha qidirib rasm saqlangan manzilni topadi
+  //       const {image_link} = await this.repository.manager.getRepository(entity_name).findOne({where: {id: id}, select: ['image_link']})
+  
+  //       // linkdan file nomini ajratib oladi
+  //       const fileName = path.basename(image_link);
+  
+  //       //file nomini u joylashgan papka bilan birlashtiradi
+  //       const filePath = path.resolve(__dirname, '../..', 'images', fileName);
+        
+  //       // fileni ochiradi -- fs.unlinkSync orqali 
+  //       const res = fs.unlinkSync(filePath);
+  
+  
+  //       return res;
+  
+  //     } catch (error) {
+  //       // agar rasm yoq bo'lsa ogohlantirish bildirish  uchun controllerga false qaytaradi 
+        
+  //       if(error.message.substring('no such file or directory')){
+  //         return false
+  //       }
+  //       // kutilmagan xatolik yuz bersa istisno xabar qaytaradi
+  //       throw new HttpException(
+  //         'Failed to delete file',
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     }
+  //   }
 
 
 

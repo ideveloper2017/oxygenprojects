@@ -1,6 +1,7 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import Model from '../../model/model.module';
 import { Buildings } from '../../buildings/entities/building.entity';
+import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
 
 @Entity('Towns')
 export class Towns extends Model {
@@ -24,4 +25,7 @@ export class Towns extends Model {
 
   @OneToMany((type) => Buildings, (building) => building.towns)
   buildings: Buildings[];
+
+  @OneToMany((type) => FileUpload, (fileUpload) => fileUpload.town)
+  files: FileUpload[];
 }

@@ -26,68 +26,41 @@ export class OrdersService {
   }
 
   async createOrder(createOrderDto: CreateOrderDto) {
-    // const apartment = await this.ordersRepository.this.ordersRepository.manager.getRepository(Apartments).findOne({where: {id: createOrderDto.apartment_id}, relations: ['floor.entrance.buildings']})
-    let client_id,user_id,payment_method;
-     payment_method = await this.ordersRepository.manager
+
+
+      const payment_method = await this.ordersRepository.manager
       .getRepository(PaymentMethods)
-      .find({ where: { id: createOrderDto.payment_method_id } }).then((data)=>{
-         data.map((data)=>{
-           return data.id
-         })
-         });
+      .findOne({ where: { id: createOrderDto.payment_method_id } })
 
-
-    client_id=await this.ordersRepository.manager.getRepository(Clients).find({where:{id:createOrderDto.client_id}})
-         .then((data)=>{
-           data.map(data=>{
-             return data.id
-           })
-         });
-
-    user_id=await this.ordersRepository.manager.getRepository(Users).find({where:{id:createOrderDto.user_id}}).then((data)=>{
-            data.map(data=>{
-              return data.id;
-            })
-    })
     const order = new Orders();
-    order.clients = client_id;
-    order.users = user_id;
+    order.clients = await Clients.findOne({where:{id:createOrderDto.client_id}})
+    order.users = await Users.findOne({where:{id:createOrderDto.user_id}})
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.total_amount = 145200000;
+    order.initial_pay = createOrderDto.initial_pay
     order.quantity = createOrderDto.apartments?createOrderDto.apartments.length:1;
-    order.is_accepted = createOrderDto.is_accepted;
+    
     const savedOrder = await this.ordersRepository.save(order);
 
-    const orderItem = new OrderItems();
-    orderItem.order_id = savedOrder.id;
-    orderItem.apartment_id = createOrderDto.apartment_id;
-    orderItem.final_price=0;
-
-    const saveOrderItem = await this.ordersRepository.manager
-      .getRepository(OrderItems)
-      .save(orderItem);
+    
 
     const apartment = await this.ordersRepository.manager
       .getRepository(Apartments)
       .findOne({
-        where: { id: saveOrderItem.apartment_id },
+        where: { id: createOrderDto.apartment_id },
         relations: ['floor.entrance.buildings'],
       });
 
     // binodagi barcha apartmentlarga tegishli narxini olish
-    const total =
-      apartment.floor.entrance.buildings.mk_price * apartment.room_space;
+    const total = apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
     const oneMonthDue =
       (total - createOrderDto.initial_pay) / createOrderDto.installment_month;
 
-    const paymethod=await this.ordersRepository.manager.getRepository(PaymentMethods)
-        .findOne({ where: { id: createOrderDto.payment_method_id } })
-
-    if (paymethod.name.toLowerCase() === 'rassrochka') {
+    
+    if (payment_method.name.toLowerCase() === 'rassrochka') {
       const creditSchedule = [];
       const date = new Date();
 
@@ -95,7 +68,7 @@ export class OrdersService {
         const mon = new Date(date.setMonth(date.getMonth() + 1));
 
         const installment = new CreditTable();
-        installment.order_id = savedOrder.id;
+        installment.orders = savedOrder
         installment.due_amount = +oneMonthDue.toFixed(2);
         installment.due_date = mon;
         installment.status = 'waiting';
@@ -111,6 +84,26 @@ export class OrdersService {
       { id: savedOrder.id },
       { total_amount: total },
     );
+
+    const collectedOrderItems = []
+    if(createOrderDto.apartments && createOrderDto.apartments.length > 1){
+
+      for(let i = 0; i < createOrderDto.apartments.length; i++) {
+
+        const selectedApartment = await Apartments.findOne({where: {id: createOrderDto.apartments[i]}});
+        const total = apartment.floor.entrance.buildings.mk_price * selectedApartment.room_space;
+        
+        const orderItem = new OrderItems();
+        orderItem.orders = savedOrder
+        orderItem.apartments = selectedApartment
+        orderItem.final_price=total
+        collectedOrderItems.push(orderItem);
+      }
+    
+  }
+    const saveOrderItem = await this.ordersRepository.manager
+      .getRepository(OrderItems)
+      .save(collectedOrderItems);
 
     return updatedOrder;
   }
@@ -144,11 +137,4 @@ export class OrdersService {
     return arrayOfId.length;
   }
 
-  async chooseOrder(id: number) {
-    const order = await this.ordersRepository.update(
-      { id: id },
-      { is_accepted: true },
-    );
-    return order;
-  }
 }

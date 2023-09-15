@@ -13,15 +13,9 @@ export class Orders extends Model {
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 
-  // @Column({ type: 'integer' })
-  // client_id: number;
-
   @ManyToOne((type) => Users, (users) => users.orders)
   @JoinColumn({ name: 'user_id' })
   users: Users;
-
-  // @Column({ type: 'integer' })
-  // user_id: number;
 
   @Column()
   quantity: number;
@@ -29,11 +23,8 @@ export class Orders extends Model {
   @Column({ nullable: true })
   initial_pay: number;
 
-  @Column()
+  @Column({nullable: true})
   total_amount: number;
-
-  @Column()
-  is_accepted: boolean;
 
   @Column()
   order_date: Date;
@@ -48,8 +39,6 @@ export class Orders extends Model {
   @JoinColumn({ name: 'payment_method_id' })
   paymentMethods: PaymentMethods;
 
-  // @Column()
-  // payment_method_id: number;
 
   @OneToMany(() => OrderItems, (orderItems) => orderItems.orders)
   orderItems: OrderItems[];

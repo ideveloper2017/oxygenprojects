@@ -43,18 +43,15 @@ export class CurrenciesController {
   }
 
   @ApiOperation({ summary: 'Valyuta kursini tahrirlash' })
-  @Patch('/exchange-rate/edit/:id')
-  updateRate(
-    @Param('id') id: number,
-    @Body() editCurrencyRateDto: EditExchangeRateDto,
-  ) {
+  @Get('/exchange-rate/last')
+  lastChangedRate() {
     return this.currancyService
-      .updateCurrancyRate(id, editCurrencyRateDto)
+      .getLastRate()
       .then((data) => {
-        if (data.affected != 0) {
-          return { success: true, message: "Kurs o'zgartirildi" };
+        if (data) {
+          return { success: true, data};
         } else {
-          return { success: false, message: "Kurs o'zgartirishda xatolik" };
+          return { success: false, message: "Kurs olishda xatolik" };
         }
       });
   }

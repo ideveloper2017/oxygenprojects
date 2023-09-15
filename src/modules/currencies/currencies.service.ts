@@ -47,7 +47,7 @@ export class CurrenciesService {
     const rate = new ExchangRates();
     rate.rate_value = exchangeRateDto.rate_value;
     rate.currency_id = exchangeRateDto.currency_id;
-    rate.is_default = true;
+    rate.is_default = true
 
     await this.exchangeRepo.update({}, { is_default: false });
 
@@ -64,5 +64,13 @@ export class CurrenciesService {
       editExcahangeRateDto,
     );
     return editRate;
+  }
+
+  async getLastRate() {
+    return await this.exchangeRepo
+    .createQueryBuilder('exchangeRate')
+    .where('is_default = :val', {val:true})
+    .orderBy('id','DESC')
+    .getOne();
   }
 }
