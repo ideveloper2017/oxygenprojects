@@ -48,8 +48,8 @@ export class Orders extends Model {
   @JoinColumn({ name: 'payment_method_id' })
   paymentMethods: PaymentMethods;
 
-  @Column()
-  payment_method_id: number;
+  // @Column()
+  // payment_method_id: number;
 
   @OneToMany(() => OrderItems, (orderItems) => orderItems.orders)
   orderItems: OrderItems[];

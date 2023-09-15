@@ -27,12 +27,14 @@ export class OrdersService {
 
   async createOrder(createOrderDto: CreateOrderDto) {
     // const apartment = await this.ordersRepository.this.ordersRepository.manager.getRepository(Apartments).findOne({where: {id: createOrderDto.apartment_id}, relations: ['floor.entrance.buildings']})
-
-    const payment_method = await this.ordersRepository.manager
+    let client_id,user_id,payment_method;
+     payment_method = await this.ordersRepository.manager
       .getRepository(PaymentMethods)
-      .findOne({ where: { id: createOrderDto.payment_method_id } });
+      .findOne({ where: { id: createOrderDto.payment_method_id } }).then((data)=>{
+        return data.id;
+         });
 
-    let client_id,user_id;
+
     client_id=await this.ordersRepository.manager.getRepository(Clients).find({where:{id:createOrderDto.client_id}})
          .then((data)=>{
            data.map(data=>{
@@ -48,7 +50,7 @@ export class OrdersService {
     const order = new Orders();
     order.clients = client_id;
     order.users = user_id;
-    order.payment_method_id = createOrderDto.payment_method_id;
+    order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
     order.total_amount = 145200000;
