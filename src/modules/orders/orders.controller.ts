@@ -18,6 +18,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly orderService: OrdersService) {}
+  
   @ApiOperation({ summary: "Order qo'shishi" })
   @Post('/add')
   createOrder(@Body() createOrderDto: CreateOrderDto, @Res() res: Response) {
@@ -64,13 +65,6 @@ export class OrdersController {
       } else {
         return { success: true, message: 'order deleted successfully' };
       }
-    });
-  }
-
-  @Patch('/option/:id')
-  acceptOrRejectOrder(@Param('id') id: number) {
-    return this.orderService.chooseOrder(id).then((response) => {
-      return response;
     });
   }
 

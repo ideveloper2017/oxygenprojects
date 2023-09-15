@@ -13,8 +13,6 @@ export class OrderItems extends Model {
   @JoinColumn({ name: 'apartment_id' })
   apartments: Apartments;
 
-
-
   @Column({nullable:true})
   final_price: number;
 }
