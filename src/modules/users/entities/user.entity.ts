@@ -14,7 +14,7 @@ import { Orders } from '../../orders/entities/order.entity';
 
 @Entity('Users')
 export class Users extends Model {
-  @Column()
+  @Column({nullable:true})
   first_name: string;
 
   @Column()
@@ -44,7 +44,9 @@ export class Users extends Model {
 
   @BeforeInsert()
   async hashPassword() {
-    this.password = await bcrypt.hash(this.password, 8);
+    const salt = await bcrypt.genSalt();
+    console.log(this.password);
+    this.password = await bcrypt.hash(this.password, salt);
   }
 
   async validatePassword(password: string): Promise<boolean> {

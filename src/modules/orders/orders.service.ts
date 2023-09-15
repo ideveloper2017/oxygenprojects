@@ -95,7 +95,7 @@ export class OrdersService {
   async getOrderList(id: number) {
     let order;
     if (id == 0) {
-      order = await this.ordersRepository.find();
+      order = await this.ordersRepository.find({relations: ['apartments', 'apartments.floor.entrance.buildings']});
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },

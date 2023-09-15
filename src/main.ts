@@ -1,9 +1,9 @@
-import { NestFactory } from '@nestjs/core';
+import {NestFactory, Reflector} from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
+import {ClassSerializerInterceptor, ValidationPipe} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 
@@ -16,10 +16,13 @@ async function bootstrap() {
   app.setGlobalPrefix('/api');
   app.enableCors();
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   const config = new DocumentBuilder()
     .setTitle('Sales Appartment API Documentation')
     .setVersion('1.0')
+      .addBearerAuth()
     .addTag('Auth')
     .addTag('Users')
     .addTag('Towns')

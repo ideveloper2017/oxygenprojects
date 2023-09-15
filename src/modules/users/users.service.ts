@@ -5,7 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
-
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class UsersService {
   constructor(
@@ -49,19 +49,27 @@ export class UsersService {
           });
         });
 
-      const newUser = new Users();
-      newUser.first_name = createUserDto.first_name;
-      newUser.last_name = createUserDto.last_name;
-      newUser.username = createUserDto.username;
-      newUser.phone_number = createUserDto.phone_number;
-      newUser.password = createUserDto.password;
-      newUser.is_active = createUserDto.is_active;
-      newUser.roles = role_id;
-
-      const user = this.usersRepository.save(newUser);
-      return user;
+      // const newUser = new Users();
+      // newUser.first_name = createUserDto.first_name;
+      // newUser.last_name = createUserDto.last_name;
+      // newUser.username = createUserDto.username;
+      // newUser.phone_number = createUserDto.phone_number;
+      // newUser.password = await bcrypt.hash(createUserDto.password,10);
+      // newUser.is_active = createUserDto.is_active;
+      // newUser.roles = role_id;
+      // [{
+      //   first_name:createUserDto.first_name,
+      //   last_name : createUserDto.last_name,
+      //   username : createUserDto.username,
+      //   phone_number : createUserDto.phone_number,
+      //   password : createUserDto.password,
+      //   is_active : createUserDto.is_active,
+      //   roles : role_id,
+      // }]
+      const user = await this.usersRepository.save(createUserDto);
+      return createUserDto;
     } catch (error) {
-      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message+ " "+JSON.stringify(createUserDto), HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

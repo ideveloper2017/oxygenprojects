@@ -11,17 +11,18 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags } from '@nestjs/swagger';
+import {ApiBearerAuth, ApiTags} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/role.guard';
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @UseGuards(AuthGuard('jwt'), RolesGuard)
-  // @Roles('admin')
+  @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
   @Get('/list/:id')
   findAll(@Param('id') id: number) {
     return this.usersService.getUsers(id).then((data) => {
@@ -35,7 +36,8 @@ export class UsersController {
 
   @Post('/save')
   public async createLogin(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.createLogin(createUserDto);
+    return JSON.stringify(createUserDto);
+   // return this.usersService.createLogin(createUserDto);
   }
 
   @Put('/update/:id')
