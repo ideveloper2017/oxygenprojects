@@ -60,19 +60,12 @@ export class OrdersService {
     order.is_accepted = createOrderDto.is_accepted;
     const savedOrder = await this.ordersRepository.save(order);
 
-    const orderItem = new OrderItems();
-    orderItem.order_id = savedOrder.id;
-    orderItem.apartment_id = createOrderDto.apartment_id;
-    orderItem.final_price=0;
-
-    const saveOrderItem = await this.ordersRepository.manager
-      .getRepository(OrderItems)
-      .save(orderItem);
+    
 
     const apartment = await this.ordersRepository.manager
       .getRepository(Apartments)
       .findOne({
-        where: { id: saveOrderItem.apartment_id },
+        where: { id: createOrderDto.apartment_id },
         relations: ['floor.entrance.buildings'],
       });
 
@@ -85,6 +78,7 @@ export class OrdersService {
       (total - createOrderDto.initial_pay) / createOrderDto.installment_month;
 
     const paymethod=await this.ordersRepository.manager.getRepository(PaymentMethods).findOne({ where: { id: createOrderDto.payment_method_id } })
+    
     if (paymethod.name.toLowerCase() === 'rassrochka') {
       const creditSchedule = [];
       const date = new Date();
@@ -93,7 +87,7 @@ export class OrdersService {
         const mon = new Date(date.setMonth(date.getMonth() + 1));
 
         const installment = new CreditTable();
-        installment.order_id = savedOrder.id;
+        installment.orders = savedOrder
         installment.due_amount = +oneMonthDue.toFixed(2);
         installment.due_date = mon;
         installment.status = 'waiting';
@@ -109,6 +103,15 @@ export class OrdersService {
       { id: savedOrder.id },
       { total_amount: total },
     );
+
+    const orderItem = new OrderItems();
+    orderItem.orders = savedOrder
+    orderItem.apartments = await Apartments.findOne({where: {id: createOrderDto.apartment_id}});
+    orderItem.final_price=0;
+
+    const saveOrderItem = await this.ordersRepository.manager
+      .getRepository(OrderItems)
+      .save(orderItem);
 
     return updatedOrder;
   }
