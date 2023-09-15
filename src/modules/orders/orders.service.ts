@@ -8,6 +8,8 @@ import { OrderItems } from '../order-items/entities/order-item.entity';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import { CreditTable } from '../credit-table/entities/credit-table.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import {Clients} from "../clients/entities/client.entity";
+import {Users} from "../users/entities/user.entity";
 
 @Injectable()
 export class OrdersService {
@@ -30,9 +32,22 @@ export class OrdersService {
       .getRepository(PaymentMethods)
       .findOne({ where: { id: createOrderDto.payment_method_id } });
 
+    let client_id,user_id;
+    client_id=await this.ordersRepository.manager.getRepository(Clients).find({where:{id:createOrderDto.client_id}})
+         .then((data)=>{
+           data.map(data=>{
+             return data.id
+           })
+         });
+
+    user_id=await this.ordersRepository.manager.getRepository(Users).find({where:{id:createOrderDto.user_id}}).then((data)=>{
+            data.map(data=>{
+              return data.id;
+            })
+    })
     const order = new Orders();
-    order.client_id = createOrderDto.client_id;
-    order.user_id = createOrderDto.user_id;
+    order.clients = client_id;
+    order.users = user_id;
     order.payment_method_id = createOrderDto.payment_method_id;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
