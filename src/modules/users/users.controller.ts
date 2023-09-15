@@ -36,8 +36,7 @@ export class UsersController {
 
   @Post('/save')
   public async createLogin(@Body() createUserDto: CreateUserDto) {
-    return JSON.stringify(createUserDto);
-   // return this.usersService.createLogin(createUserDto);
+       return this.usersService.createLogin(createUserDto);
   }
 
   @Put('/update/:id')
