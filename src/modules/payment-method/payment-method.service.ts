@@ -25,6 +25,14 @@ export class PaymentMethodsService {
     };
   }
 
+  async addPaymentMethods(createPaymentMethodDto: CreatePaymentMethodDto[]) {
+   let paymentMethods:CreatePaymentMethodDto[];
+    for(let i of createPaymentMethodDto){
+      paymentMethods.push({name:i.name,is_active:i.is_active})
+    }
+   await this.paymentMethodRepo.save(paymentMethods);
+  }
+
   async getPaymentMethod(id?: number) {
     let paymentMethod;
     if (id != 0) {
