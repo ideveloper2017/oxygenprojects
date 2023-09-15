@@ -63,6 +63,7 @@ export class OrdersService {
     const orderItem = new OrderItems();
     orderItem.order_id = savedOrder.id;
     orderItem.apartment_id = createOrderDto.apartment_id;
+    orderItem.final_price=0;
 
     const saveOrderItem = await this.ordersRepository.manager
       .getRepository(OrderItems)

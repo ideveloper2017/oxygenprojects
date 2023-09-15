@@ -19,6 +19,6 @@ export class OrderItems extends Model {
   @Column()
   apartment_id: number;
 
-  @Column()
+  @Column({nullable:true})
   final_price: number;
 }
