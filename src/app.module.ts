@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -26,7 +24,11 @@ import { ExchangRatesModule } from './modules/exchang-rates/exchang-rates.module
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { resolve } from 'path';
-
+import {RolesService} from "./modules/roles/roles.service";
+import {PermissionsService} from "./modules/permissions/permissions.service";
+import {RegionsService} from "./modules/region/region.service";
+import {DistrictsService} from "./modules/district/district.service";
+import {UsersService} from "./modules/users/users.service";
 
 @Module({
   imports: [
@@ -72,4 +74,29 @@ import { resolve } from 'path';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+
+  constructor(private regionService:RegionsService,
+              private disrtrictServ:DistrictsService,
+              private roleService: RolesService,
+              private permissionServ:PermissionsService,
+              private userserv:UsersService) {
+
+    regionService.fillDataRegion();
+    disrtrictServ.fillDataDistrict();
+    roleService.filldata();
+    permissionServ.filldata();
+
+    userserv.createLogin({
+      "first_name": "Mansurxon",
+      "last_name": "Samadov",
+      "username": "mansoor07",
+      "phone_number": "+998 94 995 1254",
+      "password": "1234",
+      "is_active": false,
+      "role_id": 3
+    })
+
+  }
+
+}

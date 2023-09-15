@@ -13,6 +13,7 @@ export class PaymentsService {
     const payment = new Payments()
     payment.order_id = newPaymentDto.order_id
     payment.amount = newPaymentDto.amount
+    payment.payment_date = new Date()
     payment.by_card= newPaymentDto.by_card
     payment.in_cash = newPaymentDto.in_cash
     payment.bank = newPaymentDto.bank

@@ -7,30 +7,30 @@ import { CreateFileUploadDto } from './dto/create-file-upload.dto';
 @ApiTags('FileUpload')
 @Controller('file-upload')
 export class FileUploadController {
-  constructor(
-    private readonly fileUploadService: FileUploadService) {}
+  constructor(private readonly fileUploadService: FileUploadService) {}
 
   @Post('/upload')
   @ApiConsumes('multipart/form-data')
-
-  @ApiOperation({summary: 'Upload a file', description: 'Upload a file by selecting it using the upload button.',})
+  @ApiOperation({
+    summary: 'Upload a file',
+    description: 'Upload a file by selecting it using the upload button.',
+  })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
         file: {
           type: 'string',
-          format: 'binary'
-        }
-      }
-    }
+          format: 'binary',
+        },
+      },
+    },
   })
-
   @UseInterceptors(FileInterceptor('file'))
   
   async uploadFile(@Body() createFileDto: CreateFileUploadDto, @UploadedFile() file:Express.Multer.File) {
     if (!file) {
-      return {success: false, message:"yuklash uchun rasm tanlanmagan!!"}
+      return { success: false, message: 'yuklash uchun rasm tanlanmagan!!' };
     }
 
     const fileName = file.originalname
@@ -61,8 +61,6 @@ export class FileUploadController {
           return {success: false, message: "File not exists"}
           
       }
-    }
-      )
-
+    });
   }
 }
