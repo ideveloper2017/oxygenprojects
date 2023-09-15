@@ -30,8 +30,10 @@ export class OrdersService {
     let client_id,user_id,payment_method;
      payment_method = await this.ordersRepository.manager
       .getRepository(PaymentMethods)
-      .findOne({ where: { id: createOrderDto.payment_method_id } }).then((data)=>{
-        return data.id;
+      .find({ where: { id: createOrderDto.payment_method_id } }).then((data)=>{
+         data.map((data)=>{
+           return data.id
+         })
          });
 
 
