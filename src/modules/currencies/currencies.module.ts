@@ -9,5 +9,6 @@ import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
   imports: [TypeOrmModule.forFeature([Currencies, ExchangRates])],
   controllers: [CurrenciesController],
   providers: [CurrenciesService],
+  exports:[CurrenciesService]
 })
 export class CurrenciesModule {}

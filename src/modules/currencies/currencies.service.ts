@@ -46,13 +46,21 @@ export class CurrenciesService {
   async newRate(exchangeRateDto: CreatexchangeRateDto) {
     const rate = new ExchangRates();
     rate.rate_value = exchangeRateDto.rate_value;
-    rate.currency_id = exchangeRateDto.currency_id;
+    rate.currencies = await Currencies.findOne({where:{id:exchangeRateDto.currency_id}});
     rate.is_default = true
 
     await this.exchangeRepo.update({}, { is_default: false });
 
     const savedRate = await this.exchangeRepo.save(rate);
     return savedRate;
+  }
+
+  async newRates(exchangeRateDto: CreatexchangeRateDto[]){
+    let exchanges=[];
+    for (let i of exchangeRateDto){
+          exchanges.push({rate_value:i.rate_value,currencies:await Currencies.findOne({where:{id:i.currency_id}}),is_default:i.is_default})
+    }
+    await this.currencyRepo.save(exchanges);
   }
 
   async updateCurrancyRate(

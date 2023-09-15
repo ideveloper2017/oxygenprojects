@@ -14,6 +14,4 @@ export class ExchangRates extends Model {
   @JoinColumn({ name: 'currency_id' })
   currencies: Currencies;
 
-  @Column()
-  currency_id: number;
 }

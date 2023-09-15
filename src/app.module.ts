@@ -30,6 +30,8 @@ import {RegionsService} from "./modules/region/region.service";
 import {DistrictsService} from "./modules/district/district.service";
 import {UsersService} from "./modules/users/users.service";
 import {PaymentMethodsService} from "./modules/payment-method/payment-method.service";
+import {CurrenciesService} from "./modules/currencies/currencies.service";
+import {Currencies} from "./modules/currencies/entities/currency.entity";
 
 @Module({
     imports: [
@@ -77,12 +79,13 @@ import {PaymentMethodsService} from "./modules/payment-method/payment-method.ser
 })
 export class AppModule {
 
-    constructor(private regionService: RegionsService,
-                private disrtrictServ: DistrictsService,
-                private roleService: RolesService,
-                private permissionServ: PermissionsService,
-                private userserv: UsersService,
-                private paymentMethodServ: PaymentMethodsService) {
+      constructor(private regionService: RegionsService,
+                      private disrtrictServ: DistrictsService,
+                      private roleService: RolesService,
+                      private permissionServ: PermissionsService,
+                      private userserv: UsersService,
+                      private paymentMethodServ: PaymentMethodsService,
+                      private currencyServ: CurrenciesService) {
 
         regionService.fillDataRegion();
         disrtrictServ.fillDataDistrict();
@@ -99,10 +102,7 @@ export class AppModule {
             "role_id": 3
         })
 
-        paymentMethodServ.addPaymentMethods([{
-            name: 'Нақд',
-            is_active: true
-        },
+        paymentMethodServ.addPaymentMethods([
             {
                 name: 'Нақд',
                 is_active: true
@@ -111,16 +111,25 @@ export class AppModule {
                 name: 'Ипотека',
                 is_active: true
             },
-
             {
                 name: 'Доллар',
                 is_active: true
             }, {
                 name: 'Субсидиа',
                 is_active: true
+            },{
+                name: 'daasdsaasd',
+                is_active: true
             }
-
         ])
+
+          if (!Currencies.findOne({where:{is_selected:true}})){
+              Currencies.save({
+                  name: "USD",
+                  is_selected: true
+              })
+          }
+
 
 
     }
