@@ -13,15 +13,15 @@ export class Orders extends Model {
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 
-  @Column({ type: 'integer' })
-  client_id: number;
+  // @Column({ type: 'integer' })
+  // client_id: number;
 
   @ManyToOne((type) => Users, (users) => users.orders)
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
-  @Column({ type: 'integer' })
-  user_id: number;
+  // @Column({ type: 'integer' })
+  // user_id: number;
 
   @Column()
   quantity: number;
