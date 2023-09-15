@@ -84,7 +84,8 @@ export class OrdersService {
     const oneMonthDue =
       (total - createOrderDto.initial_pay) / createOrderDto.installment_month;
 
-    if (payment_method.name.toLowerCase() === 'rassrochka') {
+    const paymethod=await this.ordersRepository.manager.getRepository(PaymentMethods).findOne({ where: { id: createOrderDto.payment_method_id } })
+    if (paymethod.name.toLowerCase() === 'rassrochka') {
       const creditSchedule = [];
       const date = new Date();
 
