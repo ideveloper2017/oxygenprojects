@@ -12,7 +12,7 @@ export class CreditTableController {
     return this.creaditTableService
       .getCreditTableOfClient(order_id)
       .then((data) => {
-        if (data.length > 0) {
+        if (data) {
           return { success: true, data, message: 'Fetched data' };
         } else {
           return { success: false, message: 'Data not found' };

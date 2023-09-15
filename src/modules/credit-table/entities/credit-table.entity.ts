@@ -6,10 +6,7 @@ export class CreditTable extends Model {
   @ManyToOne(() => Orders, (orders) => orders.creditTables)
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
-
-  @Column()
-  order_id: number;
-
+  
   @Column({ type: 'float' })
   due_amount: number;
 

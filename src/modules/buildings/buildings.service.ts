@@ -77,7 +77,7 @@ export class BuildingsService {
     } else {
       result = await this.buildingRepository.findOne({
         where: { id: id },
-        relations: ['entrances.floors.apartments'],
+        relations: ['entrances.floors.apartments', 'files'],
         order: {
           entrances: {
             entrance_number: 'asc',
