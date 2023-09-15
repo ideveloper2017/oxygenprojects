@@ -16,7 +16,7 @@ async function bootstrap() {
   app.setGlobalPrefix('/api');
   app.enableCors();
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  app.useGlobalPipes(new ValidationPipe());
   //app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
