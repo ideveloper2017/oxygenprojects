@@ -7,14 +7,12 @@ import { Entrance } from '../entrance/entities/entrance.entity';
 import { Floor } from '../floor/entities/floor.entity';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import { UpdateBuildingDto } from './dto/update-building.dto';
-import { FileUploadService } from '../file-upload/file-upload.service';
 
 @Injectable()
 export class BuildingsService {
   constructor(
     @InjectRepository(Buildings)
     private readonly buildingRepository: Repository<Buildings>,
-    private readonly filesService: FileUploadService
   ) {}
 
   async createBuilding(createBuildingDto: CreateBuildingDto) {
@@ -79,7 +77,7 @@ export class BuildingsService {
     } else {
       result = await this.buildingRepository.findOne({
         where: { id: id },
-        relations: ['entrances.floors.apartments'],
+        relations: ['entrances.floors.apartments', 'files'],
         order: {
           entrances: {
             entrance_number: 'asc',
@@ -121,10 +119,4 @@ export class BuildingsService {
     return result;
   }
 
-  //============================ file upload =============================
-
-  async addImage( imageBuffer: Buffer, filename: string) {
-
-    
-  }
 }

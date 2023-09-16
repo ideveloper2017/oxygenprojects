@@ -33,7 +33,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FileUpload } from './entities/file-upload.entity';
-import { LocalFileDto } from './dto/create-file-upload.dto';
+import { FileDto } from './dto/create-file-upload.dto';
+import { FindFile } from './dto/find-files.dto';
 
 @Injectable()
 export class FileUploadService {
@@ -51,10 +52,45 @@ export class FileUploadService {
     }
     return file;
   }
+  
+  async getFiles(fileDto: FindFile) { // hozircha ishlamaydi
 
-  async saveLocalFileData(fileData: LocalFileDto) {
-    const newFile = await this.localFilesRepository.create(fileData);
-    await this.localFilesRepository.save(newFile);
-    return newFile;
+    const res_id = fileDto.record_id
+    const file = await this.localFilesRepository.createQueryBuilder('file')
+    .where(`file.${fileDto.entity} = :res_id`, { res_id})
+    .getMany();
+
+    console.log(file);
+
+    if (!file) {
+      throw new NotFoundException();
+    }
+    return file;
+  }
+  
+  async saveLocalFileData(fileDto: FileDto) {
+    const file = new FileUpload();
+      file.filename = fileDto.filename
+      file.path = fileDto.path
+      file.mimetype = fileDto.mimetype
+
+      if(fileDto.entity == 'Apartments'){
+      
+        file.apartment_id =  +fileDto.record_id
+      
+      }else if(fileDto.entity == 'Buildings'){
+      
+        file.building_id =  +fileDto.record_id
+        
+      }else if(fileDto.entity == "Towns"){
+      
+        file.town_id =  +fileDto.record_id
+      }
+
+      const savedFile = await this.localFilesRepository.save(file)
+
+      return savedFile
   }
 }
+
+
