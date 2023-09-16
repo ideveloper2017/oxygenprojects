@@ -25,8 +25,8 @@ export class UsersController {
   constructor(
            private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
   @ApiOkResponse({ type: CreateUserDto, isArray: true }) // @ApiBearerAuth()
   @Get('/list/:id')
   findAll(@Param('id') id: number) {
