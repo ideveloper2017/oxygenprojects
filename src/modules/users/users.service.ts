@@ -93,6 +93,7 @@ export class UsersService {
   async findOneById(id: number) {
     return await this.usersRepository.findOne({
       where: { id },
+      relations:['roles']
     });
   }
 

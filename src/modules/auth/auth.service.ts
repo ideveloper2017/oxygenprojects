@@ -43,7 +43,7 @@ export class AuthService {
   async getLoggedUser(user: any) {
     const loggedUser = await Users.findOne({
       where: {
-        id: user,
+        id: user, is_active:true
       },
       relations: ['roles', 'roles.permission'],
     });

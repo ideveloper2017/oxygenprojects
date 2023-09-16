@@ -50,7 +50,6 @@ export class Users extends Model {
   @BeforeInsert()
   async hashPassword() {
     const salt = await bcrypt.genSalt();
-    console.log(this.password);
     this.password = await bcrypt.hash(this.password, salt);
   }
 

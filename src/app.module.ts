@@ -94,13 +94,13 @@ export class AppModule  implements NestModule{
         permissionServ.filldata();
 
         userserv.createLogin({
-            "first_name": "Mansurxon",
-            "last_name": "Samadov",
-            "username": "mansoor07",
+            "first_name": "Admin",
+            "last_name": "Admin",
+            "username": "admin",
             "phone_number": "+998 94 995 1254",
             "password": "1234",
-            "is_active": false,
-            "role_id": 3
+            "is_active": true,
+            "role_id": 1
         })
 
         paymentMethodServ.addPaymentMethods([

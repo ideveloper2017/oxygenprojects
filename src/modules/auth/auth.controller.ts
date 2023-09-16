@@ -80,9 +80,5 @@ export class AuthController {
   }
 
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('profile')
-  getLoggedUser(@AuthUser() user: any) {
-    return this.authService.getLoggedUser(user.userId);
-  }
+
 }

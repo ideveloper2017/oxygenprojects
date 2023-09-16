@@ -18,15 +18,19 @@ import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 import {LoginResponse} from "../auth/type/loginResponse";
 import {AuthService} from "../auth/auth.service";
 import * as bcrypt from 'bcryptjs';
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
+import {Roles} from "../auth/decorator/roles.decorator";
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(
+      private readonly authService:AuthService,
            private readonly usersService: UsersService) {}
 
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: CreateUserDto, isArray: true }) // @ApiBearerAuth()
   @Get('/list/:id')
   findAll(@Param('id') id: number) {
@@ -98,5 +102,13 @@ export class UsersController {
       .catch((error) => {
         return { success: false, message: error.message };
       });
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Roles('admin', 'manager')
+  @ApiBearerAuth()
+  @Get('profile')
+  getLoggedUser(@AuthUser() user: any) {
+    return this.authService.getLoggedUser(user.userId);
   }
 }

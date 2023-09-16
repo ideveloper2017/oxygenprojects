@@ -20,7 +20,7 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     try {
-      const { userId: id, roles }: AccessTokenPayload = verify(
+      const { userId: id,roles }: AccessTokenPayload = verify(
           accessToken,
           process.env.ACCESS_TOKEN_SECRET,
       );
