@@ -115,7 +115,7 @@ export class OrdersService {
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: ['apartments', 'apartments.floor.entrance.buildings'],
+        relations: ['clients','users'],
       });
     }
     return order;
