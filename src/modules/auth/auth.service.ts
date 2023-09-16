@@ -86,7 +86,6 @@ export class AuthService {
     }
 
     const { id, roles, tokenVersion } = user;
-
     const tokens = await this.assignTokens(id, roles, tokenVersion);
     return {
       user,
