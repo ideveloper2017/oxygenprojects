@@ -65,7 +65,7 @@ export class UsersService {
         last_name : createUserDto.last_name,
         username : createUserDto.username,
         phone_number : createUserDto.phone_number,
-        password : createUserDto.password,
+        password : await bcrypt.hash(createUserDto.password,10),
         is_active : createUserDto.is_active,
         roles : role_id,
       }]);
