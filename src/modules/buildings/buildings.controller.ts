@@ -8,12 +8,15 @@ import {
   Patch,
   Post,
   Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { UpdateBuildingDto } from './dto/update-building.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Buildings')
 @Controller('buildings')
@@ -116,4 +119,23 @@ export class BuildingsController {
       })
       .catch((error) => console.log(error));
   }
+
+
+  // @Post('/image/:id')
+  // @ApiConsumes('multipart/form-data')
+  // @ApiBody({
+  //   schema: {
+  //     type: 'object',
+  //     properties: {
+  //       file: {
+  //         type: 'string',
+  //         format: 'binary',
+  //       },
+  //     },
+  //   },
+  // })
+  // @UseInterceptors(FileInterceptor('file'))
+  // async addImageForBuilding(@Param('id') id:number, @UploadedFile() file: Express.Multer.File) {
+  //   return this.buildingsService.addImage(id, file.buffer, file.originalname);
+  // }
 }

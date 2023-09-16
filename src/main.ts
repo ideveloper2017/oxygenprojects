@@ -37,7 +37,7 @@ async function bootstrap() {
     .addTag('Orders')
     .addTag('OrderItems')
     .addTag('CreditTable')
-    .addTag('FileUploads')
+    .addTag('FileUpload')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

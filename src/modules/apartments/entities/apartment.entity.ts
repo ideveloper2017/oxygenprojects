@@ -35,6 +35,6 @@ export class Apartments extends Model {
   @OneToMany(() => OrderItems, (orderItems) => orderItems.apartments)
   orderItems: OrderItems[];
   
-  @OneToMany(() => FileUpload, (files) => files.apartment, {nullable: true})
+  @OneToMany(() => FileUpload, (files) => files.apartment)
   files: FileUpload[];
 }
