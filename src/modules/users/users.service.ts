@@ -6,9 +6,11 @@ import { Users } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
+import {UserResponse} from "./type/userResponse";
 @Injectable()
 export class UsersService {
   constructor(
+
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
   ) {}
@@ -73,6 +75,13 @@ export class UsersService {
     }
   }
 
+  // async create(user: CreateUserDto): Promise<UserResponse> {
+  //   const newUser = await this.usersRepository.create(user);
+  //   await this.usersRepository.save(newUser);
+  //   const { password, created_at, updated_at, ...userResult } = newUser;
+  //   return userResult;
+  // }
+
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
     return await this.usersRepository.update({ id: id }, updateUserDto);
   }
@@ -84,6 +93,12 @@ export class UsersService {
   async findOneById(id: number) {
     return await this.usersRepository.findOne({
       where: { id },
+    });
+  }
+
+  async findUserWithPassword(username: string): Promise<Users> {
+    return await this.usersRepository.findOne({
+      where: { username:username},
     });
   }
 }

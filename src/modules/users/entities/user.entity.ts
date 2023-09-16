@@ -34,13 +34,18 @@ export class Users extends Model {
 
   @ManyToOne((type) => Roles, (roles) => roles.users)
   @JoinColumn({ name: 'role_id' })
-  roles: Roles[];
+  roles: Roles;
 
   @OneToMany((type) => Sales, (sales) => sales.users)
   sales: Sales[];
 
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
+
+  @Column({
+    default: 0,
+  })
+  tokenVersion: number;
 
   @BeforeInsert()
   async hashPassword() {

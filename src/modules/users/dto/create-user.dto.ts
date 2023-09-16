@@ -3,6 +3,10 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { Column } from 'typeorm';
 export class CreateUserDto {
 
+    constructor(partial:Partial<CreateUserDto>) {
+        Object.assign(this,partial)
+    }
+
     @ApiProperty({example: "Mansurxon"})
     first_name: string;
 

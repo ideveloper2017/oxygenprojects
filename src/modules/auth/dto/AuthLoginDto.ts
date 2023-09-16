@@ -4,6 +4,10 @@ import {ApiProperty} from "@nestjs/swagger";
 
 export class AuthLoginDto{
 
+    constructor(partial:Partial<AuthLoginDto>) {
+        Object.assign(this,partial)
+    }
+
     @ApiProperty()
     @IsNotEmpty()
     usernameoremail:string;
