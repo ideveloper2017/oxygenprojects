@@ -47,7 +47,7 @@ export class UsersService {
         .find({ where: { id: createUserDto.role_id } })
         .then((data) => {
           data.map((data) => {
-            role_id = data.id;
+            role_id = data;
           });
         });
 
@@ -59,16 +59,16 @@ export class UsersService {
       // newUser.password = await bcrypt.hash(createUserDto.password,10);
       // newUser.is_active = createUserDto.is_active;
       // newUser.roles = role_id;
-      // [{
-      //   first_name:createUserDto.first_name,
-      //   last_name : createUserDto.last_name,
-      //   username : createUserDto.username,
-      //   phone_number : createUserDto.phone_number,
-      //   password : createUserDto.password,
-      //   is_active : createUserDto.is_active,
-      //   roles : role_id,
-      // }]
-      const user = await this.usersRepository.save(createUserDto);
+
+      const user = await this.usersRepository.save( [{
+        first_name:createUserDto.first_name,
+        last_name : createUserDto.last_name,
+        username : createUserDto.username,
+        phone_number : createUserDto.phone_number,
+        password : createUserDto.password,
+        is_active : createUserDto.is_active,
+        roles : role_id,
+      }]);
       return createUserDto;
     } catch (error) {
       throw new HttpException(error.message+ " "+JSON.stringify(createUserDto), HttpStatus.INTERNAL_SERVER_ERROR);
