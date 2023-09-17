@@ -33,12 +33,15 @@ import {PaymentMethodsService} from "./modules/payment-method/payment-method.ser
 import {CurrenciesService} from "./modules/currencies/currencies.service";
 import {Currencies} from "./modules/currencies/entities/currency.entity";
 import {AuthMiddleware} from "./modules/auth/middleware/auth.middleware";
+import { ScheduleModule } from '@nestjs/schedule';
+import { TaskSchedulerModule } from './modules/task-scheduler/task-scheduler.module';
 
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+        ScheduleModule.forRoot(),
         ServeStaticModule.forRoot({
             rootPath: resolve(__dirname, '../src/', 'images'),
         }),
@@ -74,6 +77,7 @@ import {AuthMiddleware} from "./modules/auth/middleware/auth.middleware";
         CurrenciesModule,
         ExchangRatesModule,
         FileUploadModule,
+        TaskSchedulerModule,
     ],
     controllers: [],
     providers: [],

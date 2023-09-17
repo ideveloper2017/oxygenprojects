@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -56,14 +58,17 @@ export class OrdersController {
   })
   @Post('/delete')
   deleteOrder(@Body() arrayOfId: number[]) {
+    if(arrayOfId.length == 0) {
+      throw new HttpException('provide order ids', HttpStatus.LENGTH_REQUIRED)
+    }
     return this.orderService.deleteOrder(arrayOfId).then((response) => {
-      if (response != 0) {
+      if (response.affected != 0) {
         return {
           success: true,
-          message: `${response} Orders deleted successfully`,
+          message: `Orders deleted successfully`,
         };
-      } else {
-        return { success: true, message: 'order deleted successfully' };
+      } else  {
+        return { success: false, message: 'order not exists' };
       }
     });
   }
