@@ -9,6 +9,9 @@ export class CreditTable extends Model {
   
   @Column({ type: 'float' })
   due_amount: number;
+ 
+  @Column({ type: 'float' })
+  left_amount: number;
 
   @Column({ enum: ['paid', 'waiting', 'unpaid'] })
   status: string;

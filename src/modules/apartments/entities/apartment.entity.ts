@@ -23,9 +23,6 @@ export class Apartments extends Model {
   @Column({ type: 'float', nullable: true })
   room_space: number;
 
-  @Column({nullable: true })
-  image_link: string
-
   @Column({ enum: ['free', 'sold', 'bron', 'inactive'], nullable: true })
   status: string;
 

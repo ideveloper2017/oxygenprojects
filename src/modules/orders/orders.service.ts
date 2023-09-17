@@ -30,7 +30,7 @@ export class OrdersService {
 
       const payment_method = await this.ordersRepository.manager
       .getRepository(PaymentMethods)
-      .findOne({ where: { id: createOrderDto.payment_method_id } })
+      .findOne({ where: { name: createOrderDto.payment_method_name } })
 
     const order = new Orders();
     order.clients = await Clients.findOne({where:{id:createOrderDto.client_id}})
@@ -60,7 +60,7 @@ export class OrdersService {
       (total - createOrderDto.initial_pay) / createOrderDto.installment_month;
 
     
-    if (payment_method.name.toLowerCase() === 'rassrochka') {
+    if (payment_method.name.toLowerCase() === 'rassrochka' || payment_method.name.toLowerCase() === 'ipoteka' ) {
       const creditSchedule = [];
       const date = new Date();
 
@@ -71,6 +71,7 @@ export class OrdersService {
         installment.orders = savedOrder
         installment.due_amount = +oneMonthDue.toFixed(2);
         installment.due_date = mon;
+        installment.left_amount = 0
         installment.status = 'waiting';
         creditSchedule.push(installment);
       }
@@ -111,11 +112,11 @@ export class OrdersService {
   async getOrderList(id: number) {
     let order;
     if (id == 0) {
-      order = await this.ordersRepository.find({relations: ['clients','users']});
+      order = await this.ordersRepository.find({relations: ['clients','users', 'paymentMethods']});
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: ['clients','users'],
+        relations: ['clients','users', 'paymentMethods'],
       });
     }
     return order;
