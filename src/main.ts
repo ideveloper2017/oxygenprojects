@@ -16,6 +16,9 @@ async function bootstrap() {
   app.setGlobalPrefix('/api');
   app.enableCors(  {
     origin: ['http://localhost:5173'],
+    methods: ['POST', 'PUT', 'DELETE', 'GET','PATCH'],
+    credentials:true
+
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
