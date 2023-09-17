@@ -14,17 +14,17 @@ export class CookieInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map(data => {
         const res = context.switchToHttp().getResponse();
-        const req = context.switchToHttp().getRequest();
+        // const req = context.switchToHttp().getRequest();
 
         const { accessToken, refreshToken } = data;
 
-        req.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure:true,
-            sameSite:'none',
-            // maxAge: 1000 * 60 * 60 * 24 * 7,
-            // path: '/api/auth/refresh-token',
-        })
+        // req.cookie('refreshToken', refreshToken, {
+        //     httpOnly: true,
+        //     secure:true,
+        //     sameSite:'none',
+        //     // maxAge: 1000 * 60 * 60 * 24 * 7,
+        //     // path: '/api/auth/refresh-token',
+        // })
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
           secure:true,
