@@ -3,7 +3,7 @@ import { Orders } from '../../orders/entities/order.entity';
 import Model from '../../model/model.module';
 @Entity('CreditTable')
 export class CreditTable extends Model {
-  @ManyToOne(() => Orders, (orders) => orders.creditTables)
+  @ManyToOne(() => Orders, (orders) => orders.creditTables, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
   

@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
-
+import { IsEnum, IsNotEmpty, IsString, Matches } from 'class-validator';
+enum Gender {
+  Male = 'male',
+  Female = 'female',
+}
 export class CreateClientDto {
   @ApiProperty({ example: 'Jhonson', description: 'clients firstname ' })
   @IsNotEmpty()
@@ -16,6 +19,7 @@ export class CreateClientDto {
   @IsString()
   middle_name: string;
 
+  @IsEnum(Gender, {message: "Invalid gender entered"})
   @ApiProperty({ example: 'male', description: 'gender of client' })
   gender: string = 'male' || 'female';
 
@@ -38,7 +42,9 @@ export class CreateClientDto {
 
   @ApiProperty({ example: '1978-08-13' })
   date_of_birth: Date;
-
+  
+  
+  @Matches(/^[A-Z]{2}\d{7}$/, { message: 'Invalid passport number' })
   @ApiProperty({ example: 'AD4586321' })
   passport_seria: string;
 

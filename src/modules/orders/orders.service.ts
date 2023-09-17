@@ -39,7 +39,7 @@ export class OrdersService {
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
     order.initial_pay = createOrderDto.initial_pay
-    order.quantity = createOrderDto.apartments?createOrderDto.apartments.length:1;
+    order.quantity = 1;
     
     const savedOrder = await this.ordersRepository.save(order);
 
@@ -59,7 +59,8 @@ export class OrdersService {
     const oneMonthDue =
       (total - createOrderDto.initial_pay) / createOrderDto.installment_month;
 
-    
+    let schedule;
+
     if (payment_method.name.toLowerCase() === 'rassrochka' || payment_method.name.toLowerCase() === 'ipoteka' ) {
       const creditSchedule = [];
       const date = new Date();
@@ -76,7 +77,7 @@ export class OrdersService {
         creditSchedule.push(installment);
       }
 
-      const schedule = await this.ordersRepository.manager
+      schedule = await this.ordersRepository.manager
         .getRepository(CreditTable)
         .save(creditSchedule);
     }
@@ -86,27 +87,16 @@ export class OrdersService {
       { total_amount: total },
     );
 
-    const collectedOrderItems = []
-    if(createOrderDto.apartments && createOrderDto.apartments.length > 1){
+    const orderItem = new OrderItems();
+    orderItem.orders = savedOrder
+    orderItem.apartments = await Apartments.findOne({where: {id: +createOrderDto.apartment_id}})
+    orderItem.final_price=total
 
-      for(let i = 0; i < createOrderDto.apartments.length; i++) {
-
-        const selectedApartment = await Apartments.findOne({where: {id: createOrderDto.apartments[i]}});
-        const total = apartment.floor.entrance.buildings.mk_price * selectedApartment.room_space;
-        
-        const orderItem = new OrderItems();
-        orderItem.orders = savedOrder
-        orderItem.apartments = selectedApartment
-        orderItem.final_price=total
-        collectedOrderItems.push(orderItem);
-      }
-    
-  }
     const saveOrderItem = await this.ordersRepository.manager
-      .getRepository(OrderItems)
-      .save(collectedOrderItems);
-
-    return updatedOrder;
+    .getRepository(OrderItems)
+    .save(orderItem);
+    
+    return schedule;
   }
 
   async getOrderList(id: number) {

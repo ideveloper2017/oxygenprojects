@@ -5,7 +5,7 @@ import { Orders } from '../../orders/entities/order.entity';
 
 @Entity('OrderItems')
 export class OrderItems extends Model {
-  @ManyToOne(() => Orders, (orders) => orders.orderItems)
+  @ManyToOne(() => Orders, (orders) => orders.orderItems, {onDelete: 'CASCADE'})
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 

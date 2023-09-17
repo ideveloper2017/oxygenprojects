@@ -15,66 +15,92 @@ export class PaymentsService {
 
     const {paymentMethods}= await Orders.findOne({where: {id: newPaymentDto.order_id}, relations: ['paymentMethods']})
     let newPay
-    if(paymentMethods.name.toLowerCase() == 'rassrochka') {
+   
 
-      let check = 1
-      let money = newPaymentDto.amount
+      // while(check) {
 
-      while(check) {
-        console.log('inside of if:');
+      //   console.log('inside of if:');
 
-          let lastPaid = await CreditTable.findOne({where: {status: 'waiting'}, order: {'due_date':'ASC' }})
-          // console.log(lastPaid.due_amount-lastPaid.left_amount);
-          const leftAmount = money - (lastPaid.due_amount - lastPaid.left_amount)
+      //     let lastPaid = await CreditTable.findOne({where: {status: 'waiting'}, order: {'due_date':'ASC' }})
+      //     // console.log(lastPaid.due_amount-lastPaid.left_amount);
+      //     const leftAmount = money - (lastPaid.due_amount - lastPaid.left_amount)
           
-          // break
-          if(leftAmount > 0 ){
-            console.log(leftAmount);
+      //     // break
+      //     if(leftAmount > 0 ){
+      //       console.log(leftAmount);
             
-            if(leftAmount >= lastPaid.due_amount){
+      //       if(leftAmount >= lastPaid.due_amount){
              
-              await CreditTable.update({id: lastPaid.id}, {status: 'paid', left_amount: 0})
-              money -= lastPaid.due_amount
-              check = 1
+      //         await CreditTable.update({id: lastPaid.id}, {status: 'paid', left_amount: 0})
+      //         money -= lastPaid.due_amount
+      //         check = 1
             
-            }else {
+      //       }else {
 
-              await CreditTable.update({id: lastPaid.id}, {left_amount: lastPaid.due_amount - leftAmount })
-              money-= leftAmount
-              check =1
+      //         await CreditTable.update({id: lastPaid.id}, {left_amount: lastPaid.due_amount - leftAmount })
+      //         money-= leftAmount
+      //         check =1
               
-            }
-          }else {
-            await CreditTable.update({id: lastPaid.id}, {left_amount:lastPaid.due_amount - leftAmount})
-            // money-= lastPaid.left_amount
-            break
-          }
-        }
+      //       }
+      //     }else {
+      //       await CreditTable.update({id: lastPaid.id}, {left_amount:lastPaid.due_amount - leftAmount})
+      //       // money-= lastPaid.left_amount
+      //       break
+      //     }
+      //   }
         // console.log(leftAmount);
-        const payment = new Payments()
-    payment.order_id = newPaymentDto.order_id
-    payment.amount = newPaymentDto.amount
-    payment.payment_date = new Date()
-    payment.by_card= newPaymentDto.by_card
-    payment.in_cash = newPaymentDto.in_cash
-    payment.bank = newPaymentDto.bank
-    
-    newPay = await this.paymentRepo.save(payment)
+          if(paymentMethods.name.toLowerCase() == 'rassrochka') {
 
-  }else {
-    
-    
-        const payment = new Payments()
-    payment.order_id = newPaymentDto.order_id
-    payment.amount = newPaymentDto.amount
-    payment.payment_date = new Date()
-    payment.by_card= newPaymentDto.by_card
-    payment.in_cash = newPaymentDto.in_cash
-    payment.bank = newPaymentDto.bank
-    
-    newPay = await this.paymentRepo.save(payment)
-    
-  }
+            let check = 1
+            let money = newPaymentDto.amount     
+          while (money > 0) {
+            const nextPaid = await CreditTable.findOne({
+              where: { status: 'waiting' },
+              order: {'due_date':'ASC'},
+            });
+        
+            if (!nextPaid) {
+              break; // No more unpaid installments, exit the loop
+            }
+        
+            if (money >= nextPaid.due_amount) {
+              await CreditTable.update(
+                { id: nextPaid.id },
+                { status: 'paid', left_amount: 0 }
+              );
+              money -= nextPaid.due_amount;
+            } else {
+              await CreditTable.update(
+                { id: nextPaid.id },
+                { left_amount: nextPaid.due_amount - money }
+              );
+              money = 0;
+            }
+          }
+          const payment = new Payments()
+      payment.order_id = newPaymentDto.order_id
+      payment.amount = newPaymentDto.amount
+      payment.payment_date = new Date()
+      payment.by_card= newPaymentDto.by_card
+      payment.in_cash = newPaymentDto.in_cash
+      payment.bank = newPaymentDto.bank
+      
+      newPay = await this.paymentRepo.save(payment)
+
+    }else {
+      
+      
+          const payment = new Payments()
+      payment.order_id = newPaymentDto.order_id
+      payment.amount = newPaymentDto.amount
+      payment.payment_date = new Date()
+      payment.by_card= newPaymentDto.by_card
+      payment.in_cash = newPaymentDto.in_cash
+      payment.bank = newPaymentDto.bank
+      
+      newPay = await this.paymentRepo.save(payment)
+      
+    }
     return newPay
   }
   

@@ -15,9 +15,13 @@ export class CreateOrderDto {
 
   @ApiProperty({ example: 1, description: "to'lov turi tanlanadi" })
   payment_method_id: number;
+  
+  @ApiProperty({ example: 8_000_000, description: 'kvartira kvadrat metr narxi' })
+  price: number;
 
   @ApiProperty({ example: 25_000_000, description: 'kvartira umumiy narxi' })
   initial_pay: number;
+  
 
   @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi' })
   total_amount: number;
@@ -36,12 +40,6 @@ export class CreateOrderDto {
     description: 'buyurtma qabul qilingan yoki yoqligi',
   })
   is_accepted: boolean;
-
-  @ApiProperty({
-    example: [1, 2, 3],
-    description: 'nechta kvartira olayotgani = 3 ID lari beriladi.',
-  })
-  apartments?: number[];
 
   @ApiProperty({ example: 12, description: "bo'lib tolash oyi = 12 ..." })
   installment_month?: number;
