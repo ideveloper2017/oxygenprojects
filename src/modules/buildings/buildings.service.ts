@@ -70,7 +70,7 @@ export class BuildingsService {
         order: {
           entrances: {
             entrance_number: 'asc',
-            floors: { floor_number: 'asc', apartments: {id: 'desc'} },
+            floors: { floor_number: 'asc', apartments: {id: 'asc'} },
           },
         },
       });
@@ -81,7 +81,7 @@ export class BuildingsService {
         order: {
           entrances: {
             entrance_number: 'asc',
-            floors: { floor_number: 'asc' , apartments: {id: 'desc'}},
+            floors: { floor_number: 'asc' , apartments: {id: 'asc'}},
           },
         },
       });
@@ -110,12 +110,8 @@ export class BuildingsService {
   }
 
   async getBuldingsOfTown(town_id: number) {
-    const result = await this.buildingRepository
-      .createQueryBuilder('buildings')
-      .select()
-      .where('town_id = :town_id', { town_id })
-      .getMany();
-
+    const result = await this.buildingRepository.find({where: {town_id:town_id}, relations: ['files']})
+      
     return result;
   }
 

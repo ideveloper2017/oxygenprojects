@@ -72,7 +72,7 @@ export class PaymentsService {
             } else {
               await CreditTable.update(
                 { id: nextPaid.id },
-                { left_amount: nextPaid.due_amount - money }
+                { left_amount: +(nextPaid.due_amount - money).toFixed() }
               );
               money = 0;
             }

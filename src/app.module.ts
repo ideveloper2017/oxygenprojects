@@ -97,36 +97,36 @@ export class AppModule  implements NestModule{
         roleService.filldata();
         permissionServ.filldata();
 
-        userserv.createLogin({
-            "first_name": "Admin",
-            "last_name": "Admin",
-            "username": "admin",
-            "phone_number": "+998 94 995 1254",
-            "password": "1234",
-            "is_active": true,
-            "role_id": 1
-        })
+        // userserv.createLogin({
+        //     "first_name": "Admin",
+        //     "last_name": "Admin",
+        //     "username": "admin",
+        //     "phone_number": "+998 94 995 1254",
+        //     "password": "1234",
+        //     "is_active": true,
+        //     "role_id": 1
+        // })
 
-        paymentMethodServ.addPaymentMethods([
-            {
-                name: 'Нақд',
-                is_active: true
-            },
-            {
-                name: 'Ипотека',
-                is_active: true
-            },
-            {
-                name: 'Доллар',
-                is_active: true
-            }, {
-                name: 'Субсидиа',
-                is_active: true
-            },{
-                name: 'daasdsaasd',
-                is_active: true
-            }
-        ])
+        // paymentMethodServ.addPaymentMethods([
+        //     {
+        //         name: 'Нақд',
+        //         is_active: true
+        //     },
+        //     {
+        //         name: 'Ипотека',
+        //         is_active: true
+        //     },
+        //     {
+        //         name: 'Доллар',
+        //         is_active: true
+        //     }, {
+        //         name: 'Субсидиа',
+        //         is_active: true
+        //     },{
+        //         name: 'daasdsaasd',
+        //         is_active: true
+        //     }
+        // ])
 
           if (!Currencies.findOne({where:{is_selected:true}})){
               Currencies.save({

@@ -44,6 +44,7 @@ export class OrdersService {
     const savedOrder = await this.ordersRepository.save(order);
 
     
+    console.log(savedOrder);
 
     const apartment = await this.ordersRepository.manager
       .getRepository(Apartments)
@@ -92,11 +93,13 @@ export class OrdersService {
     orderItem.apartments = await Apartments.findOne({where: {id: +createOrderDto.apartment_id}})
     orderItem.final_price=total
 
+    await Apartments.update({id: createOrderDto.apartment_id}, {status: 'sold'})
+
     const saveOrderItem = await this.ordersRepository.manager
     .getRepository(OrderItems)
     .save(orderItem);
     
-    return schedule;
+    return updatedOrder
   }
 
   async getOrderList(id: number) {
