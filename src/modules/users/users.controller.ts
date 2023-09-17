@@ -29,7 +29,7 @@ export class UsersController {
            private readonly usersService: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Roles('admin', 'manager')
+  //@Roles('admin', 'manager')
   @ApiBearerAuth()
   @ApiOkResponse({ type: CreateUserDto, isArray: true }) // @ApiBearerAuth()
   @Get('/list/:id')
