@@ -14,7 +14,7 @@ async function bootstrap() {
   // });
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
-  app.enableCors();
+  // app.enableCors();
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
   //app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
