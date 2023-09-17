@@ -14,7 +14,8 @@ async function bootstrap() {
   app.enableCors(  {
     origin: 'http://localhost:5173',
     // methods: ['POST', 'PUT', 'DELETE', 'GET','PATCH'],
-    credentials:true
+    credentials:true,
+    exposedHeaders:['set-cookie']
 
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
