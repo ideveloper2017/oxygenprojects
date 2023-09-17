@@ -9,14 +9,11 @@ import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
-  //   {
-  //   cors: { origin: await bcrypt.hash(process.env.CLIENT_ORIGIN, 8) },
-  // });
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.enableCors(  {
-    origin: ['http://localhost:5173'],
-    methods: ['POST', 'PUT', 'DELETE', 'GET','PATCH'],
+    origin: 'http://localhost:5173',
+    // methods: ['POST', 'PUT', 'DELETE', 'GET','PATCH'],
     credentials:true
 
   });
