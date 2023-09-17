@@ -19,8 +19,8 @@ export class CookieInterceptor implements NestInterceptor {
 
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          maxAge: 1000 * 60 * 60 * 24 * 7,
-          path: '/api/auth/refresh-token',
+          // maxAge: 1000 * 60 * 60 * 24 * 7,
+          // path: '/api/auth/refresh-token',
         });
 
         return { accessToken,refreshToken };
