@@ -14,7 +14,12 @@ async function bootstrap() {
   // });
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
-  app.enableCors();
+  app.enableCors(  {
+    origin: ['http://localhost:5173'],
+    methods: ['POST', 'PUT', 'DELETE', 'GET','PATCH'],
+    credentials:true
+
+  });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
   //app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
