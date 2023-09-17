@@ -13,8 +13,8 @@ export class CreateOrderDto {
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
   apartment_id: number;
 
-  @ApiProperty({ example: 'Rassrochka', description: "to'lov turi tanlanadi" })
-  payment_method_name: string;
+  @ApiProperty({ example: 1, description: "to'lov turi tanlanadi" })
+  payment_method_id: number;
 
   @ApiProperty({ example: 25_000_000, description: 'kvartira umumiy narxi' })
   initial_pay: number;
