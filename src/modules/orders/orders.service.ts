@@ -121,11 +121,9 @@ export class OrdersService {
   }
 
   async deleteOrder(arrayOfId: number[]) {
-    for (const id of arrayOfId) {
-      await this.ordersRepository.delete({ id: id });
-    }
-
-    return arrayOfId.length;
+    const deleteOrder = await this.ordersRepository.delete(arrayOfId)
+    console.log(deleteOrder);
+    return deleteOrder;
   }
 
 }
