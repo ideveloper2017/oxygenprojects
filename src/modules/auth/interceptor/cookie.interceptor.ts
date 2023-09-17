@@ -12,16 +12,18 @@ import { map } from 'rxjs/operators';
 export class CookieInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      map((data) => {
+      map(data => {
         const res = context.switchToHttp().getResponse();
+
         const { accessToken, refreshToken } = data;
+
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days - express accepts token maxAge in ms, therefore multiply by 1000
-          path: '/api/auth/refresh-token', // attach the refreshToken only to this endpoint
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+          path: '/api/auth/refresh-token',
         });
 
-        return { accessToken };
+        return { accessToken,refreshToken };
       }),
     );
   }

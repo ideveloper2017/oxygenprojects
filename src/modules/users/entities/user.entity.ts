@@ -34,7 +34,7 @@ export class Users extends Model {
 
   @ManyToOne((type) => Roles, (roles) => roles.users)
   @JoinColumn({ name: 'role_id' })
-  roles: Roles[];
+  roles: Roles;
 
   @OneToMany((type) => Sales, (sales) => sales.users)
   sales: Sales[];
@@ -42,10 +42,14 @@ export class Users extends Model {
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
 
+  @Column({
+    default: 0,
+  })
+  tokenVersion: number;
+
   @BeforeInsert()
   async hashPassword() {
     const salt = await bcrypt.genSalt();
-    console.log(this.password);
     this.password = await bcrypt.hash(this.password, salt);
   }
 

@@ -1,8 +1,9 @@
-import { UserRole } from '../../roles/entities/role.entity';
+import {Roles} from "../../roles/entities/role.entity";
+
 
 export interface AccessTokenPayload {
   userId: number;
-  role: UserRole;
+  roles: Roles;
 }
 
 export interface RefreshTokenPayload {

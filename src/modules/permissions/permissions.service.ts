@@ -14,6 +14,58 @@ export class PermissionsService {
     return await this.permissionRepo.find({ relations: ['roles'] });
   };
 
+// {permission: [
+//         {
+//             dashboard: [
+//                 {name: "dashboard.delete"},
+//                 {name: "dashboard.update"},
+//                 {name: "dashboard.view"},
+//                 {name: "dashboard.create"},
+//             ],
+//         },
+//         {
+//             buildings: [
+//                 {name: "buildings.delete"},
+//                 {name: "buildings.view"},
+//                 {name: "buildings.update"},
+//                 {name: "buildings.create"},
+//             ],
+//         },
+//         {
+//             reports: [
+//                 {name: "report.delete"},
+//                 {name: "report.update"},
+//                 {name: "report.view"},
+//                 {name: "report.create"},
+//             ],
+//         },
+//         {
+//             sold: [
+//                 {name: "sold.delete"},
+//                 {name: "sold.update"},
+//                 {name: "sold.view"},
+//                 {name: "sold.create"},
+//             ],
+//         },
+//         {
+//             clients: [
+//                 {name: "client.delete"},
+//                 {name: "client.update"},
+//                 {name: "client.view"},
+//                 {name: "client.create"},
+//             ],
+//         },
+//         {
+//             users: [
+//                 {name: "user.delete"},
+//                 {name: "user.update"},
+//                 {name: "user.view"},
+//                 {name: "user.create"},
+//             ],
+//         },
+//     ],
+// };
+
   public filldata = async () => {
     if (this.permissionRepo.exist()) {
       return await this.permissionRepo
@@ -48,24 +100,31 @@ export class PermissionsService {
           { id: 28, name: 'district.update' },
           { id: 29, name: 'district.edit' },
           { id: 30, name: 'district.delete' },
-          { id: 31, name: 'address.create' },
-          { id: 32, name: 'address.save' },
-          { id: 33, name: 'address.view' },
-          { id: 34, name: 'address.edit' },
-          { id: 35, name: 'address.update' },
-          { id: 36, name: 'address.delete' },
-          { id: 37, name: 'client.create' },
-          { id: 38, name: 'client.save' },
-          { id: 39, name: 'client.view' },
-          { id: 40, name: 'client.update' },
-          { id: 41, name: 'client.edit' },
-          { id: 42, name: 'client.delete' },
-          { id: 43, name: 'clientgroup.create' },
-          { id: 44, name: 'clientgroup.save' },
-          { id: 45, name: 'clientgroup.view' },
-          { id: 46, name: 'clientgroup.update' },
-          { id: 47, name: 'clientgroup.edit' },
-          { id: 48, name: 'clientgroup.delete' },
+          { id: 31, name: 'clients.create' },
+          { id: 32, name: 'clients.save' },
+          { id: 33, name: 'clients.view' },
+          { id: 34, name: 'clients.update' },
+          { id: 35, name: 'clients.edit' },
+          { id: 36, name: 'clients.delete' },
+          { id: 37, name: 'sold.create' },
+          { id: 38, name: 'sold.save' },
+          { id: 39, name: 'sold.update' },
+          { id: 40, name: 'sold.delete' },
+          { id: 41, name: 'report.create' },
+          { id: 42, name: 'report.save' },
+          { id: 43, name: 'report.update' },
+          { id: 44, name: 'report.delete' },
+          { id: 47, name: 'report.view' },
+          { id: 48, name: 'buildings.view' },
+          { id: 49, name: 'buildings.save' },
+          { id: 50, name: 'buildings.create' },
+          { id: 51, name: 'buildings.delete' },
+          { id: 52, name: 'buildings.update' },
+          { id: 42, name: 'dashboard.create' },
+          { id: 53, name: 'dashboard.view' },
+          { id: 54, name: 'dashboard.update' },
+          { id: 55, name: 'dashboard.delete' },
+          { id: 56, name: 'dashboard.save' },
         ])
         .then((data) => {});
     }

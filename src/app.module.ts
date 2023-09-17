@@ -1,4 +1,4 @@
-import {Module} from '@nestjs/common';
+import {MiddlewareConsumer, Module, NestModule, RequestMethod} from '@nestjs/common';
 import {ConfigModule} from '@nestjs/config';
 import {DatabaseModule} from './database/database.module';
 import {AuthModule} from './modules/auth/auth.module';
@@ -32,6 +32,7 @@ import {UsersService} from "./modules/users/users.service";
 import {PaymentMethodsService} from "./modules/payment-method/payment-method.service";
 import {CurrenciesService} from "./modules/currencies/currencies.service";
 import {Currencies} from "./modules/currencies/entities/currency.entity";
+import {AuthMiddleware} from "./modules/auth/middleware/auth.middleware";
 
 @Module({
     imports: [
@@ -77,7 +78,7 @@ import {Currencies} from "./modules/currencies/entities/currency.entity";
     controllers: [],
     providers: [],
 })
-export class AppModule {
+export class AppModule  implements NestModule{
 
       constructor(private regionService: RegionsService,
                       private disrtrictServ: DistrictsService,
@@ -93,13 +94,13 @@ export class AppModule {
         permissionServ.filldata();
 
         userserv.createLogin({
-            "first_name": "Mansurxon",
-            "last_name": "Samadov",
-            "username": "mansoor07",
+            "first_name": "Admin",
+            "last_name": "Admin",
+            "username": "admin",
             "phone_number": "+998 94 995 1254",
             "password": "1234",
-            "is_active": false,
-            "role_id": 3
+            "is_active": true,
+            "role_id": 1
         })
 
         paymentMethodServ.addPaymentMethods([
@@ -132,6 +133,12 @@ export class AppModule {
 
 
 
+    }
+
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(AuthMiddleware)
+            .forRoutes({ path: '*', method: RequestMethod.ALL });
     }
 
 }
