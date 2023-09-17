@@ -15,7 +15,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.enableCors(  {
-    origin: ['https://localhost:5173'],
+    origin: ['http://localhost:5173'],
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
