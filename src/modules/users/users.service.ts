@@ -6,11 +6,10 @@ import { Users } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
-import {UserResponse} from "./type/userResponse";
+
 @Injectable()
 export class UsersService {
   constructor(
-
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
   ) {}
@@ -60,18 +59,23 @@ export class UsersService {
       // newUser.is_active = createUserDto.is_active;
       // newUser.roles = role_id;
 
-      const user = await this.usersRepository.save( [{
-        first_name:createUserDto.first_name,
-        last_name : createUserDto.last_name,
-        username : createUserDto.username,
-        phone_number : createUserDto.phone_number,
-        password : await bcrypt.hash(createUserDto.password,10),
-        is_active : createUserDto.is_active,
-        roles : role_id,
-      }]);
+      const user = await this.usersRepository.save([
+        {
+          first_name: createUserDto.first_name,
+          last_name: createUserDto.last_name,
+          username: createUserDto.username,
+          phone_number: createUserDto.phone_number,
+          password: await bcrypt.hash(createUserDto.password, 10),
+          is_active: createUserDto.is_active,
+          roles: role_id,
+        },
+      ]);
       return createUserDto;
     } catch (error) {
-      throw new HttpException(error.message+ " "+JSON.stringify(createUserDto), HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message + ' ' + JSON.stringify(createUserDto),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -93,13 +97,13 @@ export class UsersService {
   async findOneById(id: number) {
     return await this.usersRepository.findOne({
       where: { id },
-      relations:['roles']
+      relations: ['roles'],
     });
   }
 
   async findUserWithPassword(username: string): Promise<Users> {
     return await this.usersRepository.findOne({
-      where: { username:username},
+      where: { username: username },
     });
   }
 }
