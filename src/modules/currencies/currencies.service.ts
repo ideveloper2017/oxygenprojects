@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Currencies } from './entities/currency.entity';
@@ -20,13 +20,21 @@ export class CurrenciesService {
     const currency = new Currencies();
     currency.name = createCurrencyDto.name;
     currency.is_selected = createCurrencyDto.is_selected;
-
-    const result = await this.currencyRepo.save(currency);
-    return {
-      status: 201,
-      data: result,
-      message: 'Currency added successfully!',
-    };
+    const result = await this.currencyRepo
+      .save(currency)
+      .then((data) => {
+        return {
+          status: 201,
+          data: result,
+          message: 'Currency added successfully!',
+        };
+      })
+      .catch((error) => {
+        return {
+          status: 401,
+          message: error.message,
+        };
+      });
   }
 
   async getCurrencies() {
@@ -46,8 +54,10 @@ export class CurrenciesService {
   async newRate(exchangeRateDto: CreatexchangeRateDto) {
     const rate = new ExchangRates();
     rate.rate_value = exchangeRateDto.rate_value;
-    rate.currencies = await Currencies.findOne({where:{id:exchangeRateDto.currency_id}});
-    rate.is_default = true
+    rate.currencies = await Currencies.findOne({
+      where: { id: exchangeRateDto.currency_id },
+    });
+    rate.is_default = true;
 
     await this.exchangeRepo.update({}, { is_default: false });
 
@@ -55,10 +65,14 @@ export class CurrenciesService {
     return savedRate;
   }
 
-  async newRates(exchangeRateDto: CreatexchangeRateDto[]){
-    let exchanges=[];
-    for (let i of exchangeRateDto){
-          exchanges.push({rate_value:i.rate_value,currencies:await Currencies.findOne({where:{id:i.currency_id}}),is_default:i.is_default})
+  async newRates(exchangeRateDto: CreatexchangeRateDto[]) {
+    const exchanges = [];
+    for (const i of exchangeRateDto) {
+      exchanges.push({
+        rate_value: i.rate_value,
+        currencies: await Currencies.findOne({ where: { id: i.currency_id } }),
+        is_default: i.is_default,
+      });
     }
     await this.currencyRepo.save(exchanges);
   }
@@ -76,9 +90,9 @@ export class CurrenciesService {
 
   async getLastRate() {
     return await this.exchangeRepo
-    .createQueryBuilder('exchangeRate')
-    .where('is_default = :val', {val:true})
-    .orderBy('id','DESC')
-    .getOne();
+      .createQueryBuilder('exchangeRate')
+      .where('is_default = :val', { val: true })
+      .orderBy('id', 'DESC')
+      .getOne();
   }
 }

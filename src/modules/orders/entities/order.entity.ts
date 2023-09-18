@@ -23,7 +23,7 @@ export class Orders extends Model {
   @Column({ nullable: true })
   initial_pay: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   total_amount: number;
 
   @Column()
@@ -38,7 +38,6 @@ export class Orders extends Model {
   )
   @JoinColumn({ name: 'payment_method_id' })
   paymentMethods: PaymentMethods;
-
 
   @OneToMany(() => OrderItems, (orderItems) => orderItems.orders)
   orderItems: OrderItems[];

@@ -35,6 +35,7 @@ import {Currencies} from "./modules/currencies/entities/currency.entity";
 import {AuthMiddleware} from "./modules/auth/middleware/auth.middleware";
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskSchedulerModule } from './modules/task-scheduler/task-scheduler.module';
+import { ReturnModule } from './modules/return/return.module';
 
 @Module({
     imports: [
@@ -78,6 +79,7 @@ import { TaskSchedulerModule } from './modules/task-scheduler/task-scheduler.mod
         ExchangRatesModule,
         FileUploadModule,
         TaskSchedulerModule,
+        ReturnModule,
     ],
     controllers: [],
     providers: [],

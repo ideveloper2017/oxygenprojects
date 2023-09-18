@@ -12,4 +12,5 @@ export class Currencies extends Model {
 
   @OneToMany(() => ExchangRates, (exchangeRate) => exchangeRate.currencies)
   exchangeRates: ExchangRates[];
+
 }

@@ -8,8 +8,8 @@ import { OrderItems } from '../order-items/entities/order-item.entity';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import { CreditTable } from '../credit-table/entities/credit-table.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import {Clients} from "../clients/entities/client.entity";
-import {Users} from "../users/entities/user.entity";
+import { Clients } from '../clients/entities/client.entity';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class OrdersService {
@@ -26,24 +26,25 @@ export class OrdersService {
   }
 
   async createOrder(createOrderDto: CreateOrderDto) {
-
-
-      const payment_method = await this.ordersRepository.manager
+    const payment_method = await this.ordersRepository.manager
       .getRepository(PaymentMethods)
-      .findOne({ where: { id: +createOrderDto.payment_method_id} })
+      .findOne({ where: { id: +createOrderDto.payment_method_id } });
 
     const order = new Orders();
-    order.clients = await Clients.findOne({where:{id:+createOrderDto.client_id}})
-    order.users = await Users.findOne({where:{id:+createOrderDto.user_id}})
+    order.clients = await Clients.findOne({
+      where: { id: +createOrderDto.client_id },
+    });
+    order.users = await Users.findOne({
+      where: { id: +createOrderDto.user_id },
+    });
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = createOrderDto.initial_pay
+    order.initial_pay = createOrderDto.initial_pay;
     order.quantity = 1;
-    
+
     const savedOrder = await this.ordersRepository.save(order);
 
-    
     console.log(savedOrder);
 
     const apartment = await this.ordersRepository.manager
@@ -54,7 +55,8 @@ export class OrdersService {
       });
 
     // binodagi barcha apartmentlarga tegishli narxini olish
-    const total = apartment.floor.entrance.buildings.mk_price * apartment.room_space;
+    const total =
+      apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
     const oneMonthDue =
@@ -62,7 +64,10 @@ export class OrdersService {
 
     let schedule;
 
-    if (payment_method.name.toLowerCase() === 'rassrochka' || payment_method.name.toLowerCase() === 'ipoteka' ) {
+    if (
+      payment_method.name.toLowerCase() === 'rassrochka' ||
+      payment_method.name.toLowerCase() === 'ipoteka'
+    ) {
       const creditSchedule = [];
       const date = new Date();
 
@@ -70,10 +75,10 @@ export class OrdersService {
         const mon = new Date(date.setMonth(date.getMonth() + 1));
 
         const installment = new CreditTable();
-        installment.orders = savedOrder
+        installment.orders = savedOrder;
         installment.due_amount = +oneMonthDue.toFixed(2);
         installment.due_date = mon;
-        installment.left_amount = 0
+        installment.left_amount = 0;
         installment.status = 'waiting';
         creditSchedule.push(installment);
       }
@@ -89,27 +94,34 @@ export class OrdersService {
     );
 
     const orderItem = new OrderItems();
-    orderItem.orders = savedOrder
-    orderItem.apartments = await Apartments.findOne({where: {id: +createOrderDto.apartment_id}})
-    orderItem.final_price=total
+    orderItem.orders = savedOrder;
+    orderItem.apartments = await Apartments.findOne({
+      where: { id: +createOrderDto.apartment_id },
+    });
+    orderItem.final_price = total;
 
-    await Apartments.update({id: createOrderDto.apartment_id}, {status: 'sold'})
+    await Apartments.update(
+      { id: createOrderDto.apartment_id },
+      { status: 'sold' },
+    );
 
     const saveOrderItem = await this.ordersRepository.manager
-    .getRepository(OrderItems)
-    .save(orderItem);
-    
-    return updatedOrder
+      .getRepository(OrderItems)
+      .save(orderItem);
+
+    return updatedOrder;
   }
 
   async getOrderList(id: number) {
     let order;
     if (id == 0) {
-      order = await this.ordersRepository.find({relations: ['clients','users', 'paymentMethods']});
+      order = await this.ordersRepository.find({
+        relations: ['clients', 'users', 'paymentMethods'],
+      });
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: ['clients','users', 'paymentMethods'],
+        relations: ['clients', 'users', 'paymentMethods'],
       });
     }
     return order;
@@ -124,9 +136,7 @@ export class OrdersService {
   }
 
   async deleteOrder(arrayOfId: number[]) {
-    const deleteOrder = await this.ordersRepository.delete(arrayOfId)
-    console.log(deleteOrder);
+    const deleteOrder = await this.ordersRepository.delete(arrayOfId);
     return deleteOrder;
   }
-
 }
