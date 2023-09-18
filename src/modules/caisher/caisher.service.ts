@@ -13,22 +13,22 @@ export class CaisherService {
   ) {}
   async create(createCaisherDto: CreateCaisherDto) {
     const caisher = await this.caisherServ.create(createCaisherDto);
-    // return caisher;
+    return this.caisherServ.save(caisher);
   }
 
-  findAll() {
-    return `This action returns all caisher`;
+  findAll(): Promise<Caisher[]> {
+    return this.caisherServ.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} caisher`;
+    return this.caisherServ.findOne({ where: { id: id } });
   }
 
   update(id: number, updateCaisherDto: UpdateCaisherDto) {
-    return `This action updates a #${id} caisher`;
+    return this.caisherServ.update({ id: id }, updateCaisherDto);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} caisher`;
+    return this.caisherServ.delete({ id: id });
   }
 }

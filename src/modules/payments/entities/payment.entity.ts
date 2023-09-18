@@ -20,7 +20,7 @@ export class Payments extends Model {
   @Column()
   payment_date: Date;
 
-  @Column()
+  @Column({ type: 'float' })
   amount: number;
 
   @Column({
@@ -28,7 +28,7 @@ export class Payments extends Model {
     enum: Paymentmethods,
     default: Paymentmethods.CASH,
   })
-  paymentmehotd: Paymentmethods;
+  paymentmethod: Paymentmethods;
 
   // @Column({ default: false, type: 'boolean' })
   // in_cash: boolean;

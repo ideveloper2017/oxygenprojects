@@ -11,7 +11,7 @@ import {
 import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -72,6 +72,7 @@ export class PaymentsController {
   }
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')
+  @ApiBody({ type: [NewPaymentDto] })
   newPayment(@Body() newPaymentDto: NewPaymentDto) {
     return this.paymentsService.newPayment(newPaymentDto).then((data) => {
       if (!data) {
