@@ -13,7 +13,7 @@ export class CaisherService {
   ) {}
   async create(createCaisherDto: CreateCaisherDto) {
     const caisher = await this.caisherServ.create(createCaisherDto);
-    return caisher
+    // return caisher;
   }
 
   findAll() {
