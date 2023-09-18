@@ -23,7 +23,7 @@ export class PaymentsController {
     return this.paymentsService
       .getAll()
       .then((data) => {
-        if (data.length > 0) {
+        if (data.length != 0) {
           data.map((data) => {
             return { success: true, data: data, message: 'success' };
           });
