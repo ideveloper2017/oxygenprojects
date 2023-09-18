@@ -41,6 +41,7 @@ import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskSchedulerModule } from './modules/task-scheduler/task-scheduler.module';
 import { ReturnModule } from './modules/return/return.module';
+import { CaisherModule } from './modules/caisher/caisher.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { ReturnModule } from './modules/return/return.module';
     FileUploadModule,
     TaskSchedulerModule,
     ReturnModule,
+    CaisherModule,
   ],
   controllers: [],
   providers: [],

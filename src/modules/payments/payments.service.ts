@@ -84,9 +84,9 @@ export class PaymentsService {
       payment.order_id = newPaymentDto.order_id;
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
-      payment.by_card = newPaymentDto.by_card;
-      payment.in_cash = newPaymentDto.in_cash;
-      payment.bank = newPaymentDto.bank;
+      // payment.by_card = newPaymentDto.by_card;
+      // payment.in_cash = newPaymentDto.in_cash;
+      // payment.bank = newPaymentDto.bank;
 
       newPay = await this.paymentRepo.save(payment);
     } else {
@@ -94,9 +94,7 @@ export class PaymentsService {
       payment.order_id = newPaymentDto.order_id;
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
-      payment.by_card = newPaymentDto.by_card;
-      payment.in_cash = newPaymentDto.in_cash;
-      payment.bank = newPaymentDto.bank;
+      // payment.paymentmehotd=newPaymentDto
 
       newPay = await this.paymentRepo.save(payment);
     }
