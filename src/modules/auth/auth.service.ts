@@ -3,15 +3,16 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthLoginDto } from './dto/AuthLoginDto';
 import { Users } from '../users/entities/user.entity';
 import { CommonErrors } from '../../common/errors/common-erros';
-import {UsersService} from "../users/users.service";
-import {Roles} from "../roles/entities/role.entity";
-import {AccessTokenPayload, RefreshTokenPayload} from "./type/jwtPayload";
+import { UsersService } from '../users/users.service';
+import { Roles } from '../roles/entities/role.entity';
+import { AccessTokenPayload, RefreshTokenPayload } from './type/jwtPayload';
 import { sign, verify } from 'jsonwebtoken';
 @Injectable()
 export class AuthService {
   constructor(
-      private userService:UsersService,
-      private jwtService: JwtService) {}
+    private userService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
   async signIn(authLoginDto: AuthLoginDto) {
     const user = await this.validateUser(authLoginDto);
@@ -43,7 +44,8 @@ export class AuthService {
   async getLoggedUser(user: any) {
     const loggedUser = await Users.findOne({
       where: {
-        id: user, is_active:true
+        id: user,
+        is_active: true,
       },
       relations: ['roles', 'roles.permission'],
     });
@@ -58,7 +60,6 @@ export class AuthService {
       refreshToken: this.createRefreshToken({ userId, tokenVersion }),
     };
   }
-
 
   createAccessToken({ userId, roles }: AccessTokenPayload): string {
     return sign({ userId, roles }, process.env.ACCESS_TOKEN_SECRET, {
@@ -77,8 +78,8 @@ export class AuthService {
     // let user: UserResponse;
 
     const decodedRefreshToken = verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
     );
     const user = await this.userService.findOneById(decodedRefreshToken.userId);
     if (!user || user.tokenVersion !== decodedRefreshToken.tokenVersion) {
