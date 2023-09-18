@@ -104,7 +104,10 @@ export class PaymentsService {
   }
 
   async getAll() {
-    return await this.paymentRepo.find({ relations: ['orders'] });
+    return await this.paymentRepo.find({
+      relations: ['orders'],
+      order: { id: 'desc' },
+    });
   }
 
   async update(id: number, newPaymentDto: UpdatePaymentDto) {
