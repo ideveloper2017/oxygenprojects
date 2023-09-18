@@ -23,13 +23,13 @@ export class PaymentsController {
     this.paymentsService
       .getAll()
       .then((data) => {
-        // if (data.length != 0) {
-        data.map((data) => {
+        if (data.length != 0) {
+          // data.map((data) => {
           return { success: true, data: data, message: 'success' };
-          //   });
-          // } else {
-          //   return { success: false, message: 'not found record!!!' };
-        });
+          // });
+        } else {
+          return { success: false, message: 'not found record!!!' };
+        }
       })
       .catch((error) => {
         return { success: false, message: error.message };
