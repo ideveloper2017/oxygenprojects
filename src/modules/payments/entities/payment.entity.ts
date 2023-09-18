@@ -20,7 +20,7 @@ export class Payments extends Model {
   @Column()
   payment_date: Date;
 
-  @Column({ type: 'float' })
+  @Column()
   amount: number;
 
   @Column({
