@@ -1,10 +1,11 @@
 import Model from '../../model/model.module';
-import { Column, OneToMany } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Payments } from '../../payments/entities/payment.entity';
 
+@Entity('Caisher')
 export class Caisher extends Model {
   @Column()
-  caisher_name;
+  caisher_name: string;
 
   @Column()
   is_active: boolean;

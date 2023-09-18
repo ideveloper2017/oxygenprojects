@@ -84,6 +84,7 @@ export class PaymentsService {
       payment.order_id = newPaymentDto.order_id;
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
+      payment.paymentmehotd = newPaymentDto.paymentmethod;
       // payment.by_card = newPaymentDto.by_card;
       // payment.in_cash = newPaymentDto.in_cash;
       // payment.bank = newPaymentDto.bank;
@@ -94,6 +95,7 @@ export class PaymentsService {
       payment.order_id = newPaymentDto.order_id;
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
+      payment.paymentmehotd = newPaymentDto.paymentmethod;
       // payment.paymentmehotd=newPaymentDto
 
       newPay = await this.paymentRepo.save(payment);

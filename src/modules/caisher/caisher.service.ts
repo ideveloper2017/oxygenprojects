@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCaisherDto } from './dto/create-caisher.dto';
 import { UpdateCaisherDto } from './dto/update-caisher.dto';
+import { Repository } from 'typeorm';
+import { Caisher } from './entities/caisher.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class CaisherService {
-  create(createCaisherDto: CreateCaisherDto) {
-    return 'This action adds a new caisher';
+  constructor(
+    @InjectRepository(Caisher)
+    private readonly caisherServ: Repository<Caisher>,
+  ) {}
+  async create(createCaisherDto: CreateCaisherDto) {
+    const caisher = await this.caisherServ.create(createCaisherDto);
+    return caisher
   }
 
   findAll() {
