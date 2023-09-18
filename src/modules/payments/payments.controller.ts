@@ -12,6 +12,7 @@ import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
+import { Paymentmethods } from "../../common/enums/paymentmethod";
 
 @ApiTags('Payments')
 @Controller('payments')
