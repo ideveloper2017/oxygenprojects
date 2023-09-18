@@ -20,7 +20,7 @@ export class PaymentsController {
 
   @Get('/list')
   public getAll() {
-    return this.paymentsService
+    this.paymentsService
       .getAll()
       .then((data) => {
         // if (data.length != 0) {
