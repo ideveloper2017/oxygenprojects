@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Caisher } from '../../caisher/entities/caisher.entity';
@@ -13,7 +13,7 @@ export class Payments extends Model {
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
-  @ManyToOne(() => Orders, (orders) => orders.payments, { onDelete: 'CASCADE' })
+  @OneToMany(() => Orders, (orders) => orders.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 

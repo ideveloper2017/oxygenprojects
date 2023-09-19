@@ -11,8 +11,8 @@ import {
 import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { ApiBody, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger";
-import { Paymentmethods } from "../../common/enums/paymentmethod";
+import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Paymentmethods } from '../../common/enums/paymentmethod';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -21,7 +21,7 @@ export class PaymentsController {
 
   @Get('/list')
   public getAll() {
-   return  this.paymentsService
+    return this.paymentsService
       .getAll()
       .then((data) => {
         if (data.length != 0) {
@@ -75,12 +75,17 @@ export class PaymentsController {
   @Post('/new-payment')
   @ApiBody({ type: [NewPaymentDto] })
   newPayment(@Body() newPaymentDto: NewPaymentDto) {
-    return this.paymentsService.newPayment(newPaymentDto).then((data) => {
-      if (!data) {
-        return { success: false, message: 'Payment was not created' };
-      } else {
-        return { success: true, message: 'Payment created' };
-      }
-    });
+    return this.paymentsService
+      .newPayment(newPaymentDto)
+      .then((data) => {
+        if (!data) {
+          return { success: false, message: 'Payment was not created' };
+        } else {
+          return { success: true, message: 'Payment created' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
   }
 }
