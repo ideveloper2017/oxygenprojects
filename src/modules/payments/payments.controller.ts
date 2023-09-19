@@ -73,7 +73,6 @@ export class PaymentsController {
   }
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')
-  @ApiBody({ type: [NewPaymentDto] })
   newPayment(@Body() newPaymentDto: NewPaymentDto) {
     return this.paymentsService
       .newPayment(newPaymentDto)
