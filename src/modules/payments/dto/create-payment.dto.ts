@@ -23,4 +23,7 @@ export class NewPaymentDto {
 
   @ApiProperty()
   caishertype: Caishertype;
+
+  @ApiProperty()
+  pay_note: string;
 }

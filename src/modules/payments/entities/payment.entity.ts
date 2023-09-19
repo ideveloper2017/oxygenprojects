@@ -35,4 +35,7 @@ export class Payments extends Model {
     default: Paymentmethods.CASH,
   })
   paymentmethod: Paymentmethods;
+
+  @Column({ type: 'text' })
+  pay_note: string;
 }

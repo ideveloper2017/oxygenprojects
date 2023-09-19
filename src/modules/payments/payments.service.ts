@@ -61,7 +61,7 @@ export class PaymentsService {
         where: { id: newPaymentDto.caisher_id },
       });
       payment.caisher_type = newPaymentDto.caishertype;
-
+      payment.pay_note = newPaymentDto.pay_note;
       newPay = await this.paymentRepo.save(payment);
     } else {
       const payment = new Payments();
@@ -76,6 +76,7 @@ export class PaymentsService {
       });
       newPay = await this.paymentRepo.save(payment);
       payment.caisher_type = newPaymentDto.caishertype;
+      payment.pay_note = newPaymentDto.pay_note;
     }
     return newPay;
   }
