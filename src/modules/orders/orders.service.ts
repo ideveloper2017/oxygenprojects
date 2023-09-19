@@ -129,7 +129,7 @@ export class OrdersService {
     return this.ordersRepository.manager
       .getRepository(Orders)
       .createQueryBuilder('orders')
-      .where('order_status=:order', { order: true })
+      .where('orders.order_status=:order', { order: true })
       .getMany();
   }
 
