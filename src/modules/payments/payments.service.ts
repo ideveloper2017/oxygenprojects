@@ -83,7 +83,7 @@ export class PaymentsService {
 
   async getAll() {
     return await this.paymentRepo.find({
-      relations: ['orders', 'caishers'],
+      relations: ['orders', 'orders.clients', 'caishers'],
       order: { id: 'desc' },
     });
   }
