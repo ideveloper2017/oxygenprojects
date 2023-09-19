@@ -1,7 +1,9 @@
-import { Controller } from '@nestjs/common';
-import { WordexportService } from './wordexport.service';
+import { Controller, Get, Res } from '@nestjs/common';
 
 @Controller('wordexport')
 export class WordexportController {
-  constructor(private readonly wordexportService: WordexportService) {}
+  @Get('export')
+  async exportWord(@Res() res) {
+
+  }
 }

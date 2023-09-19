@@ -45,7 +45,6 @@ export class OrdersService {
 
     const savedOrder = await this.ordersRepository.save(order);
 
-
     const apartment = await this.ordersRepository.manager
       .getRepository(Apartments)
       .findOne({
@@ -58,7 +57,8 @@ export class OrdersService {
       apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
-    const oneMonthDue =(total - createOrderDto.initial_pay) / createOrderDto.installment_month;
+    const oneMonthDue =
+      (total - createOrderDto.initial_pay) / createOrderDto.installment_month;
 
     let schedule;
 
@@ -123,6 +123,14 @@ export class OrdersService {
       });
     }
     return order;
+  }
+
+  async getOrderListIsDue() {
+    return this.ordersRepository.manager
+      .getRepository(Orders)
+      .createQueryBuilder('orders')
+      .where('order_status=:order', { order: true })
+      .getMany();
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {

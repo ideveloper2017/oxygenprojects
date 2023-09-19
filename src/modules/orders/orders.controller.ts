@@ -100,4 +100,9 @@ export class OrdersController {
       }
     });
   }
+
+  @Get('/listdue')
+  getOrderListDue() {
+    return this.orderService.getOrderListIsDue();
+  }
 }
