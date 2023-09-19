@@ -13,6 +13,8 @@ export class Caisher extends Model {
   @Column()
   is_default: boolean;
 
-  @OneToMany(() => Payments, (payments) => payments.caishers)
+  @OneToMany(() => Payments, (payments) => payments.caishers, {
+    onDelete: 'CASCADE',
+  })
   payments: Payments;
 }

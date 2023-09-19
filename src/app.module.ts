@@ -42,6 +42,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TaskSchedulerModule } from './modules/task-scheduler/task-scheduler.module';
 import { ReturnModule } from './modules/return/return.module';
 import { CaisherModule } from './modules/caisher/caisher.module';
+import { WordexportModule } from './modules/wordexport/wordexport.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { CaisherModule } from './modules/caisher/caisher.module';
     TaskSchedulerModule,
     ReturnModule,
     CaisherModule,
+    WordexportModule,
   ],
   controllers: [],
   providers: [],
