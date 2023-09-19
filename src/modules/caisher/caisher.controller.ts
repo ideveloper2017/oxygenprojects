@@ -6,12 +6,15 @@ import {
   Patch,
   Param,
   Delete,
-  BadRequestException,
-} from '@nestjs/common';
+  BadRequestException, Query
+} from "@nestjs/common";
 import { CaisherService } from './caisher.service';
 import { CreateCaisherDto } from './dto/create-caisher.dto';
 import { UpdateCaisherDto } from './dto/update-caisher.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import { UserRole } from "../roles/entities/role.entity";
+import { Caisher } from "./entities/caisher.entity";
+import { Paymentmethods } from "../../common/enums/paymentmethod";
 
 @ApiTags('Caisher')
 @Controller('caisher')
@@ -60,7 +63,8 @@ export class CaisherController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCaisherDto: UpdateCaisherDto) {
+  @ApiQuery({ name: 'caisher', enum: Paymentmethods })
+  update(@Query('role') caisher: Paymentmethods,@Param('id') id: string, @Body() updateCaisherDto: UpdateCaisherDto) {
     try {
       return this.caisherService.update(+id, updateCaisherDto).then((data) => {
         if (data.affected != 0) {

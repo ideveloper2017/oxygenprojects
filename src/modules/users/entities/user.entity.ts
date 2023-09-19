@@ -11,10 +11,11 @@ import { Roles } from '../../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Sales } from '../../sales/entities/sale.entity';
 import { Orders } from '../../orders/entities/order.entity';
+import { Payments } from '../../payments/entities/payment.entity';
 
 @Entity('Users')
 export class Users extends Model {
-  @Column({nullable:true})
+  @Column({ nullable: true })
   first_name: string;
 
   @Column()
@@ -35,6 +36,10 @@ export class Users extends Model {
   @ManyToOne((type) => Roles, (roles) => roles.users)
   @JoinColumn({ name: 'role_id' })
   roles: Roles;
+
+  @OneToMany((type) => Payments, (payment) => payment.users)
+  @JoinColumn({ name: 'role_id' })
+  payments: Payments;
 
   @OneToMany((type) => Sales, (sales) => sales.users)
   sales: Sales[];

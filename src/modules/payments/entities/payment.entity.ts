@@ -3,9 +3,16 @@ import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Caisher } from '../../caisher/entities/caisher.entity';
 import { Paymentmethods } from '../../../common/enums/paymentmethod';
+import { Caishertype } from '../../../common/enums/caishertype';
+import { Users } from '../../users/entities/user.entity';
 
 @Entity('Payments')
 export class Payments extends Model {
+
+  @ManyToOne(() => Users, (users) => users.payments, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  users: Users;
+
   @ManyToOne(() => Orders, (orders) => orders.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
@@ -20,8 +27,11 @@ export class Payments extends Model {
   @Column()
   payment_date: Date;
 
-  @Column()
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   amount: number;
+
+  @Column({ type: 'enum', enum: Caishertype, default: Caishertype.IN })
+  caisher_type: Caishertype;
 
   @Column({
     type: 'enum',
@@ -29,16 +39,4 @@ export class Payments extends Model {
     default: Paymentmethods.CASH,
   })
   paymentmethod: Paymentmethods;
-
-  // @Column({ default: false, type: 'boolean' })
-  // in_cash: boolean;
-  //
-  // @Column({ default: false, type: 'boolean' })
-  // by_card: boolean;
-  //
-  // @Column({ default: false, type: 'boolean' })
-  // bank: boolean;
 }
-
-// @ManyToOne((type) => Sale_details)
-// @JoinColumn({ name: 'sale_details_id' })

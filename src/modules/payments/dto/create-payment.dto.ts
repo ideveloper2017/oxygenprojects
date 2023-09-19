@@ -1,7 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Paymentmethods } from '../../../common/enums/paymentmethod';
+import { Caishertype } from '../../../common/enums/caishertype';
 
 export class NewPaymentDto {
+  @ApiProperty()
+  user_id: number;
+
   @ApiProperty({ example: 1 })
   order_id: number;
 
@@ -16,4 +20,7 @@ export class NewPaymentDto {
 
   @ApiProperty()
   caisher_id: number;
+
+  @ApiProperty()
+  caishertype: Caishertype;
 }

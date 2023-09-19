@@ -58,6 +58,8 @@ export class PaymentsService {
       payment.caishers = await Caisher.findOne({
         where: { id: newPaymentDto.caisher_id },
       });
+      payment.caisher_type=newPaymentDto.caishertype;
+
 
       newPay = await this.paymentRepo.save(payment);
     } else {
@@ -70,13 +72,14 @@ export class PaymentsService {
         where: { id: newPaymentDto.caisher_id },
       });
       newPay = await this.paymentRepo.save(payment);
+      payment.caisher_type=newPaymentDto.caishertype;
     }
     return newPay;
   }
 
   async getAll() {
     return await this.paymentRepo.find({
-      relations: ['orders'],
+      relations: ['orders', 'caishers'],
       order: { id: 'desc' },
     });
   }
