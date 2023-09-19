@@ -16,7 +16,9 @@ export class Payments extends Model {
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 
-  @ManyToOne(() => Caisher, (caisher) => caisher.payments)
+  @ManyToOne(() => Caisher, (caisher) => caisher.payments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'caisher_id' })
   caishers: Caisher;
 
