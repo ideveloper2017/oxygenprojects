@@ -36,6 +36,6 @@ export class Payments extends Model {
   })
   paymentmethod: Paymentmethods;
 
-  @Column({ type: 'text' })
+  @Column()
   pay_note: string;
 }
