@@ -71,4 +71,9 @@ export class ApartmentsService {
     );
     return booking;
   }
+
+  async findAllApartments(){
+    const apartments = await this.apartmentRepository.find()
+    return apartments
+  }
 }

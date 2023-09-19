@@ -108,4 +108,16 @@ export class ApartmentsController {
       }
     });
   }
+
+  @Get('/all')
+  getAllApartments() {
+    return this.apartmentsService.findAllApartments().then((data) => {
+      if(data.length != 0 ){
+        return { success: true, data, message: "All Apartments " };
+      }else {
+        return { success: false, message: "No data found" };
+
+      }
+    })
+  }
 }
