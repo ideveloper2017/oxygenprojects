@@ -13,7 +13,7 @@ export class Payments extends Model {
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
-  @OneToMany(() => Orders, (orders) => orders.payments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Orders, (orders) => orders.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 
