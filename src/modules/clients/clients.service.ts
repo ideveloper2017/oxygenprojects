@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Clients } from './entities/client.entity';
 import { Repository } from 'typeorm';
 import { CreateClientDto } from './dto/create-client.dto';
-import { UpdateClientDto } from "./dto/update-client.dto";
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientsService {
@@ -47,7 +47,7 @@ export class ClientsService {
   }
 
   async findAllClients() {
-    const clients = await this.clientRepo.find({});
+    const clients = await this.clientRepo.find({ order: { id: 'desc' } });
 
     return { status: 200, data: clients, message: "Mijozlar ro'yxati" };
   }

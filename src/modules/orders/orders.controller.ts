@@ -20,13 +20,30 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly orderService: OrdersService) {}
-  
+
   @ApiOperation({ summary: "Order qo'shishi" })
   @Post('/add')
   createOrder(@Body() createOrderDto: CreateOrderDto, @Res() res: Response) {
-    return this.orderService.createOrder(createOrderDto).then((response) => {
-      res.send({ data: response, message: 'Order created successfully' });
-    });
+    return this.orderService
+      .createOrder(createOrderDto)
+      .then((response) => {
+        if (response.affected) {
+          res.send({
+            success: true,
+            data: response,
+            message: 'Order created successfully',
+          });
+        } else {
+          res.send({
+            success: false,
+            data: response,
+            message: 'Not order created successfully',
+          });
+        }
+      })
+      .catch((error) => {
+        res.send({ success: false, message: error.message });
+      });
   }
 
   @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
@@ -58,8 +75,8 @@ export class OrdersController {
   })
   @Post('/delete')
   deleteOrder(@Body() arrayOfId: number[]) {
-    if(arrayOfId.length == 0) {
-      throw new HttpException('provide order ids', HttpStatus.LENGTH_REQUIRED)
+    if (arrayOfId.length == 0) {
+      throw new HttpException('provide order ids', HttpStatus.LENGTH_REQUIRED);
     }
     return this.orderService.deleteOrder(arrayOfId).then((response) => {
       if (response.affected != 0) {
@@ -67,7 +84,7 @@ export class OrdersController {
           success: true,
           message: `Orders deleted successfully`,
         };
-      } else  {
+      } else {
         return { success: false, message: 'order not exists' };
       }
     });
