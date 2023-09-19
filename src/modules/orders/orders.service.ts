@@ -126,13 +126,11 @@ export class OrdersService {
   }
 
   async getOrderListIsDue() {
-    return (
-      this.ordersRepository.manager
-        .getRepository(Orders)
-        .createQueryBuilder('orders')
-        // .where('orders.order_status=:order', { order: true })
-        .getMany()
-    );
+    return await this.ordersRepository.manager
+      .getRepository(Orders)
+      .createQueryBuilder('orders')
+      .where('orders.order_status=:order', { order: true })
+      .getMany();
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
