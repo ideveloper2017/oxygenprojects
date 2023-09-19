@@ -51,20 +51,23 @@ export class PaymentsService {
         }
       }
       const payment = new Payments();
-      payment.order_id = newPaymentDto.order_id;
+      payment.orders = await Orders.findOne({
+        where: { id: newPaymentDto.order_id },
+      });
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
       payment.paymentmethod = newPaymentDto.paymentmethod;
       payment.caishers = await Caisher.findOne({
         where: { id: newPaymentDto.caisher_id },
       });
-      payment.caisher_type=newPaymentDto.caishertype;
-
+      payment.caisher_type = newPaymentDto.caishertype;
 
       newPay = await this.paymentRepo.save(payment);
     } else {
       const payment = new Payments();
-      payment.order_id = newPaymentDto.order_id;
+      payment.orders = await Orders.findOne({
+        where: { id: newPaymentDto.order_id },
+      });
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
       payment.paymentmethod = newPaymentDto.paymentmethod;
@@ -72,7 +75,7 @@ export class PaymentsService {
         where: { id: newPaymentDto.caisher_id },
       });
       newPay = await this.paymentRepo.save(payment);
-      payment.caisher_type=newPaymentDto.caishertype;
+      payment.caisher_type = newPaymentDto.caishertype;
     }
     return newPay;
   }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Caisher } from '../../caisher/entities/caisher.entity';
@@ -8,7 +8,6 @@ import { Users } from '../../users/entities/user.entity';
 
 @Entity('Payments')
 export class Payments extends Model {
-
   @ManyToOne(() => Users, (users) => users.payments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   users: Users;
@@ -20,9 +19,6 @@ export class Payments extends Model {
   @ManyToOne(() => Caisher, (caisher) => caisher.payments)
   @JoinColumn({ name: 'caisher_id' })
   caishers: Caisher;
-
-  @Column()
-  order_id: number;
 
   @Column()
   payment_date: Date;
