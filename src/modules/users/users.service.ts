@@ -21,7 +21,7 @@ export class UsersService {
 
     const permissions = await Permissions.find();
 
-    const categories = ['user', 'role', 'permission', 'clients', 'sold', 'report', 'buildings', 'dashboard'];
+    const categories = ['user', 'role', 'permissions', 'clients', 'sold', 'report', 'buildings', 'dashboard'];
 
     const sortedPermissions = categories.map(category => {
       
