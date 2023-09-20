@@ -23,8 +23,7 @@ export class PaymentsService {
 
     let newPay;
 
-    if (paymentMethods.name.toLowerCase() == 'rassrochka') {
-      const check = 1;
+    if (paymentMethods.name.toLowerCase() == 'rassrochka' || paymentMethods.name.toLowerCase() == 'ipoteka') {
       let money = newPaymentDto.amount;
       while (money > 0) {
         const nextPaid = await CreditTable.findOne({
@@ -63,7 +62,9 @@ export class PaymentsService {
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
       newPay = await this.paymentRepo.save(payment);
+    
     } else {
+    
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: newPaymentDto.order_id },

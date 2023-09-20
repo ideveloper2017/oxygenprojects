@@ -6,6 +6,7 @@ import { Users } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
+import { Permissions } from '../permissions/entities/permission.entity';
 
 @Injectable()
 export class UsersService {
@@ -14,18 +15,41 @@ export class UsersService {
     private readonly usersRepository: Repository<Users>,
   ) {}
 
-  async getUsers(id: number) {
+  async getUsers(id: number) {    
+    
+    // user ga tegishli ruxsatlarni tartiblab beradi
+
+    const permissions = await Permissions.find();
+
+    const categories = ['user', 'role', 'permission', 'clients', 'sold', 'report', 'buildings', 'dashboard'];
+
+    const sortedPermissions = categories.map(category => {
+      
+      const filteredPermissions = permissions
+        .filter(p => p.name.startsWith(category))
+        .map(p => ({ 
+          id: p.id, 
+          name: p.name, 
+          created_at: p.created_at, 
+          updated_at: p.updated_at 
+        }));
+
+      return { [category]: filteredPermissions };
+    });
+// =========== user roles permissions =================
+
     let users;
     if (id != 0) {
       users = await this.usersRepository.findOne({
         where: { id: id },
-        relations: ['roles', 'roles.permission'],
+        relations: ['roles'],
       });
     } else {
       users = await this.usersRepository.find({
-        relations: ['roles', 'roles.permission'],
+        relations: ['roles'],
       });
     }
+    users.roles.permission = sortedPermissions
     return users;
   }
 
