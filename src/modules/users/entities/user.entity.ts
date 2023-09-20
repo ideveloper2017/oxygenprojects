@@ -38,7 +38,7 @@ export class Users extends Model {
   roles: Roles;
 
   @OneToMany((type) => Payments, (payment) => payment.users)
-  @JoinColumn({ name: 'role_id' })
+  @JoinColumn({ name: 'payment_id' })
   payments: Payments;
 
   @OneToMany((type) => Sales, (sales) => sales.users)

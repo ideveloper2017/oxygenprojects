@@ -19,7 +19,7 @@ async function bootstrap() {
 
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
-  app.useGlobalPipes(new ValidationPipe());
+  // app.useGlobalPipes(new ValidationPipe());
   // app.useGlobalFilters(new AllExceptionsFilter( app.get(HttpAdapterHost)));
 
 

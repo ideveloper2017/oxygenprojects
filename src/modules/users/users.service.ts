@@ -129,4 +129,20 @@ export class UsersService {
       where: { username: username },
     });
   }
+
+
+  async createdefaultUser(){
+    const user=await this.usersRepository.find();
+    if (user.length==0){
+      this.usersRepository.save([{
+        first_name: "Admin",
+        last_name: "Admin",
+        username: "admin",
+        phone_number: "+998 94 995 1254",
+        password: "1234",
+        is_active: true,
+        roles: await Roles.findOne({where:{id:1}})
+      }]);
+    }
+  }
 }

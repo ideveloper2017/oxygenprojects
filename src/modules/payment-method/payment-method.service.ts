@@ -70,4 +70,27 @@ export class PaymentMethodsService {
     }
     return { status: 200, message: "To'lov turi o'chirildi!" };
   }
+
+  async createDefault() {
+    const paymethods = await this.paymentMethodRepo.find();
+    if (paymethods.length == 0) {
+      this.paymentMethodRepo.save([
+        {
+          name: 'Нақд',
+          is_active: true
+        },
+        {
+          name: 'Ипотека',
+          is_active: true
+        },
+        {
+          name: 'Доллар',
+          is_active: true
+        }, {
+          name: 'Субсидиа',
+          is_active: true
+        }
+      ])
+    }
+  }
 }
