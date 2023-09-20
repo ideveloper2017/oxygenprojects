@@ -21,7 +21,7 @@ export class UsersService {
 
     const permissions = await Permissions.find();
 
-    const categories = ['user', 'role', 'permissions', 'clients', 'sold', 'report', 'buildings', 'dashboard'];
+    const categories = ['user', 'role', 'permission', 'clients', 'sold', 'report', 'buildings', 'dashboard'];
 
     const sortedPermissions = categories.map(category => {
       
@@ -42,11 +42,11 @@ export class UsersService {
     if (id != 0) {
       users = await this.usersRepository.findOne({
         where: { id: id },
-        relations: ['roles'],
+        relations: ['roles.permission'],
       });
     } else {
       users = await this.usersRepository.find({
-        relations: ['roles'],
+        relations: ['roles.permission'],
       });
     }
     users.roles.permission = sortedPermissions
