@@ -49,7 +49,6 @@ export class UsersService {
         relations: ['roles.permission'],
       });
     }
-    users.roles.permission = sortedPermissions
     return users;
   }
 
