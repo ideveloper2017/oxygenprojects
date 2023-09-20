@@ -118,33 +118,33 @@ export class AppModule implements NestModule {
     //     "role_id": 1
     // })
     //
-    paymentMethodServ.addPaymentMethods([
-        {
-            name: 'Нақд',
-            is_active: true
-        },
-        {
-            name: 'Ипотека',
-            is_active: true
-        },
-        {
-            name: 'Доллар',
-            is_active: true
-        }, {
-            name: 'Субсидиа',
-            is_active: true
-        },{
-            name: 'daasdsaasd',
-            is_active: true
-        }
-    ])
-
-    if (Currencies.findOne({ where: { is_selected: true } })) {
-      Currencies.save({
-        name: 'USD',
-        is_selected: true,
-      });
-    }
+    // paymentMethodServ.addPaymentMethods([
+    //     {
+    //         name: 'Нақд',
+    //         is_active: true
+    //     },
+    //     {
+    //         name: 'Ипотека',
+    //         is_active: true
+    //     },
+    //     {
+    //         name: 'Доллар',
+    //         is_active: true
+    //     }, {
+    //         name: 'Субсидиа',
+    //         is_active: true
+    //     },{
+    //         name: 'daasdsaasd',
+    //         is_active: true
+    //     }
+    // ])
+    //
+    // if (Currencies.findOne({ where: { is_selected: true } })) {
+    //   Currencies.save({
+    //     name: 'USD',
+    //     is_selected: true,
+    //   });
+    // }
   }
 
   configure(consumer: MiddlewareConsumer) {
