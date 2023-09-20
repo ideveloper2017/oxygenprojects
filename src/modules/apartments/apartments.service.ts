@@ -19,14 +19,18 @@ export class ApartmentsService {
     createApartmentDto: CreateApartmentDto,
   ) {
 
+    const res = await Floor.findOne({where: {id: floor_id}, relations: ['entrance.buildings.towns']})
+    const town_id = res.entrance.buildings.towns.id
     const {maxRoomNumber} = await Buildings
     .createQueryBuilder('building')
     .innerJoin('building.entrances', 'entrance')
     .innerJoin('entrance.floors', 'floor')
     .innerJoin('floor.apartments', 'apartment')
+    .where('building.town_id = :town_id', {town_id})
     .select('MAX(apartment.room_number)', 'maxRoomNumber')
     .getRawOne();
 
+    console.log(maxRoomNumber);
     
     const newApartment = new Apartments();
     newApartment.floor_id = floor_id;

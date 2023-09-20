@@ -139,12 +139,7 @@ export class AppModule implements NestModule {
         }
     ])
 
-    if (!Currencies.findOne({ where: { is_selected: true } })) {
-      Currencies.save({
-        name: 'USD',
-        is_selected: true,
-      });
-    }
+
   }
 
   configure(consumer: MiddlewareConsumer) {
