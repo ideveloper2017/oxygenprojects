@@ -1,11 +1,12 @@
-import {NestFactory, Reflector} from '@nestjs/core';
+import {HttpAdapterHost, NestFactory, Reflector} from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import {ClassSerializerInterceptor, ValidationPipe} from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
+import {ValidationPipe} from "./common/validations/validation.pipe";
+import {AllExceptionsFilter} from "./common/filters/all-exception.filter";
+
 
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
@@ -19,7 +20,8 @@ async function bootstrap() {
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
-  //app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  // app.useGlobalFilters(new AllExceptionsFilter( app.get(HttpAdapterHost)));
+
 
   const config = new DocumentBuilder()
     .setTitle('Sales Appartment API Documentation')
