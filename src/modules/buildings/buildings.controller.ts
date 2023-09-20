@@ -29,17 +29,18 @@ export class BuildingsController {
     return this.buildingsService
       .createBuilding(createBuildingDto)
       .then((response) => {
-        if (response.length != 0) {
+        if (!response) {
           return {
+            status:200,
             success: true,
             data: response,
             message: 'Building added successfully',
           };
-        } else if (response) {
+        } else  {
           return {
-            success: true,
-            data: response,
-            message: 'Empty building added successfully',
+            status:409,
+            success: false,
+            ...response,
           };
         }
       });

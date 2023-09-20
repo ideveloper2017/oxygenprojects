@@ -135,7 +135,7 @@ export class OrdersService {
                       .manager
                       .getRepository(Orders)
                       .createQueryBuilder('orders')
-                       .where("orders.order_status= true")
+                     //  .where("orders.order_status = true")
                       .getMany()
                       // .innerJoinAndSelect("orders.metadata", "metadata")
   }
