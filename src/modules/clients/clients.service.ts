@@ -19,7 +19,7 @@ export class ClientsService {
 
       if (client.length != 0) {
         return { status:409, success:true, message: 'Mijoz allaqachon mavjud!' };
-      } else {
+      }
 
         let newClient = new Clients();
         newClient.first_name = createClientDto.first_name;
@@ -45,7 +45,7 @@ export class ClientsService {
           data: newClient,
           message: "Mijoz ro'yxatga qo'shildi",
         };
-      }
+
     }catch (error){
       if (error.code === '23505') {
           return {message:'Duplicate key value violates unique constraint',errorcode:error.code}
