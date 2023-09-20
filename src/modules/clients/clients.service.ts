@@ -18,7 +18,7 @@ export class ClientsService {
       });
 
       if (client.length != 0) {
-        return { success:true, message: 'Mijoz allaqachon mavjud!' };
+        return { status:409, success:true, message: 'Mijoz allaqachon mavjud!' };
       } else {
 
         let newClient = new Clients();
@@ -40,6 +40,7 @@ export class ClientsService {
         newClient = await this.clientRepo.save(newClient);
 
         return {
+          status:200,
           success: true,
           data: newClient,
           message: "Mijoz ro'yxatga qo'shildi",
