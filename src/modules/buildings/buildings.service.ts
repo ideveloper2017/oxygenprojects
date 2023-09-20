@@ -70,7 +70,7 @@ export class BuildingsService {
         order: {
           entrances: {
             entrance_number: 'asc',
-            floors: { floor_number: 'asc', apartments: { id: 'asc' } },
+            floors: { floor_number: 'asc', apartments: { room_number: 'asc' } },
           },
         },
       });
@@ -81,7 +81,7 @@ export class BuildingsService {
         order: {
           entrances: {
             entrance_number: 'asc',
-            floors: { floor_number: 'asc', apartments: { id: 'asc' } },
+            floors: { floor_number: 'asc', apartments: { room_number: 'asc' } },
           },
         },
       });

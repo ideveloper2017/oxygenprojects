@@ -4,6 +4,8 @@ import { Apartments } from './entities/apartment.entity';
 import { Repository } from 'typeorm';
 import { CreateApartmentDto } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
+import { Floor } from '../floor/entities/floor.entity';
+import { Buildings } from '../buildings/entities/building.entity';
 
 @Injectable()
 export class ApartmentsService {
@@ -16,9 +18,19 @@ export class ApartmentsService {
     floor_id: number,
     createApartmentDto: CreateApartmentDto,
   ) {
+
+    const {maxRoomNumber} = await Buildings
+    .createQueryBuilder('building')
+    .innerJoin('building.entrances', 'entrance')
+    .innerJoin('entrance.floors', 'floor')
+    .innerJoin('floor.apartments', 'apartment')
+    .select('MAX(apartment.room_number)', 'maxRoomNumber')
+    .getRawOne();
+
+    
     const newApartment = new Apartments();
     newApartment.floor_id = floor_id;
-    newApartment.room_number = createApartmentDto.room_number;
+    newApartment.room_number =  maxRoomNumber ? maxRoomNumber+1 : 1;
     newApartment.cells = createApartmentDto.cells;
     newApartment.room_space = createApartmentDto.room_space;
     newApartment.status = createApartmentDto.status;
@@ -39,15 +51,6 @@ export class ApartmentsService {
       where: { id: id },
       relations: ['floor.entrance.buildings.towns'],
     });
-
-    // const apartment  = await this.apartmentRepository.createQueryBuilder('apartments')
-    // .leftJoinAndSelect('apartments.floor', 'floor') // Join the customer table
-    // .leftJoinAndSelect('floor.entrance', 'entrance') // Join the items table
-    // .leftJoinAndSelect('entrance.buildings', 'buildings') // Join the items table
-    // .leftJoinAndSelect('buildings.towns', 'towns') // Join the items table
-    // .select([  'towns.name','buildings.name','entrance.entrance_number', 'floor.floor_number', 'apartments.room_number','apartments.cells','apartments.room_space', 'buildings.mk_price', 'towns.address']) // Select columns from both order, customer, and item tables
-    // .where('apartments.id = :id', {id})
-    // .getOne();
 
     return apartment;
   }

@@ -16,6 +16,8 @@ export class PaymentsService {
   ) {}
 
   async newPayment(newPaymentDto: NewPaymentDto) {
+    console.log(newPaymentDto.order_id);
+
     const { paymentMethods } = await Orders.findOne({
       where: { id: newPaymentDto.order_id },
       relations: ['paymentMethods'],
@@ -26,29 +28,28 @@ export class PaymentsService {
     if (paymentMethods.name.toLowerCase() == 'rassrochka' || paymentMethods.name.toLowerCase() == 'ipoteka') {
       let money = newPaymentDto.amount;
       while (money > 0) {
+        
         const nextPaid = await CreditTable.findOne({
           where: { status: 'waiting' },
           order: { due_date: 'ASC' },
         });
-
+    
         if (!nextPaid) {
           break;
         }
+        console.log(money, 'after break');
 
-        if (money >= nextPaid.due_amount) {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            { status: 'paid', left_amount: 0 },
-          );
-          money -= nextPaid.due_amount;
+        if(money >= nextPaid.due_amount - nextPaid.left_amount){
+       
+          await CreditTable.update({id: nextPaid.id}, {status: 'paid', left_amount: 0})
+          money -= nextPaid.due_amount - nextPaid.left_amount
+       
         } else {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            { left_amount: +(nextPaid.due_amount - money).toFixed() },
-          );
-          money = 0;
+       
+          await CreditTable.update({id: nextPaid.id}, {left_amount: +(nextPaid.due_amount - money).toFixed(2)})
+          break
         }
-      }
+   }
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: newPaymentDto.order_id },

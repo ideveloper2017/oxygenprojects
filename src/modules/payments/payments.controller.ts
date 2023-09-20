@@ -84,6 +84,7 @@ export class PaymentsController {
         }
       })
       .catch((error) => {
+        console.log(error);
         return { success: false, message: error.message };
       });
   }

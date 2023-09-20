@@ -57,7 +57,7 @@ export class ApartmentsController {
     return this.apartmentsService
       .deleteApartment(id)
       .then((data) => {
-        if (data! == null && data.affected != 0) {
+        if (data !== null && data.affected != 0) {
           return { success: true, message: 'Apartment deleted' };
         } else {
           return { success: false, message: 'error while deleting apartment' };
