@@ -76,7 +76,7 @@ export class ClientsService {
     } catch (error){
 
         if (error.code === '23505') {
-          return {message:'Duplicate key value violates unique constraint',errorcode:error.code}
+          return {status: 409,message:'Duplicate key value violates unique constraint',errorcode:error.code}
         }
 
     }
