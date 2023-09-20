@@ -16,51 +16,56 @@ export class BuildingsService {
   ) {}
 
   async createBuilding(createBuildingDto: CreateBuildingDto) {
-    let building = new Buildings();
-    building.name = createBuildingDto.name;
-    building.town_id = createBuildingDto.town_id;
-    building.entrance_number = createBuildingDto.entrance_number;
-    building.floor_number = createBuildingDto.floor_number;
-    building.apartment_number = createBuildingDto.apartment_number;
-    building.mk_price = createBuildingDto.mk_price;
+    try{
+      let building = new Buildings();
+      building.name = createBuildingDto.name;
+      building.town_id = createBuildingDto.town_id;
+      building.entrance_number = createBuildingDto.entrance_number;
+      building.floor_number = createBuildingDto.floor_number;
+      building.apartment_number = createBuildingDto.apartment_number;
+      building.mk_price = createBuildingDto.mk_price;
 
-    building = await this.buildingRepository.save(building);
+      building = await this.buildingRepository.save(building);
 
-    let kv = 1;
-    const records = [];
-    for (let blok = 1; blok <= building.entrance_number; blok++) {
-      const entrance = new Entrance();
-      entrance.buildings = building;
-      entrance.entrance_number = blok;
-      await this.buildingRepository.manager
-        .getRepository(Entrance)
-        .save(entrance);
+      let kv = 1;
+      const records = [];
+      for (let blok = 1; blok <= building.entrance_number; blok++) {
+        const entrance = new Entrance();
+        entrance.buildings = building;
+        entrance.entrance_number = blok;
+        await this.buildingRepository.manager
+            .getRepository(Entrance)
+            .save(entrance);
 
-      for (let layer = 1; layer <= building.floor_number; layer++) {
-        const floor = new Floor();
-        floor.floor_number = layer;
-        floor.entrance = entrance;
-        await this.buildingRepository.manager.getRepository(Floor).save(floor);
+        for (let layer = 1; layer <= building.floor_number; layer++) {
+          const floor = new Floor();
+          floor.floor_number = layer;
+          floor.entrance = entrance;
+          await this.buildingRepository.manager.getRepository(Floor).save(floor);
 
-        for (
-          let apartment = 1;
-          apartment <= building.apartment_number;
-          apartment++
-        ) {
-          const apartment = new Apartments();
-          apartment.floor = floor;
-          apartment.room_number = kv++;
-          apartment.cells = 1;
-          apartment.status = 'free';
-          apartment.room_space = 58.5;
-          records.push(apartment);
+          for (
+              let apartment = 1;
+              apartment <= building.apartment_number;
+              apartment++
+          ) {
+            const apartment = new Apartments();
+            apartment.floor = floor;
+            apartment.room_number = kv++;
+            apartment.cells = 1;
+            apartment.status = 'free';
+            apartment.room_space = 58.5;
+            records.push(apartment);
+          }
         }
       }
+      const result = await this.buildingRepository.manager
+          .getRepository(Apartments)
+          .save(records);
+      return result;
+    } catch (error){
+      return { message: 'Error creating building', error: error.message };
     }
-    const result = await this.buildingRepository.manager
-      .getRepository(Apartments)
-      .save(records);
-    return result;
+
   }
   async findAllBuildings(id: number) {
     let result;

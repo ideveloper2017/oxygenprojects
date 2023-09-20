@@ -1,25 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
+import {IsInt} from "class-validator";
 
 export class CreateOrderDto {
   @ApiProperty({ example: 1, description: "ro'yxatdan o'tgan mijoz idisi" })
+  @IsInt()
   client_id: number;
 
   @ApiProperty({
     example: 1,
     description: 'buyurtma rasmiylashtirgan xodim idisi',
   })
+  @IsInt()
   user_id: number;
 
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
+  @IsInt()
   apartment_id: number;
 
   @ApiProperty({ example: 1, description: "to'lov turi tanlanadi" })
+  @IsInt()
   payment_method_id: number;
   
   @ApiProperty({ example: 8_000_000, description: 'kvartira kvadrat metr narxi' })
+  @IsInt()
   price: number;
 
   @ApiProperty({ example: 25_000_000, description: 'kvartira umumiy narxi' })
+  @IsInt()
   initial_pay: number;
   
 

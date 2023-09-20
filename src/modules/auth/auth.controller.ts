@@ -9,7 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   ForbiddenException,
-  Req,
+  Req, ValidationPipe, UsePipes,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
