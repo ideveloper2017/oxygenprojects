@@ -64,13 +64,22 @@ export class ClientsService {
   }
 
   async editClientInfo(id: number, updateClientDto: UpdateClientDto) {
-    const updatedClient = await this.clientRepo.update(
-      { id: id },
-      updateClientDto,
-    );
-    if (updatedClient.affected == 0) {
-      return { status: 400, data: [], message: 'Mijoz topilmadi!' };
+    try{
+      const updatedClient = await this.clientRepo.update(
+          { id: id },
+          updateClientDto,
+      );
+      if (updatedClient.affected) {
+        return { status: 400, data: [], message: 'Mijoz topilmadi!' };
+      }
+      return { status: 200, data: [], message: "Mijoz ma'lumotalri tahrirlandi" };
+    } catch (error){
+
+        if (error.code === '23505') {
+          return {message:'Duplicate key value violates unique constraint',errorcode:error.code}
+        }
+
     }
-    return { status: 200, data: [], message: "Mijoz ma'lumotalri tahrirlandi" };
+
   }
 }
