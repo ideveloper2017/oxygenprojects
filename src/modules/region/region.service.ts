@@ -4,12 +4,14 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Regions } from './entities/region.entity';
 import { RegionDto } from './dto/region.dto';
+import {DistrictsService} from "../district/district.service";
 
 @Injectable()
 export class RegionsService {
   constructor(
     @InjectRepository(Regions)
     private readonly regionRepository: Repository<Regions>,
+    private readonly districtServ:DistrictsService
   ) {}
   getAllRegion() {
     return this.regionRepository.find();
@@ -21,7 +23,8 @@ export class RegionsService {
 
   async fillDataRegion() {
     let regiondata;
-    if (this.regionRepository.exist()) {
+    const regions=await  this.regionRepository.find()
+    if (regions.length==0) {
       regiondata = await this.regionRepository.save([
         { id: 1, name: 'Qoraqalpog‘iston Respublikasi' },
         { id: 2, name: 'Andijon viloyati' },

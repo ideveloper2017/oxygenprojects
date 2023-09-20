@@ -31,7 +31,7 @@ export class DistrictsService {
 
   public fillDataDistrict = async () => {
     const allDistricts = await this.districtRepo.find();
-
+    const district=[];
     if (allDistricts.length == 0) {
       const fs = require('fs');
       fs.readFile('data/districts.json', (err, data) => {
@@ -41,9 +41,11 @@ export class DistrictsService {
           const id = districts[ii].id;
           const region_id = districts[ii].region_id;
           const name = districts[ii].name_uz;
-          this.districtRepo.save([{ id: id, region: region_id, name: name }]);
+          district.push({ id: id,name: name, region: region_id });
         }
+        this.districtRepo.save(district);
       });
+
     }
   };
 }

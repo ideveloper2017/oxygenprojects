@@ -76,18 +76,26 @@ export class PaymentMethodsService {
     if (paymethods.length == 0) {
       this.paymentMethodRepo.save([
         {
+          id:1,
           name: 'Нақд',
+          name_alias:'naqd',
           is_active: true
         },
         {
+          id:2,
           name: 'Ипотека',
+          name_alias:'ipoteka',
           is_active: true
         },
         {
+          id:3,
           name: 'Доллар',
+          name_alias:'dollar',
           is_active: true
         }, {
+          id:4,
           name: 'Субсидиа',
+          name_alias:'subsidia',
           is_active: true
         }
       ])
