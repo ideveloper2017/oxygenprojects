@@ -126,16 +126,12 @@ export class OrdersService {
   }
 
   async getOrderListIsDue() {
-    // return await this.ordersRepository.manager
-    //   .getRepository(Orders)
-    //   .createQueryBuilder('orders')
-    //   .where('orders.order_status=true')
-    //   .getMany();
+
     return await this.ordersRepository
                       .manager
                       .getRepository(Orders)
                       .createQueryBuilder('orders')
-                     //  .where("orders.order_status = true")
+                      .where("orders.order_status =:logic",{logic: true})
                       .getMany()
                       // .innerJoinAndSelect("orders.metadata", "metadata")
   }
