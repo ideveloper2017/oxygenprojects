@@ -37,9 +37,12 @@ export class PaymentsService {
         if (!nextPaid) {
           break;
         }
+    
+        const leftAmount = money - (nextPaid.due_amount - nextPaid.left_amount)
+        console.log(leftAmount, 'left amount');
         console.log(money, 'after break');
 
-        if(money >= nextPaid.due_amount - nextPaid.left_amount){
+        if(money > 0){
        
           await CreditTable.update({id: nextPaid.id}, {status: 'paid', left_amount: 0})
           money -= nextPaid.due_amount - nextPaid.left_amount
