@@ -139,7 +139,7 @@ export class UsersService {
         last_name: "Admin",
         username: "admin",
         phone_number: "+998 94 995 1254",
-        password: "1234",
+        password: await bcrypt.hash("1234",10),
         is_active: true,
         roles: await Roles.findOne({where:{id:1}})
       }]);
