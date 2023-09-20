@@ -126,11 +126,18 @@ export class OrdersService {
   }
 
   async getOrderListIsDue() {
-    return await this.ordersRepository.manager
-      .getRepository(Orders)
-      .createQueryBuilder('orders')
-     /// .where('orders.order_status=:order', { order: true })
-      .getMany();
+    // return await this.ordersRepository.manager
+    //   .getRepository(Orders)
+    //   .createQueryBuilder('orders')
+    //   .where('orders.order_status=true')
+    //   .getMany();
+    return await this.ordersRepository
+                      .manager
+                      .getRepository(Orders)
+                      .createQueryBuilder('orders')
+                       .where("orders.order_status= true")
+                      .getMany()
+                      // .innerJoinAndSelect("orders.metadata", "metadata")
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
