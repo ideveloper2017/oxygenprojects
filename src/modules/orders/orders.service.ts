@@ -131,7 +131,7 @@ export class OrdersService {
                       .manager
                       .getRepository(Orders)
                       .createQueryBuilder('orders')
-                      .where("orders.order_status =:logic",{logic: true})
+                      .where("orders.order_status = active")
                       .getMany()
                       // .innerJoinAndSelect("orders.metadata", "metadata")
   }
