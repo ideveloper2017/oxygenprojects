@@ -118,7 +118,7 @@ export class OrdersService {
                     'orderItems.apartments.floor.entrance.buildings.towns'],
       });
     } else {
-      order = await this.ordersRepository.findOne({
+      order = await this.ordersRepository.find({
         where: { id: id },
         relations: ['clients','payments','users', 'paymentMethods',
           'orderItems.apartments.floor.entrance.buildings.towns'],
