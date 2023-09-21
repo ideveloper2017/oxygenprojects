@@ -7,6 +7,8 @@ export class CreditTable extends Model {
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
   
+  @Column()
+  order_id: number
   @Column({ type: 'float' })
   due_amount: number;
  

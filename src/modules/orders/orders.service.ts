@@ -10,6 +10,7 @@ import { CreditTable } from '../credit-table/entities/credit-table.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Clients } from '../clients/entities/client.entity';
 import { Users } from '../users/entities/user.entity';
+import { BookingDto } from '../booking/dto/create-booking.dto';
 
 @Injectable()
 export class OrdersService {
@@ -148,4 +149,5 @@ export class OrdersService {
     const deleteOrder = await this.ordersRepository.delete(arrayOfId);
     return deleteOrder;
   }
+
 }
