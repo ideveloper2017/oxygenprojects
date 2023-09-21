@@ -117,7 +117,7 @@ export class BuildingsService {
   async getBuldingsOfTown(town_id: number) {
     const result = await this.buildingRepository.find({
       where: { town_id: town_id },
-      relations: ['files'],
+      // relations: ['files'],
     });
 
     return result;
