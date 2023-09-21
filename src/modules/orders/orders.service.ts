@@ -111,6 +111,7 @@ export class OrdersService {
   }
 
   async getOrderList(id: number) {
+    console.log(id)
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
