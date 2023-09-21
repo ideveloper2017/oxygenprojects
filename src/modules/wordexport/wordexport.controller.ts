@@ -34,7 +34,7 @@ export class WordexportController {
     // });
 
     let address=order?.orderItems.map((data)=>{
-         return data.apartments?.floor.entrance.buildings.towns.address;
+         return data.apartments;
     })
     const data = {
       orders: [
