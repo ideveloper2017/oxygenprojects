@@ -25,7 +25,7 @@ export class WordexportController {
     const order=await this.orderRepo.findOne({where:{clients:client },relations:['clients','orderItems']});
 
     let apartment=order?.orderItems?.map((data)=>{
-      return {address: data.apartments.floor.entrance.buildings.towns.address,
+      return {address: data.apartments,
               floor_number:data?.apartments?.floor?.floor_number,
               room_space:data?.apartments?.room_space,
               room_number:data?.apartments?.room_number,
