@@ -25,7 +25,7 @@ export class WordexportController {
     const order=await this.orderRepo.findOne({where:{clients:client },relations:['clients','orderItems.apartments.floor.entrance.buildings.towns']});
 
     let apartment=order?.orderItems?.map((data)=>{
-      return {address: data.apartments,
+      return {address: data?.apartments?.floor?.entrance?.buildings?.towns?.address,
               floor_number:data?.apartments?.floor?.floor_number,
               room_space:data?.apartments?.room_space,
               room_number:data?.apartments?.room_number,
@@ -33,13 +33,12 @@ export class WordexportController {
             }
     });
 
-
     const data = {
       orders: [
         {
           order_number: order?.id,
           client_name: order?.clients?.first_name + ' ' + order?.clients?.last_name,
-          apartment
+          apartment,
 
         }
       ]
