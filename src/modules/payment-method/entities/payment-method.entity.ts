@@ -8,6 +8,9 @@ export class PaymentMethods extends Model {
   name: string;
 
   @Column()
+  name_alias:string;
+
+  @Column()
   is_active: boolean;
 
   @OneToMany((type) => Orders, (orders) => orders.paymentMethods)

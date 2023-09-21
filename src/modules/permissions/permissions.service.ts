@@ -15,7 +15,8 @@ export class PermissionsService {
   };
 
   public filldata = async () => {
-    if (this.permissionRepo.exist()) {
+    const perm= await this.permissionRepo.find();
+    if (perm.length==0) {
       return await this.permissionRepo
         .save([
           { id: 1, name: 'user.create' },

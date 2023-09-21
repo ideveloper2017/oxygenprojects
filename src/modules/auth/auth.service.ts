@@ -63,13 +63,13 @@ export class AuthService {
 
   createAccessToken({ userId, roles }: AccessTokenPayload): string {
     return sign({ userId, roles }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '1d',
     });
   }
 
   createRefreshToken({ userId, tokenVersion }: RefreshTokenPayload): string {
     return sign({ userId, tokenVersion }, process.env.REFRESH_TOKEN_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '1d',
     });
   }
 

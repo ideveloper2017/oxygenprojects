@@ -4,8 +4,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
-import {ValidationPipe} from "./common/validations/validation.pipe";
-import {AllExceptionsFilter} from "./common/filters/all-exception.filter";
+import {ValidationPipe} from "@nestjs/common";
+
 
 
 async function bootstrap() {
@@ -52,5 +52,6 @@ async function bootstrap() {
   await app.listen(configService.get<number>('PORT'), () => {
     console.log('Web', configService.get<string>('BASE_URL'));
   });
+
 }
 bootstrap();

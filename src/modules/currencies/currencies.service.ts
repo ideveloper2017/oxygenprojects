@@ -95,4 +95,14 @@ export class CurrenciesService {
       .orderBy('id', 'DESC')
       .getOne();
   }
+
+  async createDefault(){
+    const currencies = await this.currencyRepo.find();
+    if (currencies.length == 0) {
+      Currencies.save({
+        name: 'USD',
+        is_selected: true,
+      });
+    }
+  }
 }
