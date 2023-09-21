@@ -38,16 +38,16 @@ export class WordexportController {
     const data = {
          apartment
     };
-    console.log(JSON.stringify(data))
 
-    // const handler = new TemplateHandler();
-    // const doc = await handler.process(templateFile, data);
-    //
-    // res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    // res.setHeader('Content-Type', 'application/octet-stream'); // You can set the appropriate MIME type
-    // res.send(doc)
-    // const fileStream = fs.createReadStream(filename);
-    // fileStream.pipe(res);
+
+    const handler = new TemplateHandler();
+    const doc = await handler.process(templateFile, data);
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/octet-stream'); // You can set the appropriate MIME type
+    res.send(doc)
+    const fileStream = fs.createReadStream(filename);
+    fileStream.pipe(res);
     // fs.writeFileSync('myTemplate - output.docx', doc);
   }
 
