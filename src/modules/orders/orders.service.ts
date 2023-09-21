@@ -111,7 +111,7 @@ export class OrdersService {
   }
 
   async getOrderList(id: number) {
-    console.log(id)
+
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
@@ -119,7 +119,8 @@ export class OrdersService {
                     'orderItems.apartments.floor.entrance.buildings.towns'],
       });
     } else {
-      order = await this.ordersRepository.find({
+      console.log(id)
+      order = await this.ordersRepository.findOne({
         where: { id: id },
         relations: ['clients','payments','users', 'paymentMethods',
           'orderItems.apartments.floor.entrance.buildings.towns'],
