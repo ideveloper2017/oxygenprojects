@@ -36,13 +36,7 @@ export class WordexportController {
     });
 
     const data = {
-      orders: [
-        {
-
-          apartment,
-
-        }
-      ]
+         apartment
     };
     console.log(JSON.stringify(data))
 
