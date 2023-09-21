@@ -51,15 +51,16 @@ export class ClientsService {
           return {message:'Duplicate key value violates unique constraint',errorcode:error.code}
       }
     }
+
   }
 
   async findAllClients() {
-    const clients = await this.clientRepo.find({ order: { id: 'desc' } });
+    const clients = await this.clientRepo.find({ order: { id: 'desc' },relations:['orders.payments'] });
     return { status: 200, data: clients, message: "Mijozlar ro'yxati" };
   }
 
   async findOneClient(id: number) {
-    const client = await this.clientRepo.find({ where:{id: id},relations:['orders.payments'] });
+    const client = await this.clientRepo.findBy({ id: id });
     return { status: 200, data: client, message: 'success' };
   }
 
