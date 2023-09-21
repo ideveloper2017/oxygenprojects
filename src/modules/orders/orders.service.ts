@@ -54,8 +54,8 @@ export class OrdersService {
       });
 
     // binodagi barcha apartmentlarga tegishli narxini olish
-    const total = createOrderDto.price ? createOrderDto.price * apartment.room_space  : 
-      apartment.floor.entrance.buildings.mk_price * apartment.room_space;
+    //createOrderDto.price ? createOrderDto.price * apartment.room_space/
+    const total = apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
     const oneMonthDue =
