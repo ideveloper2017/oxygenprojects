@@ -43,6 +43,7 @@ import {TaskSchedulerModule} from './modules/task-scheduler/task-scheduler.modul
 import {ReturnModule} from './modules/return/return.module';
 import {CaisherModule} from './modules/caisher/caisher.module';
 import {WordexportModule} from './modules/wordexport/wordexport.module';
+import { BookingModule } from './modules/booking/booking.module';
 
 @Module({
     imports: [
@@ -89,6 +90,7 @@ import {WordexportModule} from './modules/wordexport/wordexport.module';
         ReturnModule,
         CaisherModule,
         WordexportModule,
+        BookingModule
     ],
     controllers: [],
     providers: [],
