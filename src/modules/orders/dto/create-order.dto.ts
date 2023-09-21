@@ -21,9 +21,9 @@ export class CreateOrderDto {
   @IsInt()
   payment_method_id: number;
   
-  @ApiProperty({ example: 8_000_000, description: 'kvartira kvadrat metr narxi' })
-  @IsInt()
-  price: number;
+  // @ApiProperty({ example: 8_000_000, description: 'kvartira kvadrat metr narxi' })
+  // @IsInt()
+  // price: number;
 
   @ApiProperty({ example: 25_000_000, description: 'kvartira umumiy narxi' })
   @IsInt()
