@@ -13,7 +13,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.enableCors(  {
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173','https://oxy.brainsmart.uz'],
     credentials:true,
     exposedHeaders:['set-cookie']
 
