@@ -51,7 +51,6 @@ export class ClientsService {
           return {message:'Duplicate key value violates unique constraint',errorcode:error.code}
       }
     }
-
   }
 
   async findAllClients() {
@@ -60,7 +59,7 @@ export class ClientsService {
   }
 
   async findOneClient(id: number) {
-    const client = await this.clientRepo.findBy({ id: id });
+    const client = await this.clientRepo.find({ where:{id: id},relations:['orders.payments'] });
     return { status: 200, data: client, message: 'success' };
   }
 
