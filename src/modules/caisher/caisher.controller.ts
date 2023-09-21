@@ -63,8 +63,7 @@ export class CaisherController {
   }
 
   @Patch(':id')
-  @ApiQuery({ name: 'caisher', enum: Paymentmethods })
-  update(@Query('role') caisher: Paymentmethods,@Param('id') id: string, @Body() updateCaisherDto: UpdateCaisherDto) {
+  update(@Param('id') id: string, @Body() updateCaisherDto: UpdateCaisherDto) {
     try {
       return this.caisherService.update(+id, updateCaisherDto).then((data) => {
         if (data.affected != 0) {
