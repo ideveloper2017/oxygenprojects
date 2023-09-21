@@ -21,7 +21,7 @@ export class WordexportController {
     const templateFile = fs.readFileSync('data/contract.docx');
 
 
-    client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}}).then(data=>{return data});
+    client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
     const order=await this.orderRepo.findOne({where:{clients:client },relations:['clients','orderItems']});
 
     let apartment=order?.orderItems?.map((data)=>{
