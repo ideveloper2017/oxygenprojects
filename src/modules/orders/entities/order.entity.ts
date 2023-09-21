@@ -42,8 +42,8 @@ export class Orders extends Model {
   @OneToMany(() => OrderItems, (orderItems) => orderItems.orders)
   orderItems: OrderItems[];
 
-  @ManyToOne(() => Payments, (payments) => payments.orders)
-  payments: Payments;
+  @OneToMany(() => Payments, (payments) => payments.orders)
+  payments: Payments[];
 
   @OneToMany(() => CreditTable, (creditTable) => creditTable.orders)
   creditTables: CreditTable[];

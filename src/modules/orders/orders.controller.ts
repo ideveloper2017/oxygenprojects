@@ -37,7 +37,7 @@ export class OrdersController {
           res.send({
             success: false,
             data: response,
-            message: 'Not order created successfully',
+            message: 'No order created successfully',
           });
         }
       })

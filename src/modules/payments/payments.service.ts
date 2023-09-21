@@ -7,6 +7,7 @@ import { Orders } from '../orders/entities/order.entity';
 import { CreditTable } from '../credit-table/entities/credit-table.entity';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Caisher } from '../caisher/entities/caisher.entity';
+import { Users } from '../users/entities/user.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -16,7 +17,6 @@ export class PaymentsService {
   ) {}
 
   async newPayment(newPaymentDto: NewPaymentDto) {
-    console.log(newPaymentDto.order_id);
 
     const { paymentMethods } = await Orders.findOne({
       where: { id: newPaymentDto.order_id },
@@ -52,31 +52,25 @@ export class PaymentsService {
         }
    }
       const payment = new Payments();
-      payment.orders = await Orders.findOne({
-        where: { id: newPaymentDto.order_id },
-      });
+      payment.orders = await Orders.findOne({where: { id: +newPaymentDto.order_id },});
+      payment.users = await Users.findOne({where: {id: +newPaymentDto.user_id}})
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
       payment.paymentmethod = newPaymentDto.paymentmethod;
-      payment.caishers = await Caisher.findOne({
-        where: { id: newPaymentDto.caisher_id },
-      });
+      payment.caishers = await Caisher.findOne({where: { id: newPaymentDto.caisher_id },});
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
       newPay = await this.paymentRepo.save(payment);
     
     } else {
-    
+      
       const payment = new Payments();
-      payment.orders = await Orders.findOne({
-        where: { id: newPaymentDto.order_id },
-      });
+      payment.orders = await Orders.findOne({where: { id: newPaymentDto.order_id },});
+      payment.users = await Users.findOne({where: {id: +newPaymentDto.user_id}})
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
       payment.paymentmethod = newPaymentDto.paymentmethod;
-      payment.caishers = await Caisher.findOne({
-        where: { id: newPaymentDto.caisher_id },
-      });
+      payment.caishers = await Caisher.findOne({where: { id: newPaymentDto.caisher_id },});
       newPay = await this.paymentRepo.save(payment);
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
