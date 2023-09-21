@@ -114,12 +114,19 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        relations: ['clients', 'users', 'paymentMethods','orderItems.apartments','orderItems.apartments.floor','orderItems.apartments.floor.entrance','orderItems.apartments.floor.entrance.towns'],
+        relations: ['clients', 'users', 'paymentMethods',
+                    'orderItems.apartments','orderItems.apartments.floor',
+                    'orderItems.apartments.floor.entrance',
+                    'orderItems.apartments.floor.entrance.buildings',
+                    'orderItems.apartments.floor.entrance.buildings.towns'],
       });
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: ['clients', 'users', 'paymentMethods','orderItems.apartments','orderItems.apartments.floor','orderItems.apartments.floor.entrance','orderItems.apartments.floor.entrance.towns'],
+        relations: ['clients', 'users', 'paymentMethods','orderItems.apartments','orderItems.apartments.floor',
+          'orderItems.apartments.floor.entrance',
+          'orderItems.apartments.floor.entrance.buildings',
+          'orderItems.apartments.floor.entrance.buildings.towns'],
       });
     }
     return order;
