@@ -63,8 +63,8 @@ export class OrdersService {
     let schedule;
 
     if (
-      payment_method.name.toLowerCase() === 'rassrochka' ||
-      payment_method.name.toLowerCase() === 'ipoteka'
+      payment_method.name_alias.toLowerCase() === 'rassrochka' ||
+      payment_method.name_alias.toLowerCase() === 'ipoteka'
     ) {
       const creditSchedule = [];
       const date = new Date();

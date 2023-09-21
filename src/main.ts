@@ -6,7 +6,8 @@ import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import {ValidationPipe} from "./common/validations/validation.pipe";
 import {AllExceptionsFilter} from "./common/filters/all-exception.filter";
-
+import * as fs from 'fs';
+import { TemplateHandler } from 'easy-template-x';
 
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
@@ -51,5 +52,6 @@ async function bootstrap() {
   await app.listen(configService.get<number>('PORT'), () => {
     console.log('Web', configService.get<string>('BASE_URL'));
   });
+
 }
 bootstrap();
