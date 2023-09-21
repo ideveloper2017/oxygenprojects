@@ -114,12 +114,12 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        relations: ['clients', 'users', 'paymentMethods'],
+        relations: ['clients', 'users', 'paymentMethods','orderItems'],
       });
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: ['clients', 'users', 'paymentMethods'],
+        relations: ['clients', 'users', 'paymentMethods','orderItems'],
       });
     }
     return order;
