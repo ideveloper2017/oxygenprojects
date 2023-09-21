@@ -39,8 +39,6 @@ export class PaymentsService {
         }
     
         const leftAmount = money - (nextPaid.due_amount - nextPaid.left_amount)
-        console.log(leftAmount, 'left amount');
-        console.log(money, 'after break');
 
         if(money > 0){
        

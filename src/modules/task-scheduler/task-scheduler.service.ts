@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import { Repository } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
+import { Booking } from '../booking/entities/booking.entity';
 
 @Injectable()
 export class TaskSchedulerService {
@@ -18,22 +19,25 @@ export class TaskSchedulerService {
     this.logger.log('Running apartment status check...');
 
     const apartments = await this.apartmentRepository.find({
-      where: { status: 'bron' },
+      where: { status: 'bron' },relations: ['bookings']
+    });
+    const apartmentsWithActiveBookings = apartments.filter(apartment => {
+      return apartment.bookings.some(booking => booking.bron_is_active === true);
     });
 
     const currentDate = new Date();
-    const threeDaysAgo = new Date(
-      currentDate.getTime() - 3 * 24 * 60 * 60 * 1000,
-    );
+    // const threeDaysAgo = new Date(
+    //   currentDate.getTime() - 3 * 24 * 60 * 60 * 1000,
+    // );
 
-    for (const apartment of apartments) {
-      if (apartment.updated_at && apartment.updated_at < threeDaysAgo) {
-        apartment.status = 'free';
-        await this.apartmentRepository.save(apartment);
+    // for (const apartment of apartmentsWithActiveBookings) {
+    //   if (apartment.updated_at && apartment.updated_at) {
+    //     apartment.status = 'free';
+    //     await this.apartmentRepository.save(apartment);
 
-        this.logger.log(`Apartment ${apartment.id} status changed to free.`);
-      }
-    }
+    //     this.logger.log(`Apartment ${apartment.id} status changed to free.`);
+    //   }
+    // }
 
     this.logger.log('Apartment status check completed.');
   }

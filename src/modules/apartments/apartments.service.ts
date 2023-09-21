@@ -6,6 +6,7 @@ import { CreateApartmentDto } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { Floor } from '../floor/entities/floor.entity';
 import { Buildings } from '../buildings/entities/building.entity';
+import { Towns } from '../towns/entities/town.entity';
 
 @Injectable()
 export class ApartmentsService {
@@ -21,8 +22,9 @@ export class ApartmentsService {
 
     const res = await Floor.findOne({where: {id: floor_id}, relations: ['entrance.buildings.towns']})
     const town_id = res.entrance.buildings.towns.id
-    const {maxRoomNumber} = await Buildings
-    .createQueryBuilder('building')
+    const {maxRoomNumber} = await Towns
+    .createQueryBuilder('town')
+    .innerJoin('town.buildings', 'building')
     .innerJoin('building.entrances', 'entrance')
     .innerJoin('entrance.floors', 'floor')
     .innerJoin('floor.apartments', 'apartment')
@@ -30,7 +32,6 @@ export class ApartmentsService {
     .select('MAX(apartment.room_number)', 'maxRoomNumber')
     .getRawOne();
 
-    console.log(maxRoomNumber);
     
     const newApartment = new Apartments();
     newApartment.floor_id = floor_id;
@@ -83,4 +84,5 @@ export class ApartmentsService {
     const apartments = await this.apartmentRepository.find()
     return apartments
   }
+
 }

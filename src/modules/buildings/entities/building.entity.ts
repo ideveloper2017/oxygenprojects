@@ -31,6 +31,6 @@ export class Buildings extends Model {
   @Column()
   mk_price: number;
   
-  @OneToMany((type) => FileUpload, (fileUpload) => fileUpload.building)
-  files: FileUpload[]
+  // @OneToMany((type) => FileUpload, (fileUpload) => fileUpload.building)
+  // files: FileUpload[]
 }

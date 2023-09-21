@@ -24,9 +24,9 @@ export class FileUpload {
   @Column({nullable : true})
   apartment_id: number
 
-  @ManyToOne(() => Buildings, building => building.files)
-  @JoinColumn({name: "building_id"})
-  building: Buildings
+  // @ManyToOne(() => Buildings, building => building.files)
+  // @JoinColumn({name: "building_id"})
+  // building: Buildings
   
   @Column({nullable: true})
   building_id: number 

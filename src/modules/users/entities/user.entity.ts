@@ -12,6 +12,7 @@ import * as bcrypt from 'bcryptjs';
 import { Sales } from '../../sales/entities/sale.entity';
 import { Orders } from '../../orders/entities/order.entity';
 import { Payments } from '../../payments/entities/payment.entity';
+import { Booking } from 'src/modules/booking/entities/booking.entity';
 
 @Entity('Users')
 export class Users extends Model {
@@ -46,6 +47,9 @@ export class Users extends Model {
 
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
+  
+  @OneToMany((type) => Booking, (booking) => booking.users)
+  bookings: Booking[];
 
   @Column({
     default: 0,
