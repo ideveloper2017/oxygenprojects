@@ -38,7 +38,7 @@ export class WordexportController {
         {
           order_number: order?.id,
           client_name: order?.clients?.first_name + ' ' + order?.clients?.last_name,
-          apartment,
+          ...apartment,
 
         }
       ]
