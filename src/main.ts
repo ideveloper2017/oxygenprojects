@@ -4,10 +4,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
-import {ValidationPipe} from "./common/validations/validation.pipe";
-import {AllExceptionsFilter} from "./common/filters/all-exception.filter";
-import * as fs from 'fs';
-import { TemplateHandler } from 'easy-template-x';
+import {ValidationPipe} from "@nestjs/common";
+
+
 
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
