@@ -25,7 +25,7 @@ export class WordexportController {
     const order=await this.orderRepo.findOne({where:{clients:client },relations:['clients']});
     const data = {
       orders: [
-        { order_number: order?.id,client_name:order?.clients?.first_name},
+        { order_number: order?.id,client_name:order?.clients?.first_name+' '+order?.clients?.last_name},
       ]
     };
 
