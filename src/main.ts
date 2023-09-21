@@ -6,8 +6,6 @@ import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import {ValidationPipe} from "@nestjs/common";
 
-
-
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
@@ -20,13 +18,11 @@ async function bootstrap() {
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
-  // app.useGlobalFilters(new AllExceptionsFilter( app.get(HttpAdapterHost)));
-
 
   const config = new DocumentBuilder()
     .setTitle('Sales Appartment API Documentation')
     .setVersion('1.0')
-      .addBearerAuth()
+    .addBearerAuth()
     .addTag('Auth')
     .addTag('Users')
     .addTag('Towns')

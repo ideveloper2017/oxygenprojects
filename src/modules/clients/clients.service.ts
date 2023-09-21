@@ -55,7 +55,7 @@ export class ClientsService {
   }
 
   async findAllClients() {
-    const clients = await this.clientRepo.find({ order: { id: 'desc' } });
+    const clients = await this.clientRepo.find({ order: { id: 'desc' }, relations:['orders.payments'] });
     return { status: 200, data: clients, message: "Mijozlar ro'yxati" };
   }
 
