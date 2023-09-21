@@ -50,7 +50,7 @@ export class OrdersController {
   @Get('/order-list/:id')
   getOrder(@Param('id') id?: number) {
     return this.orderService.getOrderList(id).then((response) => {
-      if (!response) {
+      if (response !== null && response.length != 0) {
         return { data: response, message: 'Fetched data' };
       } else {
         return { success: true, message: 'Not found!' };
