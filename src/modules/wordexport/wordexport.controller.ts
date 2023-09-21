@@ -1,18 +1,28 @@
-import { Controller, Get, Res } from '@nestjs/common';
+import {Controller, Get, Param, ParseIntPipe, Res} from '@nestjs/common';
 // import fs from "fs";
 import {TemplateHandler} from "easy-template-x";
+import {OrdersService} from "../orders/orders.service";
+import {InjectRepository} from "@nestjs/typeorm";
+import {Orders} from "../orders/entities/order.entity";
+import {FindOptionsWhere, Repository} from "typeorm";
+import {Clients} from "../clients/entities/client.entity";
 const fs=require('fs');
 @Controller('wordexport')
 export class WordexportController {
-  @Get('export')
-  async exportWord(@Res() res) {
+
+  constructor(
+      @InjectRepository(Orders)
+      private readonly orderRepo:Repository<Orders>) {
+  }
+  @Get('export/:client_id')
+  async exportWord(@Param('client_id') client_id:number,@Res() res) {
     const filename = 'data/contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
-
+   const client= await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
+    const order=await this.orderRepo.findOne({where:{clients:client as FindOptionsWhere<Clients>},relations:['clients']});
     const data = {
-      posts: [
-        { author: 'Alon Bar', text: 'Very important\ntext here!' },
-        { author: 'Alon Bar', text: 'Forgot to mention that...' }
+      orders: [
+        { order_number: order?.id,client_name:order?.clients?.first_name},
       ]
     };
 
