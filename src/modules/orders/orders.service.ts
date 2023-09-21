@@ -119,7 +119,7 @@ export class OrdersService {
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: ['clients', 'users', 'paymentMethods','orderItems'],
+        relations: ['clients', 'users', 'paymentMethods','orderItems.apartments','orderItems.apartments.floor','orderItems.apartments.floor.entrance'],
       });
     }
     return order;
