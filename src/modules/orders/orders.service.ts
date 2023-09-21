@@ -120,25 +120,11 @@ export class OrdersService {
       });
     } else {
 
-      // order = await this.ordersRepository.findOne({
-      //   where: { id: id },
-      //   relations: ['clients','payments','users', 'paymentMethods',
-      //     'orderItems.apartments.floor.entrance.buildings.towns'],
-      // });
-      order=await this.ordersRepository.createQueryBuilder('order')
-          .where('order.id = :id', { id })
-          // .leftJoinAndSelect('order.clients', 'clients')
-          // .leftJoinAndSelect('order.payments', 'payments')
-          // .leftJoinAndSelect('order.users', 'users')
-          // .leftJoinAndSelect('order.paymentMethods', 'paymentMethods')
-          // .leftJoinAndSelect('order.orderItems', 'orderItems')
-          // .leftJoinAndSelect('orderItems.apartments', 'apartments')
-          // .leftJoinAndSelect('apartments.floor', 'floor')
-          // .leftJoinAndSelect('floor.entrance', 'entrance')
-          // .leftJoinAndSelect('entrance.buildings', 'buildings')
-          // .leftJoinAndSelect('buildings.towns', 'towns')
-          .getOne();
-
+      order = await this.ordersRepository.findOne({
+        where: { id: id },
+        relations: ['clients','payments','users', 'paymentMethods',
+          'orderItems.apartments.floor.entrance.buildings.towns'],
+      });
     }
     return order;
   }
