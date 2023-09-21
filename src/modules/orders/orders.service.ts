@@ -114,7 +114,7 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        relations: ['clients', 'users', 'paymentMethods','orderItems'],
+        relations: ['clients', 'users', 'paymentMethods','orderItems.apartments','orderItems.apartments.floor','orderItems.apartments.floor.entrance'],
       });
     } else {
       order = await this.ordersRepository.findOne({
