@@ -43,7 +43,7 @@ export class WordexportController {
         }
       ]
     };
-    console.log(data)
+    console.log(JSON.stringify(data))
 
     // const handler = new TemplateHandler();
     // const doc = await handler.process(templateFile, data);
