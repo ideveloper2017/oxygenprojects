@@ -117,7 +117,7 @@ export class AppModule implements NestModule {
 
     configure(consumer: MiddlewareConsumer) {
         consumer
-            .apply(LoggerMiddleware,AuthMiddleware)
+            .apply(AuthMiddleware)
             .forRoutes({path: '*', method: RequestMethod.ALL});
     }
 }
