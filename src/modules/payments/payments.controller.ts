@@ -57,7 +57,7 @@ export class PaymentsController {
   }
 
   @Post('/delete')
-  deletePayment(id: number[]) {
+  deletePayment(@Body() id: number[]) {
       let result;
       for(let i of id){
           result= this.paymentsService
