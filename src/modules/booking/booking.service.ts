@@ -63,6 +63,7 @@ export class BookingService {
 
     const booking = await this.bookingsRepository.find({
       where: { bron_is_active: true, apartments: appartment },
+      relations:['clients','apartments']
     });
 
     return booking;
