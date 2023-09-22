@@ -44,6 +44,7 @@ import {ReturnModule} from './modules/return/return.module';
 import {CaisherModule} from './modules/caisher/caisher.module';
 import {WordexportModule} from './modules/wordexport/wordexport.module';
 import { BookingModule } from './modules/booking/booking.module';
+import {LoggerMiddleware} from "./common/middleware/logger-middleware";
 
 @Module({
     imports: [
