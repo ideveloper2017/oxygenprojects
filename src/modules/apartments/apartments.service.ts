@@ -19,23 +19,23 @@ export class ApartmentsService {
     floor_id: number,
     createApartmentDto: CreateApartmentDto,
   ) {
+    const res = await Floor.findOne({
+      where: { id: floor_id },
+      relations: ['entrance.buildings.towns'],
+    });
+    const town_id = res.entrance.buildings.towns.id;
+    const { maxRoomNumber } = await Towns.createQueryBuilder('town')
+      .innerJoin('town.buildings', 'building')
+      .innerJoin('building.entrances', 'entrance')
+      .innerJoin('entrance.floors', 'floor')
+      .innerJoin('floor.apartments', 'apartment')
+      .where('building.town_id = :town_id', { town_id })
+      .select('MAX(apartment.room_number)', 'maxRoomNumber')
+      .getRawOne();
 
-    const res = await Floor.findOne({where: {id: floor_id}, relations: ['entrance.buildings.towns']})
-    const town_id = res.entrance.buildings.towns.id
-    const {maxRoomNumber} = await Towns
-    .createQueryBuilder('town')
-    .innerJoin('town.buildings', 'building')
-    .innerJoin('building.entrances', 'entrance')
-    .innerJoin('entrance.floors', 'floor')
-    .innerJoin('floor.apartments', 'apartment')
-    .where('building.town_id = :town_id', {town_id})
-    .select('MAX(apartment.room_number)', 'maxRoomNumber')
-    .getRawOne();
-
-    
     const newApartment = new Apartments();
     newApartment.floor_id = floor_id;
-    newApartment.room_number =  maxRoomNumber ? maxRoomNumber+1 : 1;
+    newApartment.room_number = maxRoomNumber ? maxRoomNumber + 1 : 1;
     newApartment.cells = createApartmentDto.cells;
     newApartment.room_space = createApartmentDto.room_space;
     newApartment.status = createApartmentDto.status;
@@ -73,27 +73,32 @@ export class ApartmentsService {
   }
 
   async bookingApartment(id: number) {
-    const check = await this.apartmentRepository.findOne({where: {id: id}})
-    if (check.status != 'sold' && check.status != "inactive"){
+    const check = await this.apartmentRepository.findOne({ where: { id: id } });
+    if (check.status != 'sold' && check.status != 'inactive') {
       const booking = await this.apartmentRepository.update(
         { id: id },
         { status: 'bron' },
       );
       return booking;
-    }else {
-      return null
+    } else {
+      return null;
     }
-    
   }
 
-  async findAllApartments(){
-    const apartments = await this.apartmentRepository.find()
-    return apartments
+  async findAllApartments() {
+    const apartments = await this.apartmentRepository.find();
+    return apartments;
   }
 
-  async findBookedApartments() {
-    const bookeds = await this.apartmentRepository.find({where: {status: 'bron'}, order: {'updated_at': "DESC"}})
-    return bookeds
+  async findBookedApartments(offset: number, limit: number) {
+    const bookeds = await this.apartmentRepository.find({
+      where: { status: 'bron' },
+      skip: offset,
+      take: limit,
+      order: { updated_at: 'DESC' },
+      
+    });
+    return bookeds;
   }
 
 }

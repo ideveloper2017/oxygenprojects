@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateClientDto } from './dto/create-client.dto';
 import { Clients } from './entities/client.entity';
@@ -20,8 +20,10 @@ export class ClientsController {
   @ApiOperation({ summary: "Mavjud mijozlar ro'yxati" })
   @ApiResponse({ status: 200, type: Clients })
   @Get('/all')
-  getAllClients() {
-    return this.clientsService.findAllClients();
+  getAllClients(@Query('page') page: number) {
+    const limit = 20
+    const offset = (page - 1) * limit
+    return this.clientsService.findAllClients(offset, limit)
   }
 
   @ApiOperation({ summary: "Mijoz ma'lumotlarini tahrirlash" })

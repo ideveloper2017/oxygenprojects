@@ -78,9 +78,11 @@ export class PaymentsService {
     return newPay;
   }
 
-  async getAll() {
+  async getAllPayments(offset: number, limit: number){
     return await this.paymentRepo.find({
       relations: ['orders', 'orders.clients', 'caishers'],
+      skip: offset,
+      take: limit,
       order: { id: 'desc' },
     });
   }

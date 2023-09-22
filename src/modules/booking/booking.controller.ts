@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { BookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -22,12 +22,14 @@ export class BookingController {
   }
 
   @Get('/all')
-  findAll() {
-    return this.bookingService.findAll().then(data => {
-      if(!data) {
-        return {success: false,  message: "Bookings not found"}
-      }else {
+  findAll(@Query('page') page: number) {
+    const limit: number = 20
+    const offset = (page - 1) * limit;
+    return this.bookingService.findAllBookings(offset, limit).then(data => {
+      if(data.length != 0) {
         return {success: true,  message: "Bookings", data}
+      }else {
+        return {success: false,  message: "Bookings not found"}
 
       }
     })

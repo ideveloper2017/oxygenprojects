@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
@@ -20,9 +21,12 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Get('/list')
-  public getAll() {
+  public getAll(@Query('page') page: number) {
+    const limit : number = 20
+    const offset = (page - 1) * limit
+
     return this.paymentsService
-      .getAll()
+      .getAllPayments(offset, limit)
       .then((data) => {
         if (data.length != 0) {
           // data.map((data) => {

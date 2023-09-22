@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -122,8 +123,12 @@ export class ApartmentsController {
   }
   
   @Get('/booked')
-  getBookedApartments() {
-    return this.apartmentsService.findBookedApartments().then(data => {
+  getBookedApartments(@Query('page') page: number) {
+    const limit : number = 20
+    const offset = (page-1) * limit
+    
+    return this.apartmentsService.findBookedApartments(offset, limit).then(data => {
+      
       if(data.length > 0) {
         return {success: true, message:"Booked Apartments", data}
       }else {
