@@ -52,7 +52,7 @@ import { BookingModule } from './modules/booking/booking.module';
         }),
         ScheduleModule.forRoot(),
         ServeStaticModule.forRoot({
-            rootPath: resolve(__dirname, '../src/', 'images'),
+            rootPath: resolve(__dirname, '../src', 'uploads/images'),
         }),
         // TypeOrmModule.forRoot({
         //   type: process.env.DB_TYPE as any,

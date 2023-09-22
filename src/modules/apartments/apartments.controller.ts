@@ -90,7 +90,7 @@ export class ApartmentsController {
     return this.apartmentsService
       .bookingApartment(apartment_id)
       .then((data) => {
-        if (data.affected != 0) {
+        if (data != null && data.affected != 0) {
           return { success: true, message: 'kvartira band qilindi' };
         } else {
           return { success: false, message: 'kvartira topilmadi' };
@@ -120,4 +120,18 @@ export class ApartmentsController {
       }
     })
   }
+  
+  @Get('/booked')
+  getBookedApartments() {
+    return this.apartmentsService.findBookedApartments().then(data => {
+      if(data.length > 0) {
+        return {success: true, message:"Booked Apartments", data}
+      }else {
+        return {success: false, message:"No booked apartments found"}
+    }
+  })
+
+  }
+
+
 }

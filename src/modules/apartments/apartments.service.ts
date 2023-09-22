@@ -73,16 +73,27 @@ export class ApartmentsService {
   }
 
   async bookingApartment(id: number) {
-    const booking = await this.apartmentRepository.update(
-      { id: id },
-      { status: 'bron' },
-    );
-    return booking;
+    const check = await this.apartmentRepository.findOne({where: {id: id}})
+    if (check.status != 'sold' && check.status != "inactive"){
+      const booking = await this.apartmentRepository.update(
+        { id: id },
+        { status: 'bron' },
+      );
+      return booking;
+    }else {
+      return null
+    }
+    
   }
 
   async findAllApartments(){
     const apartments = await this.apartmentRepository.find()
     return apartments
+  }
+
+  async findBookedApartments() {
+    const bookeds = await this.apartmentRepository.find({where: {status: 'bron'}, order: {'updated_at': "DESC"}})
+    return bookeds
   }
 
 }
