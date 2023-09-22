@@ -56,20 +56,26 @@ export class PaymentsController {
       });
   }
 
-  @Delete('/delete/:id')
-  deletePayment(@Param('id', ParseIntPipe) id: number) {
-    return this.paymentsService
-      .delete(id)
-      .then((data) => {
-        if (data.affected > 0) {
-          return { success: true, message: 'deteled' };
-        } else {
-          return { success: false, message: 'not deleted' };
-        }
-      })
-      .catch((error) => {
-        return { success: false, message: error.message };
-      });
+  @Post('/delete')
+  deletePayment(id: number[]) {
+      let result;
+      for(let i of id){
+          result= this.paymentsService
+              .delete(i)
+              .then((data) => {
+                  if (data.affected > 0) {
+                      return { success: true, message: 'deteled' };
+                  } else {
+                      return { success: false, message: 'not deleted' };
+                  }
+              })
+              .catch((error) => {
+                  return { success: false, message: error.message };
+              });
+      }
+
+
+      return result;
   }
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')
