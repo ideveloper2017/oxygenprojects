@@ -56,9 +56,12 @@ export class BookingService {
     return booking;
   }
 
-  async findOne(client_id: number) {
+  async findOne(id: number) {
+    let appartment;
+
+    appartment=await this.bookingsRepository.manager.getRepository(Apartments).findOne({where:{id:id}})
     const booking = await this.bookingsRepository.find({
-      where: { bron_is_active: true, client_id: client_id },
+      where: { bron_is_active: true, apartments: appartment },
     });
 
     return booking;

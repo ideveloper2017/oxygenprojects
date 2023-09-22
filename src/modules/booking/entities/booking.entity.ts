@@ -10,8 +10,8 @@ export class Booking extends Model {
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 
-  @Column()
-  client_id: number
+  // @Column()
+  // client_id: number
 
   @ManyToOne((type) => Users, (users) => users.bookings)
   @JoinColumn({ name: 'user_id' })

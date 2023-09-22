@@ -25,6 +25,7 @@ export class CaisherService {
   }
 
   update(id: number, updateCaisherDto: UpdateCaisherDto) {
+
     return this.caisherServ.update({ id: id }, updateCaisherDto);
   }
 
