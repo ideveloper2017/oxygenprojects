@@ -17,38 +17,58 @@ export class PaymentsService {
   ) {}
 
   async newPayment(newPaymentDto: NewPaymentDto) {
-
+    
     const { paymentMethods } = await Orders.findOne({
       where: { id: newPaymentDto.order_id },
       relations: ['paymentMethods'],
     });
-
+    
     let newPay;
 
-    if (paymentMethods.name.toLowerCase() == 'rassrochka' || paymentMethods.name.toLowerCase() == 'ipoteka') {
+    if (paymentMethods.name_alias.toLowerCase() == 'rassrochka' || paymentMethods.name_alias.toLowerCase() == 'ipoteka') {
       let money = newPaymentDto.amount;
       while (money > 0) {
         
         const nextPaid = await CreditTable.findOne({
-          where: { status: 'waiting' },
+          where: {order_id: newPaymentDto.order_id, status: 'waiting' },
           order: { due_date: 'ASC' },
         });
-    
+        
         if (!nextPaid) {
           break;
         }
     
-        const leftAmount = money - (nextPaid.due_amount - nextPaid.left_amount)
 
-        if(money > 0){
-       
-          await CreditTable.update({id: nextPaid.id}, {status: 'paid', left_amount: 0})
-          money -= nextPaid.due_amount - nextPaid.left_amount
-       
+        if(money >= nextPaid.due_amount){
+
+          if(!nextPaid.left_amount){
+
+            await CreditTable.update({id: nextPaid.id}, {status: 'paid', left_amount: 0})
+            money -= nextPaid.due_amount
+
+          }else {
+
+            await CreditTable.update({id: nextPaid.id}, { status: 'paid', left_amount:0})
+            money-= nextPaid.left_amount
+          }
+
         } else {
-       
-          await CreditTable.update({id: nextPaid.id}, {left_amount: +(nextPaid.due_amount - money).toFixed(2)})
-          break
+
+          if(!nextPaid.left_amount){
+            await CreditTable.update({id: nextPaid.id},{ left_amount: +(nextPaid.due_amount - money).toFixed(3) })
+            break
+
+          }else {
+            if(money >= nextPaid.left_amount){
+              await CreditTable.update({id: nextPaid.id}, { status: 'paid', left_amount:0})
+              money-= nextPaid.left_amount
+
+            }else {
+
+              await CreditTable.update({id: nextPaid.id}, {left_amount: +(nextPaid.left_amount - money).toFixed(3)})
+              break
+            }
+          }
         }
    }
       const payment = new Payments();
@@ -74,6 +94,8 @@ export class PaymentsService {
       newPay = await this.paymentRepo.save(payment);
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
+
+      newPay = await this.paymentRepo.save(payment);
     }
     return newPay;
   }

@@ -9,6 +9,7 @@ export class CreditTable extends Model {
   
   @Column()
   order_id: number
+  
   @Column({ type: 'float' })
   due_amount: number;
  

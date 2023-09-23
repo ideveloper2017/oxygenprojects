@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Orders } from './entities/order.entity';
@@ -35,6 +35,11 @@ export class OrdersService {
     const payment_method = await this.ordersRepository.manager
       .getRepository(PaymentMethods)
       .findOne({ where: { id: +createOrderDto.payment_method_id } });
+
+      const checkApartment = await Apartments.findOne({ where: { id: +createOrderDto.apartment_id} });
+      if(checkApartment.status === 'sold') {
+        throw new HttpException('Xonadon allaqachon sotilgan', HttpStatus.BAD_REQUEST)
+      }
 
     const order = new Orders();
     order.clients = await Clients.findOne({ where: { id: +createOrderDto.client_id } });

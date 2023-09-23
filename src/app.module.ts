@@ -53,7 +53,7 @@ import {LoggerMiddleware} from "./common/middleware/logger-middleware";
         }),
         ScheduleModule.forRoot(),
         ServeStaticModule.forRoot({
-            rootPath: resolve(__dirname, '../src', 'uploads/images'),
+            rootPath: resolve(__dirname, '../', 'uploads/images'),
         }),
         // TypeOrmModule.forRoot({
         //   type: process.env.DB_TYPE as any,
