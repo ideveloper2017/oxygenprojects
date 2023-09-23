@@ -59,14 +59,19 @@ export class BookingService {
   async findOne(id: number) {
     let appartment;
 
-    appartment=Apartments.findOne({where:{id:id}});
+    try{
+      appartment=Apartments.findOne({where:{id:id}});
 
-    const booking = await this.bookingsRepository.find({
-      where: { bron_is_active: true, apartments: appartment },
-      relations:['clients','apartments']
-    });
+      const booking = await this.bookingsRepository.find({
+        where: { bron_is_active: true, apartments: appartment },
+        relations:['clients','apartments']
+      });
 
-    return booking;
+      return {status:200,data:booking,message:""};
+    }catch (error){
+      return {status:error.code,message:error.message};
+    }
+
   }
 
   update(id: number, updateBookingDto: UpdateBookingDto) {
