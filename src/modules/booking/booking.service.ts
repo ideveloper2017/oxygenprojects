@@ -67,7 +67,7 @@ export class BookingService {
         relations:['clients','apartments']
       });
 
-      return booking;
+      return {status:200,data:booking,message:""};
     }catch (error){
       return {status:error.code,message:error.message};
     }
