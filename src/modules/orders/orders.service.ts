@@ -142,7 +142,7 @@ export class OrdersService {
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0
         );
-        orderItem.payments = sumOfPayments ? sumOfPayments : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       });
       
 
