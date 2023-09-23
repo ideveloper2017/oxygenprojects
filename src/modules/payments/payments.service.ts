@@ -38,7 +38,6 @@ export class PaymentsService {
           break;
         }
     
-
         if(money >= nextPaid.due_amount){
 
           if(!nextPaid.left_amount){

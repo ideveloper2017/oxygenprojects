@@ -12,7 +12,7 @@ export class CreditTableService {
   ) {}
 
   async getCreditTableOfClient(order_id: number) {
-    const creditTable = await Orders.findOne({where: {id: order_id}, relations: ['creditTables']});
+    const creditTable = await Orders.findOne({where: {id: order_id}, relations: ['creditTables'], order: { creditTables: {due_date: "ASC"}}});
     return creditTable;
  
   }
