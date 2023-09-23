@@ -14,6 +14,7 @@ import { PaymentsService } from '../payments/payments.service';
 import { Caisher } from '../caisher/entities/caisher.entity';
 import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
+import { Payments } from '../payments/entities/payment.entity';
 
 @Injectable()
 export class OrdersService {
@@ -136,6 +137,15 @@ export class OrdersService {
         relations: ['clients', 'users', 'payments', 'paymentMethods',
           'orderItems.apartments.floor.entrance.buildings.towns'],
       });
+      order.forEach((orderItem) => {
+        const sumOfPayments = orderItem.payments.reduce(
+          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          0
+        );
+        orderItem.payments = sumOfPayments ? sumOfPayments : 0;
+      });
+      
+
     } else {
 
       order = await this.ordersRepository.findOne({
@@ -143,6 +153,11 @@ export class OrdersService {
         relations: ['clients', 'payments', 'users', 'paymentMethods',
           'orderItems.apartments.floor.entrance.buildings.towns'],
       });
+  
+      const sum = order['payments'].reduce((accumulator, currentValue) => accumulator +  +currentValue.amount, 0)
+      order['payments'] = sum
+
+
     }
     return order;
   }
