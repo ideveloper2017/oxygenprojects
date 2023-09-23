@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreditTable } from './entities/credit-table.entity';
 import { Orders } from '../orders/entities/order.entity';
+import { Payments } from '../payments/entities/payment.entity';
 
 @Injectable()
 export class CreditTableService {
@@ -13,6 +14,17 @@ export class CreditTableService {
 
   async getCreditTableOfClient(order_id: number) {
     const creditTable = await Orders.findOne({where: {id: order_id}, relations: ['creditTables'], order: { creditTables: {due_date: "ASC"}}});
+    
+    // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
+
+    const payment = await Payments.createQueryBuilder('payment')
+    .select('SUM(payment.amount)', 'sum')
+    .where('payment.order_id = :order_id', {order_id})
+    .getRawOne()
+
+
+    creditTable.payments = payment.sum ? payment.sum : 0
+
     return creditTable;
  
   }

@@ -125,10 +125,8 @@ export class ApartmentsController {
   @Get('/booked')
   getBookedApartments(@Query('page') page: number) {
     const limit : number = 20
-    const offset = (page-1) * limit
-    
+    const offset = page-1 * limit
     return this.apartmentsService.findBookedApartments(offset, limit).then(data => {
-      
       if(data.length > 0) {
         return {success: true, message:"Booked Apartments", data}
       }else {

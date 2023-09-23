@@ -56,19 +56,25 @@ export class BookingService {
     return booking;
   }
 
-  async findOne(id: number) {
-    let appartment;
-
+  async findOne(apartment_id: number) {
     try{
-      appartment=Apartments.findOne({where:{id:id}});
+      const booking = await this.bookingsRepository
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.clients', 'client')
+      .leftJoinAndSelect('booking.apartments', 'apartment')
+      .where('booking.bron_is_active = :isActive', { isActive: true })
+      .andWhere('apartment.id = :apartment_id', {apartment_id})
+      .getOne()
 
-      const booking = await this.bookingsRepository.find({
-        where: { bron_is_active: true, apartments: appartment },
-        relations:['clients','apartments']
-      });
+      if(booking){
+        return {status:200 ,data:booking, message:"Booked apartment"};
+      
+      }else {
+        return {status:404, message:"Booked apartment not found"};
+      }
 
-      return {status:200,data:booking,message:""};
     }catch (error){
+      
       return {status:error.code,message:error.message};
     }
 

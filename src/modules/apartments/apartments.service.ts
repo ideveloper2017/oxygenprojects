@@ -77,8 +77,8 @@ export class ApartmentsService {
     if (check.status != 'sold' && check.status != 'inactive') {
       const booking = await this.apartmentRepository.update(
         { id: id },
-        { status: 'bron' },
-      );
+        { status: 'bron' });
+
       return booking;
     } else {
       return null;
@@ -90,7 +90,7 @@ export class ApartmentsService {
     return apartments;
   }
 
-  async findBookedApartments(offset: number, limit: number) {
+  async findBookedApartments(offset: number, limit :number) {
     const bookeds = await this.apartmentRepository.find({
       where: { status: 'bron' },
       skip: offset,

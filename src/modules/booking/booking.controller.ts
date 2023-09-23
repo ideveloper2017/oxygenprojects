@@ -2,13 +2,14 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { BookingService } from './booking.service';
 import { BookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Bookings')
 @Controller('booking')
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
+  @ApiOperation({summary: "Booking apartment"})
   @Post('/new-booking')
   create(@Body() createBookingDto: BookingDto) {
     return this.bookingService.bookingApartment(createBookingDto).then(data => {
@@ -21,6 +22,7 @@ export class BookingController {
     })
   }
 
+  @ApiOperation({summary: "All booked Apartments"})
   @Get('/all')
   findAll(@Query('page') page: number) {
     const limit: number = 20
@@ -35,6 +37,7 @@ export class BookingController {
     })
   }
 
+  @ApiOperation({summary: "Get Booked Apartment"})
   @Get(':apartment_id')
   findOne(@Param('apartment_id') apartment_id: number) {
     return this.bookingService.findOne(apartment_id);
