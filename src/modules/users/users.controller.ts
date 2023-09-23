@@ -20,6 +20,8 @@ import {AuthService} from "../auth/auth.service";
 import * as bcrypt from 'bcryptjs';
 import {AuthUser} from "../../common/decorators/auth-user.decorator";
 import {Roles} from "../auth/decorator/roles.decorator";
+import {Users} from "./entities/user.entity";
+import {ChangePasswordDto} from "../auth/dto/change-password.dto";
 
 @ApiTags('Users')
 @Controller('users')
@@ -110,5 +112,17 @@ export class UsersController {
   @Get('profile')
   getLoggedUser(@AuthUser() user: any) {
     return this.authService.getLoggedUser(user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @Put('/change-password')
+  changePassword(
+      @AuthUser()
+          user: Users,
+      @Body()
+          changePasswordDto: ChangePasswordDto
+  ): Promise<void> {
+    return this.authService.changePassword(user, changePasswordDto);
   }
 }

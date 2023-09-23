@@ -9,7 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
   ForbiddenException,
-  Req, ValidationPipe, UsePipes,
+  Req, ValidationPipe, UsePipes, Res, HttpStatus, Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -21,6 +21,8 @@ import { LoginResponse } from './type/loginResponse';
 import { Users } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
+import {CreateUserDto} from "../users/dto/create-user.dto";
+import {ChangePasswordDto} from "./dto/change-password.dto";
 
 @UseInterceptors(CookieInterceptor)
 @ApiTags('Auth')
@@ -77,4 +79,8 @@ export class AuthController {
       throw new ForbiddenException(error.message);
     }
   }
+
+
+
+
 }

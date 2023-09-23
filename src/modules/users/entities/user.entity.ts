@@ -1,5 +1,5 @@
 import {
-  BeforeInsert,
+  BeforeInsert, BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -13,6 +13,7 @@ import { Sales } from '../../sales/entities/sale.entity';
 import { Orders } from '../../orders/entities/order.entity';
 import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
+import {Exclude} from "class-transformer";
 
 @Entity('Users')
 export class Users extends Model {
@@ -56,13 +57,33 @@ export class Users extends Model {
   })
   tokenVersion: number;
 
+  @Exclude({
+    toPlainOnly: true
+  })
+  skipHashPassword = false;
+
   @BeforeInsert()
+  async hashPasswordBeforeInsert() {
+    if (this.password && !this.skipHashPassword) {
+      await this.hashPassword();
+    }
+  }
+
+  @BeforeUpdate()
+  async hashPasswordBeforeUpdate() {
+    if (this.password && !this.skipHashPassword) {
+      await this.hashPassword();
+    }
+  }
+
+
   async hashPassword() {
     const salt = await bcrypt.genSalt();
     this.password = await bcrypt.hash(this.password, salt);
   }
 
   async validatePassword(password: string): Promise<boolean> {
-    return bcrypt.compare(password, this.password);
+    const hash = await bcrypt.hash(password, 10);
+    return hash === this.password;
   }
 }
