@@ -110,9 +110,27 @@ export class PaymentsService {
     //   order: { id: 'desc' },
     // });
 
+
+
+
+          // order = await this.ordersRepository.find({
+          //     relations: ['clients', 'users', 'payments', 'paymentMethods',
+          //         'orderItems.apartments.floor.entrance.buildings.towns'],
+          // });
+          // order.forEach((orderItem) => {
+          //     const sumOfPayments = orderItem.payments.reduce(
+          //         (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          //         0
+          //     );
+          //     orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+          // });
+
+
+
+
       const orders=await this.paymentRepo.createQueryBuilder('payments')
           .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
-         // .leftJoinAndSelect('payments.orders.clients','clients','clients.id=payments.orders.clients_id')
+         .leftJoinAndSelect('orders.clients','clients','clients.id=payments.orders.clients_id')
           .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payments.caisher_id')
           .getMany()
    return orders;
