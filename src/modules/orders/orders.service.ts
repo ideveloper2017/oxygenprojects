@@ -180,7 +180,11 @@ export class OrdersService {
          const sum=   data.payments.reduce((accumulator, currentValue) => {
                 return accumulator + Number(currentValue.amount);
             }, 1)
-                result.push({order_date:data.order_date,totalsum:Number(sum-data.total_amount)})
+                result.push({
+                    order_id:data.id,
+                    order_date:data.order_date,
+                    clients:data.clients.first_name,
+                    totalsum:Number(data.total_amount-sum)})
         })
         return result;
         // return await this.ordersRepository.
