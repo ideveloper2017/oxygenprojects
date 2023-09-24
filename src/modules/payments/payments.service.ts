@@ -104,6 +104,7 @@ export class PaymentsService {
 
   async getAllPayments(offset: number, limit: number){
       let orders;
+      let total_amount;
      orders= await this.paymentRepo.find({
       relations: ['orders', 'orders.clients', 'caishers'],
       skip: offset,
@@ -112,9 +113,9 @@ export class PaymentsService {
     });
 
      orders.forEach((data)=>{
-         console.log(data.orders.total_amount);
+          total_amount=Number(data.orders.total_amount-data.amount);
      })
-
+      orders.sumOfpayments=total_amount;
    return orders;
   }
 
