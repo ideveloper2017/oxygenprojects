@@ -136,7 +136,8 @@ export class PaymentsService {
        //    .getMany()
 
       orders.forEach((data,index)=>{
-          console.log(data);
+          //console.log(data.reduce());
+          console.log(data.reduce((accumulator, payment)=>accumulator+ +payment.orders.total_amount));
         // const total_amount=data.reduce((accumulator, payment)=>accumulator+ +payment.orders.total_amount)
         //   orders.sumOfpayments=total_amount;
       })
