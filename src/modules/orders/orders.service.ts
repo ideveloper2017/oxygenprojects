@@ -172,7 +172,7 @@ export class OrdersService {
            .addSelect('order.id')
            .addSelect('order.order_date')
           //  .select('SUM(payments.amount)','sum')
-            .leftJoinAndSelect(Clients,'clients','clients.id=orders.cient_id')
+            .leftJoinAndSelect(Clients,'clients','clients.id=orders.client_id')
             .leftJoinAndSelect(Payments,'payments','payments.order_id=orders.id')
            .where("orders.order_status =:logic", { logic: "active" })
          //  .groupBy('payments.id')
