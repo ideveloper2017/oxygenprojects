@@ -25,7 +25,7 @@ export class Payments extends Model {
   @Column()
   payment_date: Date;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 20, scale: 2, default: 0 })
   amount: number;
 
   @Column({ type: 'enum', enum: Caishertype, default: Caishertype.IN })

@@ -15,6 +15,7 @@ import { Caisher } from '../caisher/entities/caisher.entity';
 import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { Payments } from '../payments/entities/payment.entity';
+import { Booking } from '../booking/entities/booking.entity';
 
 @Injectable()
 export class OrdersService {
@@ -33,12 +34,10 @@ export class OrdersService {
 
   async createOrder(createOrderDto: CreateOrderDto) {
 
-    const payment_method = await this.ordersRepository.manager
-      .getRepository(PaymentMethods)
-      .findOne({ where: { id: +createOrderDto.payment_method_id } });
+    const payment_method = await PaymentMethods.findOne({ where: { id: +createOrderDto.payment_method_id } });
 
       const checkApartment = await Apartments.findOne({ where: { id: +createOrderDto.apartment_id} });
-      if(checkApartment.status === 'sold') {
+      if(checkApartment.status === 'sold' || checkApartment.status === 'inactive') {
         throw new HttpException('Xonadon allaqachon sotilgan', HttpStatus.BAD_REQUEST)
       }
 
@@ -53,9 +52,7 @@ export class OrdersService {
 
     const savedOrder = await this.ordersRepository.save(order);
 
-    const apartment = await this.ordersRepository.manager
-      .getRepository(Apartments)
-      .findOne({
+    const apartment = await Apartments.findOne({
         where: { id: createOrderDto.apartment_id },
         relations: ['floor.entrance.buildings'],
       });
@@ -65,6 +62,7 @@ export class OrdersService {
     const total = apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
+
     const oneMonthDue = createOrderDto.initial_pay ? 
     (total - createOrderDto.initial_pay) / createOrderDto.installment_month :
      total / createOrderDto.installment_month
@@ -89,9 +87,7 @@ export class OrdersService {
         creditSchedule.push(installment);
       }
 
-      schedule = await this.ordersRepository.manager
-        .getRepository(CreditTable)
-        .save(creditSchedule);
+      schedule = await CreditTable.save(creditSchedule);
     }
 
     const updatedOrder = await this.ordersRepository.update({ id: savedOrder.id }, { total_amount: total },);
@@ -106,26 +102,29 @@ export class OrdersService {
       { status: 'sold' },
     );
 
-    const saveOrderItem = await this.ordersRepository.manager
-      .getRepository(OrderItems)
-      .save(orderItem);
+    await Booking.createQueryBuilder()
+    .update(Booking)
+    .set({ bron_is_active: false})
+    .where('apartment_id = :apartment_id',{apartment_id: createOrderDto.apartment_id} )
+    .execute()
 
 
-      if(createOrderDto.initial_pay){
-          const caisher = await Caisher.findOne({ where: { is_active: true, is_default: true }, })
-          const paymentPayload = {
-          user_id: savedOrder.users.id,
-          order_id: savedOrder.id,
-          amount: savedOrder.initial_pay,
-          caisher_id: caisher.id,
-          caishertype: Caishertype.IN,
-          pay_note: "boshlang'ich to'lov",
-          paymentmethod: Paymentmethods.CASH,
-          payment_date: new Date()
-      }
+    await OrderItems.save(orderItem);
+      
+
+      const payment = new Payments();
+      payment.orders = await Orders.findOne({where: { id: +savedOrder.id },});
+      payment.users = savedOrder.users
+      payment.amount = savedOrder.initial_pay;
+      payment.payment_date = new Date();
+      payment.paymentmethod = Paymentmethods.CARD;
+      payment.caishers = await Caisher.findOne({ where: { is_active: true, is_default: true }, })
+      payment.caisher_type = Caishertype.IN;
+      payment.pay_note = "Boshlangich to'lov";
+
+      await Payments.save(payment);
     
-    await this.paymentService.newPayment(paymentPayload)
-  }
+ 
     return updatedOrder;
   }
 
