@@ -112,7 +112,7 @@ export class PaymentsService {
     });
 
      orders.forEach((data)=>{
-         console.log(data.orders.reduce((acc,pay)=>acc+pay));
+         console.log(data.orders.total_amount);
      })
 
    return orders;
