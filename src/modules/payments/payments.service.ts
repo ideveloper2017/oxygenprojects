@@ -113,10 +113,11 @@ export class PaymentsService {
     });
 
      orders.forEach((data)=>{
-         data.orders.reduce((acc,key)=>acc+key);
+        // data.orders.reduce((acc,key)=>acc+key);
           total_amount=Number(data.orders.total_amount-data.amount);
+         data.sumOfpayments=total_amount;
      })
-      orders.sumOfpayments=total_amount;
+
    return orders;
   }
 
