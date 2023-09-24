@@ -112,8 +112,8 @@ export class PaymentsService {
 
    return this.paymentRepo.createQueryBuilder('payments')
         .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
-        .leftJoinAndSelect('orders.clients','clients','clients.id=payment.client_id')
-        .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payment.caisher_id')
+        // .leftJoinAndSelect('paymorders.clients','clients','clients.id=payment.client_id')
+        // .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payment.caisher_id')
         .orderBy("payments.id", "DESC")
         .getMany()
   }
