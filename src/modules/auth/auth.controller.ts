@@ -21,8 +21,7 @@ import { LoginResponse } from './type/loginResponse';
 import { Users } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
-import {CreateUserDto} from "../users/dto/create-user.dto";
-import {ChangePasswordDto} from "./dto/change-password.dto";
+import { Request, Response } from 'express';
 
 @UseInterceptors(CookieInterceptor)
 @ApiTags('Auth')
@@ -79,6 +78,26 @@ export class AuthController {
       throw new ForbiddenException(error.message);
     }
   }
+
+  // @Post('/logout')
+  // async logOut(
+  //     @Req()
+  //         req: Request,
+  //     @Res()
+  //         response: Response
+  // ) {
+  //   try {
+  //     const cookie = req.cookies['Refresh'];
+  //     response.setHeader('Set-Cookie', this.authService.getCookieForLogOut());
+  //     const refreshCookie = req.cookies['Refresh'];
+  //     if (refreshCookie) {
+  //       await this.authService.refreshTokens(cookie);
+  //     }
+  //     return response.sendStatus(HttpStatus.NO_CONTENT);
+  //   } catch (e) {
+  //     return response.sendStatus(HttpStatus.NO_CONTENT);
+  //   }
+  // }
 
 
 

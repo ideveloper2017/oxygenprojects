@@ -16,6 +16,7 @@ export class ReportService {
 
     public async getListOfDebitors(){
         return this.orderRepo.createQueryBuilder('orders')
+            .leftJoinAndSelect('orders.payments','payments')
             .getMany()
     }
 

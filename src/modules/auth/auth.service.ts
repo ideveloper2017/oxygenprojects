@@ -12,7 +12,21 @@ import {ChangePasswordDto} from "./dto/change-password.dto";
 import {ExceptionTitleList} from "../../common/constants/exception-title-list.constants";
 import {StatusCodesList} from "../../common/constants/status-codes-list.constants";
 import {CustomHttpException} from "../../common/exception/exception-filter";
+import * as config from 'config';
+import { SignOptions } from 'jsonwebtoken';
 
+const throttleConfig = config.get('throttle.login');
+const jwtConfig = config.get('jwt');
+const appConfig = config.get('app');
+
+const isSameSite =
+    appConfig.sameSite !== null
+        ? appConfig.sameSite
+        : process.env.IS_SAME_SITE === 'true';
+const BASE_OPTIONS: SignOptions = {
+  issuer: appConfig.appUrl,
+  audience: appConfig.frontendUrl
+};
 @Injectable()
 export class AuthService {
   constructor(
@@ -115,5 +129,19 @@ export class AuthService {
     }
     user.password = password;
     await user.save();
+  }
+
+  getCookieForLogOut(): string[] {
+    return [
+      `Authentication=; HttpOnly; Path=/; Max-Age=0; ${
+          !isSameSite ? 'SameSite=None; Secure;' : ''
+      }`,
+      `Refresh=; HttpOnly; Path=/; Max-Age=0; ${
+          !isSameSite ? 'SameSite=None; Secure;' : ''
+      }`,
+      `ExpiresIn=; Path=/; Max-Age=0; ${
+          !isSameSite ? 'SameSite=None; Secure;' : ''
+      }`
+    ];
   }
 }
