@@ -111,39 +111,11 @@ export class PaymentsService {
       order: { id: 'desc' },
     });
 
-
-
-
-          // order = await this.ordersRepository.find({
-          //     relations: ['clients', 'users', 'payments', 'paymentMethods',
-          //         'orderItems.apartments.floor.entrance.buildings.towns'],
-          // });
-          // order.forEach((orderItem) => {
-          //     const sumOfPayments = orderItem.payments.reduce(
-          //         (accumulator, currentPayment) => accumulator + +currentPayment.amount,
-          //         0
-          //     );
-          //     orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
-          // });
-
-
-
-
-       // orders=await this.paymentRepo.createQueryBuilder('payments')
-       //    .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
-       //   .leftJoinAndSelect('orders.clients','clients','clients.id=orders.client_id')
-       //    .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payments.caisher_id')
-       //    .getMany()
-
-      orders.forEach((data,index)=>{
-          //console.log(data.reduce());
-          console.log(data.reduce((accumulator, payment)=>accumulator+ +payment.orders.total_amount));
-        // const total_amount=data.reduce((accumulator, payment)=>accumulator+ +payment.orders.total_amount)
-        //   orders.sumOfpayments=total_amount;
-      })
+     orders.forEach((data)=>{
+         console.log(data.orders.reduce((acc,pay)=>acc+pay));
+     })
 
    return orders;
-
   }
 
   async update(id: number, newPaymentDto: UpdatePaymentDto) {
