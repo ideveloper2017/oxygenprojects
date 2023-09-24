@@ -103,12 +103,17 @@ export class PaymentsService {
   }
 
   async getAllPayments(offset: number, limit: number){
-    return await this.paymentRepo.find({
-      relations: ['orders', 'orders.clients', 'caishers'],
-      skip: offset,
-      take: limit,
-      order: { id: 'desc' },
-    });
+    // return await this.paymentRepo.find({
+    //   relations: ['orders', 'orders.clients', 'caishers'],
+    //   skip: offset,
+    //   take: limit,
+    //   order: { id: 'desc' },
+    // });
+
+    this.paymentRepo.createQueryBuilder('payments')
+        .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
+        .leftJoinAndSelect('payments.orders.clients','clients','clients.client_id=payment.id')
+        .getMany()
   }
 
   async update(id: number, newPaymentDto: UpdatePaymentDto) {
