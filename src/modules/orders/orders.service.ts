@@ -183,7 +183,7 @@ export class OrdersService {
                 result.push({
                     order_id:data.id,
                     order_date:data.order_date,
-                    clients:data.clients.first_name,
+                    clients:data.clients.first_name+' '+data.clients.last_name,
                     totalsum:Number(data.total_amount-sum)})
         })
         return result;
