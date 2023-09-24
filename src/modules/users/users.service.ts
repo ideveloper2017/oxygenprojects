@@ -149,4 +149,8 @@ export class UsersService {
   public async getRoles(){
     return this.usersRepository.manager.getRepository(Roles).find();
   }
+
+  public async getPermission(){
+    return this.usersRepository.manager.getRepository(Permissions).find({relations:['roles']});
+  }
 }

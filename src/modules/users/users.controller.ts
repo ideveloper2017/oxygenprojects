@@ -130,4 +130,9 @@ export class UsersController {
   public async getRole(){
     return this.usersService.getRoles();
   }
+
+  @Get('/permissions')
+  public async getPermission(){
+    return this.usersService.getRoles();
+  }
 }
