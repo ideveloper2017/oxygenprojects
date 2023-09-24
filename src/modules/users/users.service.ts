@@ -145,4 +145,8 @@ export class UsersService {
       }]);
     }
   }
+
+  public async getRoles(){
+    return this.usersRepository.manager.getRepository(Roles).find();
+  }
 }
