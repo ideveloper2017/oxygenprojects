@@ -172,6 +172,7 @@ export class OrdersService {
             .select('SUM(payments.amount)','sum')
             .leftJoinAndSelect(Payments,'payments','payments.order_id=orders.id')
            .where("orders.order_status =:logic", { logic: "active" })
+           .groupBy('payments.id')
            .getMany()
 
         // return await this.ordersRepository.
