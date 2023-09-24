@@ -172,12 +172,15 @@ export class OrdersService {
            .addSelect('orders.id')
            .addSelect('orders.order_date')
             .leftJoinAndSelect('orders.clients','clients','clients.id=orders.client_id')
-          //  .leftJoinAndSelect('orders.payments','payments','payments.order_id=orders.id')
+            .leftJoinAndSelect('orders.payments','payments','payments.order_id=orders.id')
            .where("orders.order_status =:logic", { logic: "active" })
            .getMany()
 
         orders.forEach((data,key)=>{
-                result.push(data)
+         const sum=   data.payments.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue.amount;
+            }, 0)
+                result.push([data,sum])
         })
         return result;
         // return await this.ordersRepository.
