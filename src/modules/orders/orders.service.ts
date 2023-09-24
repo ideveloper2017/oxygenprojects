@@ -1,20 +1,20 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Orders } from './entities/order.entity';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { PaymentMethods } from '../payment-method/entities/payment-method.entity';
-import { OrderItems } from '../order-items/entities/order-item.entity';
-import { Apartments } from '../apartments/entities/apartment.entity';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { Clients } from '../clients/entities/client.entity';
-import { Users } from '../users/entities/user.entity';
-import { PaymentsService } from '../payments/payments.service';
-import { Caisher } from '../caisher/entities/caisher.entity';
-import { Caishertype } from 'src/common/enums/caishertype';
-import { Paymentmethods } from 'src/common/enums/paymentmethod';
-import { Payments } from '../payments/entities/payment.entity';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Repository} from 'typeorm';
+import {Orders} from './entities/order.entity';
+import {CreateOrderDto} from './dto/create-order.dto';
+import {PaymentMethods} from '../payment-method/entities/payment-method.entity';
+import {OrderItems} from '../order-items/entities/order-item.entity';
+import {Apartments} from '../apartments/entities/apartment.entity';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
+import {UpdateOrderDto} from './dto/update-order.dto';
+import {Clients} from '../clients/entities/client.entity';
+import {Users} from '../users/entities/user.entity';
+import {PaymentsService} from '../payments/payments.service';
+import {Caisher} from '../caisher/entities/caisher.entity';
+import {Caishertype} from 'src/common/enums/caishertype';
+import {Paymentmethods} from 'src/common/enums/paymentmethod';
+import {OrderStatus} from "../../common/enums/order-status";
 
 @Injectable()
 export class OrdersService {
@@ -164,13 +164,11 @@ export class OrdersService {
 
   async getOrderListIsDue() {
 
-    return await this.ordersRepository
-      .manager
-      .getRepository(Orders)
-      .createQueryBuilder('orders')
-       .leftJoinAndSelect('clients','client','client.id=orders.client_id')
-      .where("orders.order_status =:logic", { logic: "active" })
-      .getMany()
+    return await this.ordersRepository.find({where:{order_status:OrderStatus.ACTIVE},relations:['clients']})
+      //  .createQueryBuilder('orders')
+      //  .leftJoinAndSelect('clients','client','client.id=orders.client_id')
+      // .where("orders.order_status =:logic", { logic: "active" })
+      // .getMany()
 
   }
 
