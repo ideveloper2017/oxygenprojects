@@ -118,8 +118,8 @@ export class UsersService {
           last_name: updateUserDto.last_name,
           username: updateUserDto.username,
           phone_number: updateUserDto.phone_number,
-          password: updateUserDto.password,
-          is_active:updateUserDto.is_active ? false:true,
+          password: await bcrypt.hash(updateUserDto.password,20),
+          is_active:updateUserDto.is_active,
           roles: await Roles.findOne({where: {id: updateUserDto.role_id}})
         }
     );
