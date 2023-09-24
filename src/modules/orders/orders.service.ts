@@ -1,21 +1,21 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Orders } from './entities/order.entity';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { PaymentMethods } from '../payment-method/entities/payment-method.entity';
-import { OrderItems } from '../order-items/entities/order-item.entity';
-import { Apartments } from '../apartments/entities/apartment.entity';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { Clients } from '../clients/entities/client.entity';
-import { Users } from '../users/entities/user.entity';
-import { PaymentsService } from '../payments/payments.service';
-import { Caisher } from '../caisher/entities/caisher.entity';
-import { Caishertype } from 'src/common/enums/caishertype';
-import { Paymentmethods } from 'src/common/enums/paymentmethod';
-import { Payments } from '../payments/entities/payment.entity';
-import { Booking } from '../booking/entities/booking.entity';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Repository} from 'typeorm';
+import {Orders} from './entities/order.entity';
+import {CreateOrderDto} from './dto/create-order.dto';
+import {PaymentMethods} from '../payment-method/entities/payment-method.entity';
+import {OrderItems} from '../order-items/entities/order-item.entity';
+import {Apartments} from '../apartments/entities/apartment.entity';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
+import {UpdateOrderDto} from './dto/update-order.dto';
+import {Clients} from '../clients/entities/client.entity';
+import {Users} from '../users/entities/user.entity';
+import {PaymentsService} from '../payments/payments.service';
+import {Caisher} from '../caisher/entities/caisher.entity';
+import {Caishertype} from 'src/common/enums/caishertype';
+import {Paymentmethods} from 'src/common/enums/paymentmethod';
+import {Payments} from '../payments/entities/payment.entity';
+import {Booking} from '../booking/entities/booking.entity';
 import {ApartmentStatus} from "../../common/enums/apartment-status";
 import {OrderStatus} from "../../common/enums/order-status";
 import { PaymentStatus } from 'src/common/enums/payment-status';
@@ -189,9 +189,26 @@ export class OrdersService {
   }
 
   public async orderReject(id:number){
-      this.ordersRepository.update({id:id},{order_status:OrderStatus.INACTIVE}).then((data)=>{
-          this.ordersRepository.manager.getRepository(Apartments).update({id},{status:ApartmentStatus.FREE})
-      })
+     let order,orderItem;
+
+        this.ordersRepository.update({id:id},{order_status:OrderStatus.INACTIVE});
+        order=await this.ordersRepository.findOne({where:{id:id}});
+        orderItem= await OrderItems.findOne({where:{orders:order}});
+    console.log(order)
+        // const apartment=this.ordersRepository.manager.getRepository(Apartments).findOne({where:{id:orderItem}})
+        // apartment.then((data)=>{
+        //   this.ordersRepository.manager.getRepository(Apartments).update({id:data.id},{status:ApartmentStatus.FREE})
+        // })
+
+
+
+    // const apartment=await this.ordersRepository.manager.getRepository(Apartments).findOne({where:{id:order.apartment_id}})
+      // apartment.status=ApartmentStatus.FREE;
+      // apartment.save()
+
+
+    return
+
   }
 
 }

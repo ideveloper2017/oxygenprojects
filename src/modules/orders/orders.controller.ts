@@ -5,7 +5,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Param,
+  Param, ParseIntPipe,
   Patch,
   Post,
   Res,
@@ -102,7 +102,7 @@ export class OrdersController {
   }
 
   @Post('/orderreject')
-  orderreject(@Body() order_id:number){
+  orderreject(@Param('order_id') order_id:number){
     return this.orderService.orderReject(order_id);
   }
 
