@@ -16,6 +16,8 @@ import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { Payments } from '../payments/entities/payment.entity';
 import { Booking } from '../booking/entities/booking.entity';
+import {ApartmentStatus} from "../../common/enums/apartment-status";
+import {OrderStatus} from "../../common/enums/order-status";
 
 @Injectable()
 export class OrdersService {
@@ -63,7 +65,7 @@ export class OrdersService {
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
 
-    const oneMonthDue = createOrderDto.initial_pay ? 
+    const oneMonthDue = createOrderDto.initial_pay ?
     (total - createOrderDto.initial_pay) / createOrderDto.installment_month :
      total / createOrderDto.installment_month
       ;
@@ -99,7 +101,7 @@ export class OrdersService {
 
     await Apartments.update(
       { id: createOrderDto.apartment_id },
-      { status: 'sold' },
+      { status: ApartmentStatus.SOLD },
     );
 
     await Booking.createQueryBuilder()
@@ -110,7 +112,7 @@ export class OrdersService {
 
 
     await OrderItems.save(orderItem);
-      
+
 
       const payment = new Payments();
       payment.orders = await Orders.findOne({where: { id: +savedOrder.id },});
@@ -124,7 +126,7 @@ export class OrdersService {
 
       await Payments.save(payment);
     
- 
+
     return updatedOrder;
   }
 
@@ -182,6 +184,12 @@ export class OrdersService {
   async deleteOrder(arrayOfId: number[]) {
     const deleteOrder = await this.ordersRepository.delete(arrayOfId);
     return deleteOrder;
+  }
+
+  public async orderReject(id:number){
+      this.ordersRepository.update({id:id},{order_status:OrderStatus.INACTIVE}).then((data)=>{
+          this.ordersRepository.manager.getRepository(Apartments).update({id},{status:ApartmentStatus.FREE})
+      })
   }
 
 }

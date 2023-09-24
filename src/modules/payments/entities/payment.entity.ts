@@ -5,6 +5,7 @@ import { Caisher } from '../../caisher/entities/caisher.entity';
 import { Paymentmethods } from '../../../common/enums/paymentmethod';
 import { Caishertype } from '../../../common/enums/caishertype';
 import { Users } from '../../users/entities/user.entity';
+import {PaymentStatus} from "../../../common/enums/payment-status";
 
 @Entity('Payments')
 export class Payments extends Model {
@@ -28,6 +29,15 @@ export class Payments extends Model {
   @Column({ type: 'decimal', precision: 20, scale: 2, default: 0 })
   amount: number;
 
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  currency_amount: number;
+
+
+  @Column({type:'decimal',precision:20,scale:2,default:0})
+  currency_value:number;
+
+
   @Column({ type: 'enum', enum: Caishertype, default: Caishertype.IN })
   caisher_type: Caishertype;
 
@@ -38,6 +48,11 @@ export class Payments extends Model {
   })
   paymentmethod: Paymentmethods;
 
+  @Column({type:"enum",enum:PaymentStatus})
+  payment_status:PaymentStatus;
+
   @Column({ nullable: true })
   pay_note: string;
+
+
 }

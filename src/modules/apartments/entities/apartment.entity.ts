@@ -5,6 +5,7 @@ import { Price } from '../../price/entities/price.entity';
 import { OrderItems } from "../../order-items/entities/order-item.entity";
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
+import {ApartmentStatus} from "../../../common/enums/apartment-status";
 
 @Entity('Apartments')
 export class Apartments extends Model {
@@ -24,8 +25,8 @@ export class Apartments extends Model {
   @Column({ type: 'float', nullable: true })
   room_space: number;
 
-  @Column({ enum: ['free', 'sold', 'bron', 'inactive'], nullable: true })
-  status: string;
+  @Column({ type:"enum",enum: ApartmentStatus, nullable: true })
+  status: ApartmentStatus;
 
   @OneToMany((type) => Price, (price) => price.apartment_id)
   price: Price[];

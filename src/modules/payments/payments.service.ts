@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { NewPaymentDto } from './dto/create-payment.dto';
-import { Repository } from 'typeorm';
-import { Payments } from './entities/payment.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Orders } from '../orders/entities/order.entity';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { Caisher } from '../caisher/entities/caisher.entity';
-import { Users } from '../users/entities/user.entity';
+import {Injectable} from '@nestjs/common';
+import {NewPaymentDto} from './dto/create-payment.dto';
+import {Repository} from 'typeorm';
+import {Payments} from './entities/payment.entity';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Orders} from '../orders/entities/order.entity';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
+import {UpdatePaymentDto} from './dto/update-payment.dto';
+import {Caisher} from '../caisher/entities/caisher.entity';
+import {Users} from '../users/entities/user.entity';
+import {PaymentStatus} from "../../common/enums/payment-status";
 
 @Injectable()
 export class PaymentsService {
@@ -79,6 +80,7 @@ export class PaymentsService {
       payment.caishers = await Caisher.findOne({where: { id: newPaymentDto.caisher_id },});
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
+      payment.payment_status=PaymentStatus.PAID;
       newPay = await this.paymentRepo.save(payment);
     
     } else {
@@ -93,6 +95,7 @@ export class PaymentsService {
       newPay = await this.paymentRepo.save(payment);
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
+      payment.payment_status=PaymentStatus.PAID;
 
       newPay = await this.paymentRepo.save(payment);
     }

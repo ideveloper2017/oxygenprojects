@@ -101,6 +101,11 @@ export class OrdersController {
     });
   }
 
+  @Post('/orderreject')
+  orderreject(@Body() order_id:number){
+    return this.orderService.orderReject(order_id);
+  }
+
   @Get('/listdue')
   getOrderListDue() {
     return this.orderService.getOrderListIsDue();

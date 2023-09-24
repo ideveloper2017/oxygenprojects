@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Paymentmethods } from '../../../common/enums/paymentmethod';
 import { Caishertype } from '../../../common/enums/caishertype';
+import {PaymentStatus} from "../../../common/enums/payment-status";
 
 export class NewPaymentDto {
   @ApiProperty()
@@ -23,6 +24,9 @@ export class NewPaymentDto {
 
   @ApiProperty()
   caishertype: Caishertype;
+
+  @ApiProperty()
+  payment_status:PaymentStatus;
 
   @ApiProperty()
   pay_note: string;
