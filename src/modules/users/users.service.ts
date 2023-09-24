@@ -7,6 +7,7 @@ import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Permissions } from '../permissions/entities/permission.entity';
+import {ApiProperty} from "@nestjs/swagger";
 
 @Injectable()
 export class UsersService {
@@ -110,7 +111,18 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    return await this.usersRepository.update({ id: id }, updateUserDto);
+
+    return await this.usersRepository.update({id: id},
+        {
+          first_name: updateUserDto.first_name,
+          last_name: updateUserDto.last_name,
+          username: updateUserDto.username,
+          phone_number: updateUserDto.phone_number,
+          password: updateUserDto.password,
+          is_active:updateUserDto.is_active ? false:true,
+          roles: await Roles.findOne({where: {id: updateUserDto.role_id}})
+        }
+    );
   }
 
   public async deleteUsers(userid: number[]) {
