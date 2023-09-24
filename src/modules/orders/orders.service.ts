@@ -168,9 +168,10 @@ export class OrdersService {
       .manager
       .getRepository(Orders)
       .createQueryBuilder('orders')
+       .leftJoinAndSelect(Clients,'clients','clients.id=orders.client_id')
       .where("orders.order_status =:logic", { logic: "active" })
       .getMany()
-    // .innerJoinAndSelect("orders.metadata", "metadata")
+
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
