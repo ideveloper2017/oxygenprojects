@@ -169,8 +169,8 @@ export class OrdersService {
     async getOrderListIsDue() {
 
        return  await this.ordersRepository.createQueryBuilder('orders')
-           .addSelect('order.id')
-           .addSelect('order.order_date')
+           .addSelect('orders.id')
+           .addSelect('orders.order_date')
           //  .select('SUM(payments.amount)','sum')
             .leftJoinAndSelect(Clients,'clients','clients.id=orders.client_id')
             .leftJoinAndSelect(Payments,'payments','payments.order_id=orders.id')
