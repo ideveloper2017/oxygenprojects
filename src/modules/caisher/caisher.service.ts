@@ -26,12 +26,11 @@ export class CaisherService {
 
   update(id: number, updateCaisherDto: UpdateCaisherDto) {
 
-    this.caisherServ.createQueryBuilder()
-             .update(Caisher).set({is_default:false})
+    this.caisherServ.createQueryBuilder().update(Caisher).set({is_default:false})
     return this.caisherServ.update({ id: id }, {
       caisher_name: updateCaisherDto.caisher_name,
       is_active: updateCaisherDto.is_active,
-      is_default: updateCaisherDto.is_default?false:true
+      is_default: updateCaisherDto.is_default
     });
   }
 
