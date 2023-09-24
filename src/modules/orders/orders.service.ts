@@ -178,7 +178,7 @@ export class OrdersService {
 
         orders.forEach((data,key)=>{
          const sum=   data.payments.reduce((accumulator, currentValue) => {
-                return Number(accumulator + currentValue.amount);
+                return accumulator + currentValue.amount;
             }, 0)
                 result.push([data,sum])
         })
