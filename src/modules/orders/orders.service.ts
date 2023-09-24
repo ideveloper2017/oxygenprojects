@@ -168,7 +168,13 @@ export class OrdersService {
 
     async getOrderListIsDue() {
 
-        return await this.ordersRepository.find({where: {order_status: OrderStatus.ACTIVE}, relations: ['clients']})
+        this.ordersRepository.createQueryBuilder('orders').
+            select('SUM(payments.amount)','sum')
+            .leftJoinAndSelect('payments','payments.id','orders.payment_id')
+            .getMany()
+
+        // return await this.ordersRepository.
+        // find({where: {order_status: OrderStatus.ACTIVE}, relations: ['clients']})
         //  .createQueryBuilder('orders')
         //  .leftJoinAndSelect('clients','client','client.id=orders.client_id')
         // .where("orders.order_status =:logic", { logic: "active" })
