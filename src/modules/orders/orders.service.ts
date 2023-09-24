@@ -167,17 +167,19 @@ export class OrdersService {
     }
 
     async getOrderListIsDue() {
-
-       return  await this.ordersRepository.createQueryBuilder('orders')
+        const result=[]
+        const orders= await this.ordersRepository.createQueryBuilder('orders')
            .addSelect('orders.id')
            .addSelect('orders.order_date')
-          //  .select('SUM(payments.amount)','sum')
             .leftJoinAndSelect('orders.clients','clients','clients.id=orders.client_id')
-            .leftJoinAndSelect('orders.payments','payments','payments.order_id=orders.id')
+          //  .leftJoinAndSelect('orders.payments','payments','payments.order_id=orders.id')
            .where("orders.order_status =:logic", { logic: "active" })
-         //  .groupBy('payments.id')
            .getMany()
 
+        orders.forEach((data,key)=>{
+                result.push(data)
+        })
+        return result;
         // return await this.ordersRepository.
         // find({where: {order_status: OrderStatus.ACTIVE}, relations: ['clients']})
         //  .createQueryBuilder('orders')
