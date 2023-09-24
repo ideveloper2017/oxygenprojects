@@ -114,6 +114,7 @@ export class PaymentsService {
         .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
         .leftJoinAndSelect('payments.orders.clients','clients','clients.client_id=payment.id')
         .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payment.caisher_id')
+        .orderBy("payments.id", "DESC")
         .getMany()
   }
 
