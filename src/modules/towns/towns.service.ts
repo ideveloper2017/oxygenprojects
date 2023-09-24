@@ -15,6 +15,7 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { Orders } from '../orders/entities/order.entity';
 import { Clients } from '../clients/entities/client.entity';
+import { ApartmentStatus } from 'src/common/enums/apartment-status';
 
 @Injectable()
 export class TownService {
@@ -108,7 +109,7 @@ export class TownService {
       .count();
     const bookedApartments = await this.townRepository.manager
       .getRepository(Apartments)
-      .count({ where: { status: 'bron' } });
+      .count({ where: { status: ApartmentStatus.BRON} });
 
     return {
       towns,

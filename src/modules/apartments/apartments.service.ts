@@ -7,6 +7,7 @@ import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { Floor } from '../floor/entities/floor.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { Towns } from '../towns/entities/town.entity';
+import { ApartmentStatus } from 'src/common/enums/apartment-status';
 
 @Injectable()
 export class ApartmentsService {
@@ -74,10 +75,10 @@ export class ApartmentsService {
 
   async bookingApartment(id: number) {
     const check = await this.apartmentRepository.findOne({ where: { id: id } });
-    if (check.status != 'sold' && check.status != 'inactive') {
+    if (check.status != ApartmentStatus.SOLD && check.status != ApartmentStatus.INACTIVE) {
       const booking = await this.apartmentRepository.update(
         { id: id },
-        { status: 'bron' });
+        { status: ApartmentStatus.BRON });
 
       return booking;
     } else {
@@ -92,7 +93,7 @@ export class ApartmentsService {
 
   async findBookedApartments(offset: number, limit :number) {
     const bookeds = await this.apartmentRepository.find({
-      where: { status: 'bron' },
+      where: { status: ApartmentStatus.BRON },
       skip: offset,
       take: limit,
       order: { updated_at: 'DESC' },

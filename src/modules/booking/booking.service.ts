@@ -7,6 +7,7 @@ import { Booking } from './entities/booking.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Apartments } from '../apartments/entities/apartment.entity';
+import { ApartmentStatus } from 'src/common/enums/apartment-status';
 
 @Injectable()
 export class BookingService {
@@ -32,8 +33,8 @@ export class BookingService {
     booking.bron_expires = bookingDto.bron_expires;
     booking.bron_is_active = true;
 
-    if (booking.apartments.status === 'free') {
-      booking.apartments.status = 'bron';
+    if (booking.apartments.status === ApartmentStatus.FREE) {
+      booking.apartments.status = ApartmentStatus.BRON;
       await booking.apartments.save();
 
       savedBooking = await this.bookingsRepository.save(booking);

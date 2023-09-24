@@ -39,7 +39,7 @@ export class OrdersService {
     const payment_method = await PaymentMethods.findOne({ where: { id: +createOrderDto.payment_method_id } });
 
       const checkApartment = await Apartments.findOne({ where: { id: +createOrderDto.apartment_id} });
-      if(checkApartment.status === 'sold' || checkApartment.status === 'inactive') {
+      if(checkApartment.status === ApartmentStatus.SOLD || checkApartment.status === ApartmentStatus.INACTIVE) {
         throw new HttpException('Xonadon allaqachon sotilgan', HttpStatus.BAD_REQUEST)
       }
 

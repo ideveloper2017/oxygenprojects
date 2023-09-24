@@ -7,6 +7,7 @@ import { Entrance } from '../entrance/entities/entrance.entity';
 import { Floor } from '../floor/entities/floor.entity';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import { UpdateBuildingDto } from './dto/update-building.dto';
+import { ApartmentStatus } from 'src/common/enums/apartment-status';
 
 @Injectable()
 export class BuildingsService {
@@ -52,7 +53,7 @@ export class BuildingsService {
             apartment.floor = floor;
             apartment.room_number = kv++;
             apartment.cells = 1;
-            apartment.status = 'free';
+            apartment.status = ApartmentStatus.FREE;
             apartment.room_space = 58.5;
             records.push(apartment);
           }
