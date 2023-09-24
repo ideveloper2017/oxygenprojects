@@ -45,6 +45,7 @@ import {CaisherModule} from './modules/caisher/caisher.module';
 import {WordexportModule} from './modules/wordexport/wordexport.module';
 import { BookingModule } from './modules/booking/booking.module';
 import {LoggerMiddleware} from "./common/middleware/logger-middleware";
+import { ReportModule } from './modules/report/report.module';
 
 @Module({
     imports: [
@@ -91,7 +92,8 @@ import {LoggerMiddleware} from "./common/middleware/logger-middleware";
         ReturnModule,
         CaisherModule,
         WordexportModule,
-        BookingModule
+        BookingModule,
+        ReportModule
     ],
     controllers: [],
     providers: [],

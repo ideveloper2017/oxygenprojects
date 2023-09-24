@@ -6,6 +6,8 @@ import { PaymentMethods } from '../../payment-method/entities/payment-method.ent
 import { OrderItems } from '../../order-items/entities/order-item.entity';
 import { Payments } from '../../payments/entities/payment.entity';
 import { CreditTable } from '../../credit-table/entities/credit-table.entity';
+import {OrderStatus} from "../../../common/enums/order-status";
+import {Paymentmethods} from "../../../common/enums/paymentmethod";
 
 @Entity('Orders')
 export class Orders extends Model {
@@ -29,8 +31,12 @@ export class Orders extends Model {
   @Column()
   order_date: Date;
 
-  @Column({ enum: ['active', 'inactive'] })
-  order_status: string;
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.ACTIVE,
+  })
+  order_status: OrderStatus;
 
   @ManyToOne(
     (type) => PaymentMethods,

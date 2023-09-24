@@ -1,0 +1,24 @@
+jwt:
+  # expiresIn: 10
+  expiresIn: 900
+  refreshExpiresIn: 604800
+  cookieExpiresIn: 604800
+
+app:
+  fallbackLanguage: 'en'
+  name: 'Truthy'
+  version: 'v0.1'
+  description: 'Official Truthy API'
+  appUrl: 'http://localhost:7777'
+  frontendUrl: 'http://localhost:3000'
+  sameSite: true
+
+throttle:
+  global:
+    ttl: 60
+    limit: 60
+  login:
+    prefix: 'login_fail_throttle'
+    limit: 5
+    duration: 2592000
+    blockDuration: 3000

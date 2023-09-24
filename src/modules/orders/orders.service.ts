@@ -141,7 +141,7 @@ export class OrdersService {
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0
         );
-        orderItem.payments = sumOfPayments ? sumOfPayments : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       });
       
 
@@ -163,13 +163,12 @@ export class OrdersService {
 
   async getOrderListIsDue() {
 
-    return await this.ordersRepository
-      .manager
-      .getRepository(Orders)
-      .createQueryBuilder('orders')
-      .where("orders.order_status =:logic", { logic: "active" })
-      .getMany()
-    // .innerJoinAndSelect("orders.metadata", "metadata")
+    return await this.ordersRepository.find({where:{order_status:OrderStatus.ACTIVE},relations:['clients']})
+      //  .createQueryBuilder('orders')
+      //  .leftJoinAndSelect('clients','client','client.id=orders.client_id')
+      // .where("orders.order_status =:logic", { logic: "active" })
+      // .getMany()
+
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
