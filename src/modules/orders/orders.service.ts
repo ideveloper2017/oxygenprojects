@@ -168,7 +168,7 @@ export class OrdersService {
       .manager
       .getRepository(Orders)
       .createQueryBuilder('orders')
-       .leftJoinAndSelect(Clients,'clients','clients.id=orders.client_id')
+       .leftJoinAndSelect('clients','client','client.id=orders.client_id')
       .where("orders.order_status =:logic", { logic: "active" })
       .getMany()
 
