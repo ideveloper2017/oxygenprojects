@@ -103,6 +103,7 @@ export class PaymentsService {
   }
 
   async getAllPayments(offset: number, limit: number){
+      let orders;
     // const orders= await this.paymentRepo.find({
     //   relations: ['orders', 'orders.clients', 'caishers'],
     //   skip: offset,
@@ -128,11 +129,17 @@ export class PaymentsService {
 
 
 
-      const orders=await this.paymentRepo.createQueryBuilder('payments')
+       orders=await this.paymentRepo.createQueryBuilder('payments')
           .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
          .leftJoinAndSelect('orders.clients','clients','clients.id=orders.client_id')
           .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payments.caisher_id')
           .getMany()
+
+      orders.forEach((data,index)=>{
+        const total_amount=data.orders.reduce((accumulator, payment)=>accumulator+ +payment.total_amount)
+          orders.sumOfpayments=total_amount;
+      })
+
    return orders;
 
   }
