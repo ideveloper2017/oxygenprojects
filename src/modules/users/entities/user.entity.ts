@@ -71,7 +71,7 @@ export class Users extends Model {
 
   @BeforeUpdate()
   async hashPasswordBeforeUpdate() {
-    if (this.password && !this.skipHashPassword) {
+    if (this.password) {
       await this.hashPassword();
     }
   }

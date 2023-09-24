@@ -24,7 +24,8 @@ export class WordexportController {
 
 
     client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
-    const order=await this.orderRepo.findOne({where:{clients:client },relations:['clients','orderItems.apartments.floor.entrance.buildings.towns']});
+    const order=await this.orderRepo.findOne({where:{clients:client },
+        relations:['clients','orderItems.apartments.floor.entrance.buildings.towns']});
 
     let apartment=order?.orderItems?.map((data)=>{
       return {order_number: order?.id,
