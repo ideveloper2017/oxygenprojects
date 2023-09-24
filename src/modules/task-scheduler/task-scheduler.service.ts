@@ -4,6 +4,7 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Repository } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import { Booking } from '../booking/entities/booking.entity';
+import { ApartmentStatus } from 'src/common/enums/apartment-status';
 
 @Injectable()
 export class TaskSchedulerService {
@@ -19,7 +20,7 @@ export class TaskSchedulerService {
     this.logger.log('Running apartment status check...');
 
     const apartments = await this.apartmentRepository.find({
-      where: { status: 'bron' },relations: ['bookings']
+      where: { status: ApartmentStatus.BRON},relations: ['bookings']
     });
     const apartmentsWithActiveBookings = apartments.filter(apartment => {
       return apartment.bookings.some(booking => booking.bron_is_active === true);

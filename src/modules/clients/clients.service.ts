@@ -71,6 +71,9 @@ export class ClientsService {
 
   async findOneClient(id: number) {
     const client = await this.clientRepo.findBy({ id: id });
+    if(!client) {
+      return { status: 400, message: 'client not fount' };
+    }
     return { status: 200, data: client, message: 'success' };
   }
 
@@ -81,11 +84,10 @@ export class ClientsService {
         updateClientDto,
       );
       if (updatedClient.affected) {
-        return { status: 400, data: [], message: 'Mijoz topilmadi!' };
+        return { status: 400, message: 'Mijoz topilmadi!' };
       }
       return {
         status: 200,
-        data: [],
         message: "Mijoz ma'lumotalri tahrirlandi",
       };
     } catch (error) {

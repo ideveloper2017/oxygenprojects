@@ -18,6 +18,7 @@ import { Payments } from '../payments/entities/payment.entity';
 import { Booking } from '../booking/entities/booking.entity';
 import {ApartmentStatus} from "../../common/enums/apartment-status";
 import {OrderStatus} from "../../common/enums/order-status";
+import { PaymentStatus } from 'src/common/enums/payment-status';
 
 @Injectable()
 export class OrdersService {
@@ -47,7 +48,7 @@ export class OrdersService {
     order.clients = await Clients.findOne({ where: { id: +createOrderDto.client_id } });
     order.users = await Users.findOne({ where: { id: +createOrderDto.user_id } });
     order.paymentMethods = payment_method;
-    order.order_status = createOrderDto.order_status;
+    order.order_status = createOrderDto.order_status
     order.order_date = new Date();
     order.initial_pay = createOrderDto.initial_pay;
     order.quantity = 1;
@@ -60,8 +61,8 @@ export class OrdersService {
       });
 
     // binodagi barcha apartmentlarga tegishli narxini olish
-    //createOrderDto.price ? createOrderDto.price * apartment.room_space/
-    const total = apartment.floor.entrance.buildings.mk_price * apartment.room_space;
+   
+    const total =  createOrderDto.price ? createOrderDto.price * apartment.room_space : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
 
@@ -122,6 +123,7 @@ export class OrdersService {
       payment.paymentmethod = Paymentmethods.CARD;
       payment.caishers = await Caisher.findOne({ where: { is_active: true, is_default: true }, })
       payment.caisher_type = Caishertype.IN;
+      payment.payment_status = PaymentStatus.PAID
       payment.pay_note = "Boshlangich to'lov";
 
       await Payments.save(payment);
