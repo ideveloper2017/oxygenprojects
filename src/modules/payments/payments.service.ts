@@ -112,7 +112,8 @@ export class PaymentsService {
 
       const orders=await this.paymentRepo.createQueryBuilder('payments')
           .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
-          .leftJoinAndSelect('payments.orders.clients','clients','clients.id=payments.orders.clients_id')
+         // .leftJoinAndSelect('payments.orders.clients','clients','clients.id=payments.orders.clients_id')
+          .leftJoinAndSelect('payments.caishers','caishers','caishers.id=payments.caisher_id')
           .getMany()
    return orders;
 
