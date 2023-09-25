@@ -160,6 +160,7 @@ export class OrdersService {
     user = user_id;
     if (id == 0) {
       order = await this.ordersRepository.find({
+        where: { users: user },
         relations: [
           'clients',
           'users',
