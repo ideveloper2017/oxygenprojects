@@ -59,7 +59,7 @@ export class OrdersController {
     });
   }
 
-  @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
+  @ApiOperation({ summary: "Apartment/Orderlar ro'yxatini ko'rish" })
   @Get('/orderlistapartment/:apartment_id')
   getOrderByAparment(@Param('apartment_id') id?: number) {
     return this.orderService.getAppartmenOrderList(id).then((response) => {
