@@ -154,7 +154,7 @@ export class OrdersService {
     return updatedOrder;
   }
 
-  async getOrderList(id: number) {
+  async getOrderList(id: number,user_id: Users) {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
@@ -175,7 +175,7 @@ export class OrdersService {
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id },
+        where: { id: id, users: user_id },
         relations: [
           'clients',
           'payments',

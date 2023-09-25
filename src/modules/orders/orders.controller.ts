@@ -58,10 +58,13 @@ export class OrdersController {
       });
   }
 
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
   @Get('/order-list/:id')
-  getOrder(@Param('id') id?: number) {
-    return this.orderService.getOrderList(id).then((response) => {
+  getOrder(@AuthUser() user_id: Users, @Param('id') id?: number) {
+    return this.orderService.getOrderList(id, user_id).then((response) => {
       if (response !== null && response.length != 0) {
         return { data: response, message: 'Fetched data' };
       } else {
