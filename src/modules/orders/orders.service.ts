@@ -158,7 +158,7 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        where: { users: user_id as FindOptionsWhere<Users> },
+        // where: { users: user_id as FindOptionsWhere<Users> },
         relations: [
           'clients',
           'users',
@@ -177,7 +177,7 @@ export class OrdersService {
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id, users: user_id as FindOptionsWhere<Users> },
+        where: { id: id},
         relations: [
           'clients',
           'payments',

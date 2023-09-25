@@ -1,5 +1,6 @@
 import {
-  BeforeInsert, BeforeUpdate,
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -13,7 +14,7 @@ import { Sales } from '../../sales/entities/sale.entity';
 import { Orders } from '../../orders/entities/order.entity';
 import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
-import {Exclude} from "class-transformer";
+import { Exclude } from 'class-transformer';
 
 @Entity('Users')
 export class Users extends Model {
@@ -48,7 +49,7 @@ export class Users extends Model {
 
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
-  
+
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];
 
@@ -70,7 +71,6 @@ export class Users extends Model {
       await this.hashPassword();
     }
   }
-
 
   async hashPassword() {
     const salt = await bcrypt.genSalt();
