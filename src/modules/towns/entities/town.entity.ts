@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import Model from '../../model/model.module';
 import { Buildings } from '../../buildings/entities/building.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
@@ -26,6 +26,7 @@ export class Towns extends Model {
   @OneToMany((type) => Buildings, (building) => building.towns)
   buildings: Buildings[];
 
-  @OneToMany((type) => FileUpload, (fileUpload) => fileUpload.town)
-  files: FileUpload[];
+  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.town)
+  @JoinColumn({name: "file_id",})
+  file: FileUpload
 }

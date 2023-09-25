@@ -49,10 +49,10 @@ export class TownService {
     if (id != 0) {
       towns = await this.townRepository.findOne({
         where: { id: id },
-        relations: ['buildings'],
+        relations: ['buildings', 'file'],
       });
     } else {
-      towns = await this.townRepository.find({ relations: ['buildings'] });
+      towns = await this.townRepository.find({ relations: ['buildings', 'file'] });
     }
     return towns;
   }

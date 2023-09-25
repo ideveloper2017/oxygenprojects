@@ -31,10 +31,15 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { FileUpload } from './entities/file-upload.entity';
 import { FileDto } from './dto/create-file-upload.dto';
 import { FindFile } from './dto/find-files.dto';
+import { Apartments } from '../apartments/entities/apartment.entity';
+import { Buildings } from '../buildings/entities/building.entity';
+import { Towns } from '../towns/entities/town.entity';
+import { UpdateFile } from './dto/update-file.dto';
+import { existsSync, unlinkSync } from 'fs';
 
 @Injectable()
 export class FileUploadService {
@@ -69,27 +74,66 @@ export class FileUploadService {
   }
   
   async saveLocalFileData(fileDto: FileDto) {
-    const file = new FileUpload();
+    if(!fileDto.image_id){
+
+      const file = new FileUpload();
       file.filename = fileDto.filename
       file.path = fileDto.path
       file.mimetype = fileDto.mimetype
+      const savedFile = await this.localFilesRepository.save(file)
 
       if(fileDto.entity == 'Apartments'){
-      
+        
         file.apartment_id =  +fileDto.record_id
-      
+        await Apartments.update({id: fileDto.record_id}, {file: savedFile})
+        
       }else if(fileDto.entity == 'Buildings'){
-      
+        await Buildings.update({id: fileDto.record_id}, {file: savedFile})
+        
         file.building_id =  +fileDto.record_id
         
       }else if(fileDto.entity == "Towns"){
-      
+        await Towns.update({id: fileDto.record_id}, {file: savedFile})
+        
         file.town_id =  +fileDto.record_id
       }
-
-      const savedFile = await this.localFilesRepository.save(file)
-
+      
       return savedFile
+
+    }else {
+      const file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id}})
+
+      if(existsSync(file.path)){
+        unlinkSync(file.path)
+      }
+      const updatingFile = await this.localFilesRepository.update({id: +fileDto.image_id}, fileDto)
+      let res;
+      if(updatingFile.affected != 0){
+        res = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id}})
+      } 
+
+      
+      if(fileDto.entity == 'Apartments'){
+        
+        res.apartment_id =  +fileDto.record_id
+        await Apartments.update({id: fileDto.record_id}, {file: res})
+        
+      }else if(fileDto.entity == 'Buildings'){
+        await Buildings.update({id: fileDto.record_id}, {file:res })
+        
+        res.building_id =  +fileDto.record_id
+        
+      }else if(fileDto.entity == "Towns"){
+        await Towns.update({id: fileDto.record_id}, {file: res})
+        
+        res.town_id =  +fileDto.record_id
+      }
+      
+    }
+  }
+
+  async updateImage (updateImageDto: UpdateFile) {
+
   }
 }
 

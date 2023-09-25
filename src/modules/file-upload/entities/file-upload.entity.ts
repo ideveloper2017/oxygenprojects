@@ -1,7 +1,7 @@
 import { Apartments } from 'src/modules/apartments/entities/apartment.entity';
 import { Buildings } from 'src/modules/buildings/entities/building.entity';
 import { Towns } from 'src/modules/towns/entities/town.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('FileUpload')
 export class FileUpload {
@@ -17,22 +17,22 @@ export class FileUpload {
   @Column()
   mimetype: string;
 
-  @ManyToOne(() => Apartments, apartment => apartment.files)
+  @OneToOne(() => Apartments, apartment => apartment.file)
   @JoinColumn({name: 'apartment_id'})
   apartment : Apartments
 
   @Column({nullable : true})
   apartment_id: number
 
-  // @ManyToOne(() => Buildings, building => building.files)
-  // @JoinColumn({name: "building_id"})
-  // building: Buildings
+  @OneToOne(() => Buildings, building => building.file)
+  @JoinColumn({name: "building_id"})
+  building: Buildings
   
   @Column({nullable: true})
   building_id: number 
 
 
-  @ManyToOne(() => Towns, town => town.files)
+  @OneToOne(() => Towns, town => town.file)
   @JoinColumn({name: "town_id"})
   town: Towns
 

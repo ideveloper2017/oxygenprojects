@@ -116,16 +116,16 @@ export class OrdersService {
         await OrderItems.save(orderItem);
 
 
-        const payment = new Payments();
-        payment.orders = await Orders.findOne({where: {id: +savedOrder.id},});
-        payment.users = savedOrder.users
-        payment.amount = savedOrder.initial_pay;
-        payment.payment_date = new Date();
-        payment.paymentmethod = Paymentmethods.CARD;
-        payment.caishers = await Caisher.findOne({where: {is_active: true, is_default: true},})
-        payment.caisher_type = Caishertype.IN;
-        payment.payment_status = PaymentStatus.PAID
-        payment.pay_note = "Boshlangich to'lov";
+      const payment = new Payments();
+      payment.orders = await Orders.findOne({where: { id: +savedOrder.id },});
+      payment.users = savedOrder.users
+      payment.amount = savedOrder.initial_pay;
+      payment.payment_date = new Date();
+      payment.paymentmethods = Paymentmethods.CARD;
+      payment.caishers = await Caisher.findOne({ where: { is_active: true, is_default: true }, })
+      payment.caisher_type = Caishertype.IN;
+      payment.payment_status = PaymentStatus.PAID
+      payment.pay_note = "Boshlangich to'lov";
 
         await Payments.save(payment);
 
