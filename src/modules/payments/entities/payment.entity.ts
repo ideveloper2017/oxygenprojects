@@ -17,6 +17,9 @@ export class Payments extends Model {
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 
+  @Column()
+  order_id: number
+
   @ManyToOne(() => Caisher, (caisher) => caisher.payments, {
     onDelete: 'CASCADE',
   })
@@ -46,7 +49,7 @@ export class Payments extends Model {
     enum: Paymentmethods,
     default: Paymentmethods.CASH,
   })
-  paymentmethod: Paymentmethods;
+  paymentmethods: Paymentmethods;
 
   @Column({type:"enum",enum:PaymentStatus})
   payment_status:PaymentStatus;

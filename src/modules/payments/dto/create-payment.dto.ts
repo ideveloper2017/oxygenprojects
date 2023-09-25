@@ -17,7 +17,7 @@ export class NewPaymentDto {
   amount: number;
 
   @ApiProperty()
-  paymentmethod: Paymentmethods;
+  paymentmethods: Paymentmethods;
 
   @ApiProperty()
   caisher_id: number;

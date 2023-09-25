@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import Model from '../../model/model.module';
 import { Floor } from '../../floor/entities/floor.entity';
 import { Price } from '../../price/entities/price.entity';
@@ -34,8 +34,9 @@ export class Apartments extends Model {
   @OneToMany(() => OrderItems, (orderItems) => orderItems.apartments)
   orderItems: OrderItems[];
   
-  @OneToMany(() => FileUpload, (files) => files.apartment)
-  files: FileUpload[];
+  @OneToOne(() => FileUpload, (files) => files.apartment)
+  @JoinColumn({name: "file_id"})
+  file: FileUpload;
   
   @OneToMany(() => Booking, (booking) => booking.apartments)
   bookings: Booking[];

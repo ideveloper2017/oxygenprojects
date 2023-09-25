@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import Model from '../../model/model.module';
 import { Towns } from '../../towns/entities/town.entity';
 import { Entrance } from '../../entrance/entities/entrance.entity';
@@ -31,6 +31,7 @@ export class Buildings extends Model {
   @Column()
   mk_price: number;
   
-  // @OneToMany((type) => FileUpload, (fileUpload) => fileUpload.building)
-  // files: FileUpload[]
+  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building)
+  @JoinColumn({name: "file_id",})
+  file: FileUpload
 }

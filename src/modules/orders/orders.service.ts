@@ -120,7 +120,7 @@ export class OrdersService {
       payment.users = savedOrder.users
       payment.amount = savedOrder.initial_pay;
       payment.payment_date = new Date();
-      payment.paymentmethod = Paymentmethods.CARD;
+      payment.paymentmethods = Paymentmethods.CASH;
       payment.caishers = await Caisher.findOne({ where: { is_active: true, is_default: true }, })
       payment.caisher_type = Caishertype.IN;
       payment.payment_status = PaymentStatus.PAID
