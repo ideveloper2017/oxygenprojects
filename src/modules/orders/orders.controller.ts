@@ -62,7 +62,7 @@ export class OrdersController {
   @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
   @Get('/orderlistapartment/:apartment_id')
   getOrderByAparment(@Param('apartment_id') id?: number) {
-    return this.orderService.getOrderList(id).then((response) => {
+    return this.orderService.getAppartmenOrderList(id).then((response) => {
       if (response !== null && response.length != 0) {
         return { data: response, message: 'Fetched data' };
       } else {
