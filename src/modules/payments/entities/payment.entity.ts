@@ -48,7 +48,7 @@ export class Payments extends Model {
   })
   paymentmethods: Paymentmethods;
 
-  @Column({ type: 'enum', enum: PaymentStatus })
+  @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PAID })
   payment_status: PaymentStatus;
 
   @Column({ nullable: true })
