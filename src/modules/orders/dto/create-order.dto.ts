@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {IsInt} from "class-validator";
-import {OrderStatus} from "../../../common/enums/order-status";
+import { IsInt } from 'class-validator';
+import { OrderStatus } from '../../../common/enums/order-status';
 
 export class CreateOrderDto {
   @ApiProperty({ example: 1, description: "ro'yxatdan o'tgan mijoz idisi" })
@@ -21,15 +21,17 @@ export class CreateOrderDto {
   @ApiProperty({ example: 1, description: "to'lov turi tanlanadi" })
   @IsInt()
   payment_method_id: number;
-  
-  @ApiProperty({ example: 8_000_000, description: 'kvartira kvadrat metr narxi' })
+
+  @ApiProperty({
+    example: 8_000_000,
+    description: 'kvartira kvadrat metr narxi',
+  })
   @IsInt()
   price: number;
 
   @ApiProperty({ example: 25_000_000, description: 'kvartira umumiy narxi' })
   @IsInt()
   initial_pay: number;
-  
 
   @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi' })
   total_amount: number;

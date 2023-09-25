@@ -10,21 +10,32 @@ import {
   Patch,
   Post,
   Res,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Users } from '../users/entities/user.entity';
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly orderService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Order qo'shishi" })
   @Post('/add')
-  createOrder(@Body() createOrderDto: CreateOrderDto, @Res() res: Response) {
+  createOrder(
+    @AuthUser() user_id: Users,
+    @Body() createOrderDto: CreateOrderDto,
+    @Res() res: Response,
+  ) {
     return this.orderService
       .createOrder(createOrderDto)
       .then((response) => {
