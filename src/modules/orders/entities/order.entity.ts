@@ -6,8 +6,8 @@ import { PaymentMethods } from '../../payment-method/entities/payment-method.ent
 import { OrderItems } from '../../order-items/entities/order-item.entity';
 import { Payments } from '../../payments/entities/payment.entity';
 import { CreditTable } from '../../credit-table/entities/credit-table.entity';
-import {OrderStatus} from "../../../common/enums/order-status";
-import {Paymentmethods} from "../../../common/enums/paymentmethod";
+import { OrderStatus } from '../../../common/enums/order-status';
+import { Paymentmethods } from '../../../common/enums/paymentmethod';
 
 @Entity('Orders')
 export class Orders extends Model {

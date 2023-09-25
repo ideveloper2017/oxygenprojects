@@ -9,7 +9,12 @@ import {
   UseGuards,
   UseInterceptors,
   ForbiddenException,
-  Req, ValidationPipe, UsePipes, Res, HttpStatus, Put,
+  Req,
+  ValidationPipe,
+  UsePipes,
+  Res,
+  HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags } from '@nestjs/swagger';
@@ -98,8 +103,4 @@ export class AuthController {
   //     return response.sendStatus(HttpStatus.NO_CONTENT);
   //   }
   // }
-
-
-
-
 }

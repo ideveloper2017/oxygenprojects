@@ -5,7 +5,8 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Param, ParseIntPipe,
+  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Res,
@@ -42,13 +43,25 @@ export class OrdersController {
         }
       })
       .catch((error) => {
-        res.send({ status:409,success: false, message: error.message });
+        res.send({ status: 409, success: false, message: error.message });
       });
   }
 
   @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
   @Get('/order-list/:id')
   getOrder(@Param('id') id?: number) {
+    return this.orderService.getOrderList(id).then((response) => {
+      if (response !== null && response.length != 0) {
+        return { data: response, message: 'Fetched data' };
+      } else {
+        return { success: true, message: 'Not found!' };
+      }
+    });
+  }
+
+  @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
+  @Get('/orderlistapartment/:apartment_id')
+  getOrderByAparment(@Param('apartment_id') id?: number) {
     return this.orderService.getOrderList(id).then((response) => {
       if (response !== null && response.length != 0) {
         return { data: response, message: 'Fetched data' };
@@ -102,7 +115,7 @@ export class OrdersController {
   }
 
   @Post('/orderreject')
-  orderreject(@Param('order_id') order_id:number){
+  orderreject(@Param('order_id') order_id: number) {
     return this.orderService.orderReject(order_id);
   }
 
