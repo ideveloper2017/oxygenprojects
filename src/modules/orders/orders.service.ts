@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Orders } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentMethods } from '../payment-method/entities/payment-method.entity';
@@ -155,12 +155,10 @@ export class OrdersService {
   }
 
   async getOrderList(id: number, user_id: Users) {
-    let order, user;
-    // eslint-disable-next-line prefer-const
-    user = user_id;
+    let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        where: { users: user },
+        where: { users: user_id as FindOptionsWhere<Users> },
         relations: [
           'clients',
           'users',
@@ -178,7 +176,7 @@ export class OrdersService {
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id, users: user },
+        where: { id: id, users: user_id as FindOptionsWhere<Users> },
         relations: [
           'clients',
           'payments',
