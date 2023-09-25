@@ -11,7 +11,7 @@ import {
 import { CaisherService } from './caisher.service';
 import { CreateCaisherDto } from './dto/create-caisher.dto';
 import { UpdateCaisherDto } from './dto/update-caisher.dto';
-import { ApiQuery, ApiTags } from "@nestjs/swagger";
+import {ApiProperty, ApiQuery, ApiTags} from "@nestjs/swagger";
 import { UserRole } from "../roles/entities/role.entity";
 import { Caisher } from "./entities/caisher.entity";
 import { Paymentmethods } from "../../common/enums/paymentmethod";
@@ -65,7 +65,9 @@ export class CaisherController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCaisherDto: UpdateCaisherDto) {
     try {
-      return this.caisherService.update(+id, updateCaisherDto).then((data) => {
+
+
+      return this.caisherService.update(+id,  updateCaisherDto).then((data) => {
         if (data.affected != 0) {
           return { success: true, data: data, message: 'update product' };
         } else {

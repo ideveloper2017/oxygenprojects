@@ -125,4 +125,14 @@ export class UsersController {
   ): Promise<void> {
     return this.authService.changePassword(user, changePasswordDto);
   }
+
+  @Get('/roles')
+  public async getRole(){
+    return this.usersService.getRoles();
+  }
+
+  @Get('/permissions')
+  public async getPermission(){
+    return this.usersService.getRoles();
+  }
 }

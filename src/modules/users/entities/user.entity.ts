@@ -57,21 +57,16 @@ export class Users extends Model {
   })
   tokenVersion: number;
 
-  @Exclude({
-    toPlainOnly: true
-  })
-  skipHashPassword = false;
-
   @BeforeInsert()
   async hashPasswordBeforeInsert() {
-    if (this.password && !this.skipHashPassword) {
+    if (this.password) {
       await this.hashPassword();
     }
   }
 
   @BeforeUpdate()
   async hashPasswordBeforeUpdate() {
-    if (this.password && !this.skipHashPassword) {
+    if (this.password) {
       await this.hashPassword();
     }
   }
