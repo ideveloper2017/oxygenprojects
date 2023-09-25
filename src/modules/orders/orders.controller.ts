@@ -37,7 +37,7 @@ export class OrdersController {
     @Res() res: Response,
   ) {
     return this.orderService
-      .createOrder(createOrderDto)
+      .createOrder(createOrderDto, user_id)
       .then((response) => {
         if (response.affected) {
           res.send({
