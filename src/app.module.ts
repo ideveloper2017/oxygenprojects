@@ -53,9 +53,6 @@ import { ReportModule } from './modules/report/report.module';
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
-    ServeStaticModule.forRoot({
-      rootPath: resolve(__dirname, '../', 'uploads/images'),
-    }),
     // TypeOrmModule.forRoot({
     //   type: process.env.DB_TYPE as any,
     //   host: process.env.DB_HOST,
