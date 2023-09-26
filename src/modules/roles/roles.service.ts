@@ -40,13 +40,13 @@ export class RolesService {
           is_active: true,
           permission: permissions,
         },
-        // {
-        //   id: 3,
-        //   role_name: 'Seller',
-        //   role_title: 'Продавец',
-        //   is_active: true,
-        //   permission: permissions,
-        // },
+        {
+          id: 3,
+          role_name: 'Seller',
+          role_title: 'Продавец',
+          is_active: true,
+          permission: permissions,
+        },
         // {
         //   id: 4,
         //   role_name: 'Operator',
