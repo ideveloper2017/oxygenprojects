@@ -6,29 +6,31 @@ import {
   Param,
   Put,
   ParseIntPipe,
-  UseGuards, BadRequestException,
+  UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {ApiBearerAuth, ApiOkResponse, ApiTags} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/role.guard';
-import {JwtAuthGuard} from "../auth/jwt-auth.guard";
-import {LoginResponse} from "../auth/type/loginResponse";
-import {AuthService} from "../auth/auth.service";
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { LoginResponse } from '../auth/type/loginResponse';
+import { AuthService } from '../auth/auth.service';
 import * as bcrypt from 'bcryptjs';
-import {AuthUser} from "../../common/decorators/auth-user.decorator";
-import {Roles} from "../auth/decorator/roles.decorator";
-import {Users} from "./entities/user.entity";
-import {ChangePasswordDto} from "../auth/dto/change-password.dto";
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { Users } from './entities/user.entity';
+import { ChangePasswordDto } from '../auth/dto/change-password.dto';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(
-      private readonly authService:AuthService,
-           private readonly usersService: UsersService) {}
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   //@Roles('admin', 'manager')
@@ -47,7 +49,7 @@ export class UsersController {
 
   @Post('/save')
   public async createLogin(@Body() createUserDto: CreateUserDto) {
-       return this.usersService.createLogin(createUserDto);
+    return this.usersService.createLogin(createUserDto);
   }
 
   // @Post('save')
@@ -118,21 +120,21 @@ export class UsersController {
   @ApiBearerAuth()
   @Put('/change-password')
   changePassword(
-      @AuthUser()
-          user: Users,
-      @Body()
-          changePasswordDto: ChangePasswordDto
+    @AuthUser()
+    user: Users,
+    @Body()
+    changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     return this.authService.changePassword(user, changePasswordDto);
   }
 
   @Get('/roles')
-  public async getRole(){
+  public async getRole() {
     return this.usersService.getRoles();
   }
 
   @Get('/permissions')
-  public async getPermission(){
-    return this.usersService.getRoles();
+  public async getPermission() {
+    return this.usersService.getPermission();
   }
 }
