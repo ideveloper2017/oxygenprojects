@@ -133,6 +133,7 @@ export class UsersService {
     return await this.usersRepository.findOne({
       where: { id },
       relations: ['roles'],
+      
     });
   }
 

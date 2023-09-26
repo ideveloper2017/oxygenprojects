@@ -76,7 +76,7 @@ export class PaymentsService {
       payment.users = await Users.findOne({where: {id: +newPaymentDto.user_id}})
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
-      payment.paymentmethods = newPaymentDto.paymentmethod;
+      payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({where: { id: newPaymentDto.caisher_id },});
       payment.caisher_type = newPaymentDto.caishertype;
       payment.pay_note = newPaymentDto.pay_note;
@@ -90,7 +90,7 @@ export class PaymentsService {
       payment.users = await Users.findOne({where: {id: +newPaymentDto.user_id}})
       payment.amount = newPaymentDto.amount;
       payment.payment_date = new Date();
-      payment.paymentmethods = newPaymentDto.paymentmethod;
+      payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({where: { id: newPaymentDto.caisher_id },});
       newPay = await this.paymentRepo.save(payment);
       payment.caisher_type = newPaymentDto.caishertype;
