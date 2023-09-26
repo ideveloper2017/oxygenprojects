@@ -5,27 +5,39 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Param, ParseIntPipe,
+  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Res,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Users } from '../users/entities/user.entity';
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly orderService: OrdersService) {}
 
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Order qo'shishi" })
   @Post('/add')
-  createOrder(@Body() createOrderDto: CreateOrderDto, @Res() res: Response) {
+  createOrder(
+    @AuthUser() user_id: Users,
+    @Body() createOrderDto: CreateOrderDto,
+    @Res() res: Response,
+  ) {
     return this.orderService
-      .createOrder(createOrderDto)
+      .createOrder(createOrderDto, user_id)
       .then((response) => {
         if (response.affected) {
           res.send({
@@ -42,14 +54,34 @@ export class OrdersController {
         }
       })
       .catch((error) => {
-        res.send({ status:409,success: false, message: error.message });
+        res.send({ status: 409, success: false, message: error.message });
       });
   }
 
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
   @Get('/order-list/:id')
-  getOrder(@Param('id') id?: number) {
-    return this.orderService.getOrderList(id).then((response) => {
+  getOrder(@AuthUser() user_id: Users, @Param('id') id?: number) {
+    return this.orderService
+      .getOrderList(id, user_id)
+      .then((response) => {
+        if (response !== null && response.length != 0) {
+          return { data: response, message: 'Fetched data' };
+        } else {
+          return { success: true, message: 'Not found!' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
+  }
+
+  @ApiOperation({ summary: "Apartment/Orderlar ro'yxatini ko'rish" })
+  @Get('/orderlistapartment/:apartment_id')
+  getOrderByAparment(@Param('apartment_id') id?: number) {
+    return this.orderService.getAppartmenOrderList(id).then((response) => {
       if (response !== null && response.length != 0) {
         return { data: response, message: 'Fetched data' };
       } else {
@@ -102,7 +134,7 @@ export class OrdersController {
   }
 
   @Post('/orderreject')
-  orderreject(@Param('order_id') order_id:number){
+  orderreject(@Param('order_id') order_id: number) {
     return this.orderService.orderReject(order_id);
   }
 

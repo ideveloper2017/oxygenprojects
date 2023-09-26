@@ -1,4 +1,4 @@
-import {HttpStatus, Injectable, UnauthorizedException} from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthLoginDto } from './dto/AuthLoginDto';
 import { Users } from '../users/entities/user.entity';
@@ -7,26 +7,12 @@ import { UsersService } from '../users/users.service';
 import { Roles } from '../roles/entities/role.entity';
 import { AccessTokenPayload, RefreshTokenPayload } from './type/jwtPayload';
 import { sign, verify } from 'jsonwebtoken';
-import {CreateUserDto} from "../users/dto/create-user.dto";
-import {ChangePasswordDto} from "./dto/change-password.dto";
-import {ExceptionTitleList} from "../../common/constants/exception-title-list.constants";
-import {StatusCodesList} from "../../common/constants/status-codes-list.constants";
-import {CustomHttpException} from "../../common/exception/exception-filter";
-import * as config from 'config';
-import { SignOptions } from 'jsonwebtoken';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ExceptionTitleList } from '../../common/constants/exception-title-list.constants';
+import { StatusCodesList } from '../../common/constants/status-codes-list.constants';
+import { CustomHttpException } from '../../common/exception/exception-filter';
 
-const throttleConfig = config.get('throttle.login');
-const jwtConfig = config.get('jwt');
-const appConfig = config.get('app');
 
-const isSameSite =
-    appConfig.sameSite !== null
-        ? appConfig.sameSite
-        : process.env.IS_SAME_SITE === 'true';
-const BASE_OPTIONS: SignOptions = {
-  issuer: appConfig.appUrl,
-  audience: appConfig.frontendUrl
-};
 @Injectable()
 export class AuthService {
   constructor(
@@ -115,33 +101,19 @@ export class AuthService {
   }
 
   async changePassword(
-      user: Users,
-      changePasswordDto: ChangePasswordDto
+    user: Users,
+    changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     const { oldPassword, password } = changePasswordDto;
     const checkOldPwdMatches = await user.validatePassword(oldPassword);
     if (!checkOldPwdMatches) {
       throw new CustomHttpException(
-          ExceptionTitleList.IncorrectOldPassword,
-          HttpStatus.PRECONDITION_FAILED,
-          StatusCodesList.IncorrectOldPassword
+        ExceptionTitleList.IncorrectOldPassword,
+        HttpStatus.PRECONDITION_FAILED,
+        StatusCodesList.IncorrectOldPassword,
       );
     }
     user.password = password;
     await user.save();
-  }
-
-  getCookieForLogOut(): string[] {
-    return [
-      `Authentication=; HttpOnly; Path=/; Max-Age=0; ${
-          !isSameSite ? 'SameSite=None; Secure;' : ''
-      }`,
-      `Refresh=; HttpOnly; Path=/; Max-Age=0; ${
-          !isSameSite ? 'SameSite=None; Secure;' : ''
-      }`,
-      `ExpiresIn=; Path=/; Max-Age=0; ${
-          !isSameSite ? 'SameSite=None; Secure;' : ''
-      }`
-    ];
   }
 }

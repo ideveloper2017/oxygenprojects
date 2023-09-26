@@ -2,11 +2,13 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import Model from '../../model/model.module';
 import { Apartments } from '../../apartments/entities/apartment.entity';
 import { Orders } from '../../orders/entities/order.entity';
-import {Currencies} from "../../currencies/entities/currency.entity";
+import { Currencies } from '../../currencies/entities/currency.entity';
 
 @Entity('OrderItems')
 export class OrderItems extends Model {
-  @ManyToOne(() => Orders, (orders) => orders.orderItems, {onDelete: 'CASCADE'})
+  @ManyToOne(() => Orders, (orders) => orders.orderItems, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 
@@ -14,10 +16,10 @@ export class OrderItems extends Model {
   @JoinColumn({ name: 'apartment_id' })
   apartments: Apartments;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   final_price: number;
 
-  @ManyToOne(()=>Currencies,(currency)=>currency.orderitems)
-  @JoinColumn({name:"currency_id"})
-  currency:Currencies;
+  @ManyToOne(() => Currencies, (currency) => currency.orderitems)
+  @JoinColumn({ name: 'currency_id' })
+  currency: Currencies;
 }
