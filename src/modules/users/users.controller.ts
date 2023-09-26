@@ -7,7 +7,8 @@ import {
   Put,
   ParseIntPipe,
   UseGuards,
-  BadRequestException, Patch,
+  BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -85,13 +86,18 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.updateUser(id, updateUserDto).then((data) => {
-      if (data.affected == 1) {
-        return { success: true, message: 'Updated is record!!!' };
-      } else {
-        return { success: false, message: 'not updated is record!!!' };
-      }
-    });
+    return this.usersService
+      .updateUser(id, updateUserDto)
+      .then((data) => {
+        if (data.affected) {
+          return { success: true, message: 'Updated is record!!!' };
+        } else {
+          return { success: false, message: 'not updated is record!!!' };
+        }
+      })
+      .catch((error) => {
+        return { status: 401, message: error.message };
+      });
   }
 
   @Post('/delete')
