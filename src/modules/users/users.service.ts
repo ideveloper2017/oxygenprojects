@@ -7,7 +7,7 @@ import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Permissions } from '../permissions/entities/permission.entity';
-import {ApiProperty} from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 @Injectable()
 export class UsersService {
@@ -16,28 +16,35 @@ export class UsersService {
     private readonly usersRepository: Repository<Users>,
   ) {}
 
-  async getUsers(id: number) {    
-    
+  async getUsers(id: number) {
     // user ga tegishli ruxsatlarni tartiblab beradi
 
     const permissions = await Permissions.find();
 
-    const categories = ['user', 'role', 'permission', 'clients', 'sold', 'report', 'buildings', 'dashboard'];
+    const categories = [
+      'user',
+      'role',
+      'permission',
+      'clients',
+      'sold',
+      'report',
+      'buildings',
+      'dashboard',
+    ];
 
-    const sortedPermissions = categories.map(category => {
-      
+    const sortedPermissions = categories.map((category) => {
       const filteredPermissions = permissions
-        .filter(p => p.name.startsWith(category))
-        .map(p => ({ 
-          id: p.id, 
-          name: p.name, 
-          created_at: p.created_at, 
-          updated_at: p.updated_at 
+        .filter((p) => p.name.startsWith(category))
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
         }));
 
       return { [category]: filteredPermissions };
     });
-// =========== user roles permissions =================
+    // =========== user roles permissions =================
 
     let users;
     if (id != 0) {
@@ -111,17 +118,17 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-
-    return await this.usersRepository.update({id: id},
-        {
-          first_name: updateUserDto.first_name,
-          last_name: updateUserDto.last_name,
-          username: updateUserDto.username,
-          phone_number: updateUserDto.phone_number,
-          password: await bcrypt.hash(updateUserDto.password,20),
-          is_active:updateUserDto.is_active,
-          roles: await Roles.findOne({where: {id: updateUserDto.role_id}})
-        }
+    return await this.usersRepository.update(
+      { id: id },
+      {
+        first_name: updateUserDto.first_name,
+        last_name: updateUserDto.last_name,
+        username: updateUserDto.username,
+        phone_number: updateUserDto.phone_number,
+        password: await bcrypt.hash(updateUserDto.password, 20),
+        is_active: updateUserDto.is_active,
+        roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
+      },
     );
   }
 
@@ -142,27 +149,30 @@ export class UsersService {
     });
   }
 
-
-  async createdefaultUser(){
-    const user=await this.usersRepository.find();
-    if (user.length==0){
-      this.usersRepository.save([{
-        first_name: "Admin",
-        last_name: "Admin",
-        username: "admin",
-        phone_number: "+998 94 995 1254",
-        password: await bcrypt.hash("1234",10),
-        is_active: true,
-        roles: await Roles.findOne({where:{id:1}})
-      }]);
+  async createdefaultUser() {
+    const user = await this.usersRepository.find();
+    if (user.length == 0) {
+      this.usersRepository.save([
+        {
+          first_name: 'Admin',
+          last_name: 'Admin',
+          username: 'admin',
+          phone_number: '+998 94 995 1254',
+          password: await bcrypt.hash('1234', 10),
+          is_active: true,
+          roles: await Roles.findOne({ where: { id: 1 } }),
+        },
+      ]);
     }
   }
 
-  public async getRoles(){
+  public async getRoles() {
     return this.usersRepository.manager.getRepository(Roles).find();
   }
 
-  public async getPermission(){
-    return this.usersRepository.manager.getRepository(Permissions).find({relations:['roles']});
+  public async getPermission() {
+    return this.usersRepository.manager
+      .getRepository(Permissions)
+      .find({ relations: ['roles'] });
   }
 }

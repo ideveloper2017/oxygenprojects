@@ -7,7 +7,7 @@ import {
   Put,
   ParseIntPipe,
   UseGuards,
-  BadRequestException,
+  BadRequestException, Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -80,7 +80,7 @@ export class UsersController {
   //   }
   // }
 
-  @Put('/update/:id')
+  @Patch('/update/:id')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
