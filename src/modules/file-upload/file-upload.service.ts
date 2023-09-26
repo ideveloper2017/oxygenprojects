@@ -74,8 +74,12 @@ export class FileUploadService {
   }
   
   async saveLocalFileData(fileDto: FileDto) {
-    if(!fileDto.image_id){
-
+    if(fileDto.image_id == 0){
+      
+      // const check = await this.localFilesRepository.findOne({where: {filename: fileDto.filename}})
+      // if(check){
+      //   return false
+      // }
       const file = new FileUpload();
       file.filename = fileDto.filename
       file.path = fileDto.path
@@ -84,52 +88,86 @@ export class FileUploadService {
 
       if(fileDto.entity == 'Apartments'){
         
-        file.apartment_id =  +fileDto.record_id
-        await Apartments.update({id: fileDto.record_id}, {file: savedFile})
+        await this.localFilesRepository.update({id: savedFile.id}, {apartment_id: +fileDto.record_id})
+        await Apartments.update({id: fileDto.record_id}, {file_id: savedFile.id})
         
       }else if(fileDto.entity == 'Buildings'){
-        await Buildings.update({id: fileDto.record_id}, {file: savedFile})
+        await this.localFilesRepository.update({id: savedFile.id}, {building_id: +fileDto.record_id})
+        await Buildings.update({id: fileDto.record_id}, {file_id: savedFile.id})
         
-        file.building_id =  +fileDto.record_id
         
       }else if(fileDto.entity == "Towns"){
-        await Towns.update({id: fileDto.record_id}, {file: savedFile})
+        await this.localFilesRepository.update({id: savedFile.id}, {town_id: +fileDto.record_id})
+        await Towns.update({id: fileDto.record_id}, {file_id: savedFile.id})
         
-        file.town_id =  +fileDto.record_id
       }
       
       return savedFile
 
     }else {
-      const file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id}})
+
+      //agar rasm yangilanadigan bo'lsa  else blok ishlaydi va eski rasm ochiriladi yangisi yoziladi
+      try{
+      let file
+      if(fileDto.entity == 'Apartments'){
+        console.log('apartment');
+        file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id, apartment_id: fileDto.record_id}})
+        
+      }else if(fileDto.entity == 'Buildings'){
+        console.log('buildings');
+        file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id, building_id: fileDto.record_id}})
+        
+        
+      }else if(fileDto.entity == "Towns"){
+        console.log('towns');
+        file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id, town_id: fileDto.record_id}})
+      }
+      console.log(file.path);
+
 
       if(existsSync(file.path)){
+
         unlinkSync(file.path)
+      }else {
+        return null
       }
-      const updatingFile = await this.localFilesRepository.update({id: +fileDto.image_id}, fileDto)
+
+      console.log(file.path);
+
+      const updatingFile = await this.localFilesRepository.update({id: +fileDto.image_id}, {
+        mimetype: fileDto.mimetype,
+        path: fileDto.path,
+        filename: fileDto.filename
+      })
+
       let res;
+
       if(updatingFile.affected != 0){
         res = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id}})
+        console.log(res.path);
       } 
 
       
       if(fileDto.entity == 'Apartments'){
         
         res.apartment_id =  +fileDto.record_id
-        await Apartments.update({id: fileDto.record_id}, {file: res})
+        await Apartments.update({id: fileDto.record_id}, {file_id: res.id})
         
       }else if(fileDto.entity == 'Buildings'){
-        await Buildings.update({id: fileDto.record_id}, {file:res })
-        
-        res.building_id =  +fileDto.record_id
+        await Buildings.update({id: fileDto.record_id}, {file_id:res.id })
         
       }else if(fileDto.entity == "Towns"){
-        await Towns.update({id: fileDto.record_id}, {file: res})
+        await Towns.update({id: fileDto.record_id}, {file_id: res.id})
         
-        res.town_id =  +fileDto.record_id
       }
-      
+      return  res
+    }catch(error) {
+      if(error.code === 'ENOENT'){
+        console.log('not found');
+      }
     }
+    }
+
   }
 
   async updateImage (updateImageDto: UpdateFile) {

@@ -127,12 +127,17 @@ export class FileUploadController {
       path: file.path,
       filename: file.originalname,
       mimetype: file.mimetype,
+      image_id: body.image_id,
 
     }).then(data => {
       if(data){
-        return {success: true, data, message: "file successfully uploaded"}
-      }else {
-        return {success: false, message: "failed to upload file"}
+        return {success: true, data, message: "Rasm joylandi!!"}
+      }
+      else if (data == false){
+        return {success: false, message: "Rasm allaqachon mavjud"}
+      }
+      else {
+        return {success: false, message: "Rasm yuklashda xatolik"}
 
       }
     })

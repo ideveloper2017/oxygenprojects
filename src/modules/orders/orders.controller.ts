@@ -111,7 +111,7 @@ export class OrdersController {
       throw new HttpException('provide order ids', HttpStatus.LENGTH_REQUIRED);
     }
     return this.orderService.deleteOrder(arrayOfId).then((response) => {
-      if (response.affected != 0) {
+      if (response) {
         return {
           success: true,
           message: `Orders deleted successfully`,

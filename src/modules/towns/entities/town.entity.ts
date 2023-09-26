@@ -29,4 +29,7 @@ export class Towns extends Model {
   @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.town)
   @JoinColumn({name: "file_id",})
   file: FileUpload
+
+  @Column({nullable: true})
+  file_id: number
 }

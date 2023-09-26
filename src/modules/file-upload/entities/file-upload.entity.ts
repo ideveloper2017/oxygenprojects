@@ -17,22 +17,22 @@ export class FileUpload {
   @Column()
   mimetype: string;
 
-  @OneToOne(() => Apartments, apartment => apartment.file)
+  @OneToOne(() => Apartments, apartment => apartment.file, {onDelete: 'CASCADE', onUpdate:"CASCADE"})
   @JoinColumn({name: 'apartment_id'})
   apartment : Apartments
 
   @Column({nullable : true})
   apartment_id: number
 
-  @OneToOne(() => Buildings, building => building.file)
-  @JoinColumn({name: "building_id"})
+  @OneToOne(() => Buildings, building => building.file, {onDelete: 'CASCADE', onUpdate: "CASCADE"})
+  @JoinColumn({name: "building_id",})
   building: Buildings
   
   @Column({nullable: true})
   building_id: number 
 
 
-  @OneToOne(() => Towns, town => town.file)
+  @OneToOne(() => Towns, town => town.file, {onDelete: 'CASCADE', onUpdate: "CASCADE"})
   @JoinColumn({name: "town_id"})
   town: Towns
 

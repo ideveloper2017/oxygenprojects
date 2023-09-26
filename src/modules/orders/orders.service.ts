@@ -158,7 +158,7 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        // where: { users: user_id as FindOptionsWhere<Users> },
+        where: {order_id_active: true},
         relations: [
           'clients',
           'users',
@@ -177,7 +177,7 @@ export class OrdersService {
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id},
+        where: { id: id, order_id_active: true},
         relations: [
           'clients',
           'payments',
@@ -289,8 +289,13 @@ export class OrdersService {
   }
 
   async deleteOrder(arrayOfId: number[]) {
-    const deleteOrder = await this.ordersRepository.delete(arrayOfId);
-    return deleteOrder;
+    let conteiner
+    for(let val of arrayOfId) {
+      let temp = await this.ordersRepository.update({id: val}, {order_id_active: false})
+      conteiner+= temp.affected
+    }
+
+    return arrayOfId.length == conteiner
   }
 
   public async orderReject(id: number) {

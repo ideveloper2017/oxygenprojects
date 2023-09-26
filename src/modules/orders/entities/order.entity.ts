@@ -38,6 +38,9 @@ export class Orders extends Model {
   })
   order_status: OrderStatus;
 
+  @Column()
+  order_id_active: boolean
+ 
   @ManyToOne(
     (type) => PaymentMethods,
     (paymentMethods) => paymentMethods.orders,

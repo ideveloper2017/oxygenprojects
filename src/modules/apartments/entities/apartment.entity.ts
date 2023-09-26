@@ -37,6 +37,9 @@ export class Apartments extends Model {
   @OneToOne(() => FileUpload, (files) => files.apartment)
   @JoinColumn({name: "file_id"})
   file: FileUpload;
+
+  @Column({nullable: true,})
+  file_id: number
   
   @OneToMany(() => Booking, (booking) => booking.apartments)
   bookings: Booking[];

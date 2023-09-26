@@ -97,8 +97,8 @@ export class UsersController {
     return this.usersService
       .deleteUsers(userid)
       .then((data) => {
-        return data.affected != 0
-          ? { success: true, message: 'Deleted is record!!!' }
+        return data
+          ? { success: true, message: 'user Deleted ' }
           : { success: false, message: 'not deleted!!!' };
       })
       .catch((error) => {

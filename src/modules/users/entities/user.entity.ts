@@ -27,7 +27,7 @@ export class Users extends Model {
   @Column({ nullable: true })
   phone_number: string;
 
-  @Column()
+  @Column({unique: true})
   username: string;
 
   @Column()
@@ -56,8 +56,12 @@ export class Users extends Model {
   @Column({
     default: 0,
   })
+
   tokenVersion: number;
 
+  @Column()
+  user_is_deleted: boolean
+ 
   @BeforeInsert()
   async hashPasswordBeforeInsert() {
     if (this.password) {
