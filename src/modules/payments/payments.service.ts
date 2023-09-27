@@ -120,19 +120,11 @@ export class PaymentsService {
   }
 
   async getAllPayments(offset: number, limit: number) {
-    let orders;
-    let total_amount;
-    orders = await this.paymentRepo.find({
+    const orders = await this.paymentRepo.find({
       relations: ['orders', 'orders.clients', 'caishers'],
       skip: offset,
       take: limit,
       order: { id: 'desc' },
-    });
-
-    orders.forEach((data) => {
-      // data.orders.reduce((acc,key)=>acc+key);
-      total_amount = Number(data.orders.total_amount - data.amount);
-      data.sumOfpayments = total_amount;
     });
 
     return orders;

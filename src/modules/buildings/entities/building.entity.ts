@@ -34,4 +34,7 @@ export class Buildings extends Model {
   @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building)
   @JoinColumn({name: "file_id",})
   file: FileUpload
+
+  @Column({nullable: true,})
+  file_id: number
 }

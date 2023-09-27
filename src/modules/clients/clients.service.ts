@@ -15,6 +15,7 @@ export class ClientsService {
     try {
       const client = await this.clientRepo.findBy({
         passport_seria: createClientDto.passport_seria,
+        contact_number: createClientDto.contact_number
       });
 
       if (client.length != 0) {

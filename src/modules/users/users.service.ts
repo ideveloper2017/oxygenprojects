@@ -49,11 +49,12 @@ export class UsersService {
     let users;
     if (id != 0) {
       users = await this.usersRepository.findOne({
-        where: { id: id },
+        where: { id: id , user_is_deleted: false},
         relations: ['roles.permission'],
       });
     } else {
       users = await this.usersRepository.find({
+        where:{user_is_deleted: false},
         relations: ['roles.permission'],
       });
     }
@@ -90,6 +91,11 @@ export class UsersService {
       // newUser.is_active = createUserDto.is_active;
       // newUser.roles = role_id;
 
+
+      const isExists = await this.usersRepository.findOne({where: {username: createUserDto.username}})
+      if(isExists){
+        return {success: false, message: "User already exists"}
+      }
       const user = await this.usersRepository.save([
         {
           first_name: createUserDto.first_name,
@@ -98,6 +104,7 @@ export class UsersService {
           phone_number: createUserDto.phone_number,
           password: await bcrypt.hash(createUserDto.password, 10),
           is_active: createUserDto.is_active,
+          user_is_deleted: false,
           roles: role_id,
         },
       ]);
@@ -133,13 +140,20 @@ export class UsersService {
   }
 
   public async deleteUsers(userid: number[]) {
-    return this.usersRepository.delete({ id: In(userid) });
+    let counter = 0 
+    for(let i of userid) {
+        let temp = await this.usersRepository.update({id: i}, {user_is_deleted: true})
+      counter += temp.affected
+      }
+
+      return counter == userid.length
   }
 
   async findOneById(id: number) {
     return await this.usersRepository.findOne({
       where: { id },
       relations: ['roles'],
+      
     });
   }
 
@@ -149,20 +163,20 @@ export class UsersService {
     });
   }
 
-  async createdefaultUser() {
-    const user = await this.usersRepository.find();
-    if (user.length == 0) {
-      this.usersRepository.save([
-        {
-          first_name: 'Admin',
-          last_name: 'Admin',
-          username: 'admin',
-          phone_number: '+998 94 995 1254',
-          password: await bcrypt.hash('1234', 10),
-          is_active: true,
-          roles: await Roles.findOne({ where: { id: 1 } }),
-        },
-      ]);
+
+  async createdefaultUser(){
+    const user=await this.usersRepository.find();
+    if (user.length==0){
+      this.usersRepository.save([{
+        first_name: "Admin",
+        last_name: "Admin",
+        username: "admin",
+        phone_number: "+998 94 995 1254",
+        password: await bcrypt.hash("1234",10),
+        is_active: true,
+        user_is_deleted: false,
+        roles: await Roles.findOne({where:{id:1}})
+      }]);
     }
   }
 
