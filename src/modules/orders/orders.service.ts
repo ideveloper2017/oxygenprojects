@@ -158,7 +158,7 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        where: {order_id_active: true},
+        where: {is_deleted: false},
         relations: [
           'clients',
           'users',
@@ -169,6 +169,7 @@ export class OrdersService {
       });
 
       order.forEach((orderItem) => {
+        orderItem.total_amount = Number(orderItem.total_amount)
         const sumOfPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
@@ -177,7 +178,7 @@ export class OrdersService {
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id, order_id_active: true},
+        where: { id: id, is_deleted: false},
         relations: [
           'clients',
           'payments',
@@ -291,7 +292,7 @@ export class OrdersService {
   async deleteOrder(arrayOfId: number[]) {
     let conteiner
     for(let val of arrayOfId) {
-      let temp = await this.ordersRepository.update({id: val}, {order_id_active: false})
+      let temp = await this.ordersRepository.update({id: val}, {is_deleted: true})
       conteiner+= temp.affected
     }
 

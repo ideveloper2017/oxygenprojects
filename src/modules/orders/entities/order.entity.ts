@@ -25,7 +25,7 @@ export class Orders extends Model {
   @Column({ nullable: true })
   initial_pay: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2})
   total_amount: number;
 
   @Column()
@@ -38,8 +38,8 @@ export class Orders extends Model {
   })
   order_status: OrderStatus;
 
-  @Column()
-  order_id_active: boolean
+  @Column({default: false})
+  is_deleted: boolean
  
   @ManyToOne(
     (type) => PaymentMethods,

@@ -74,12 +74,10 @@ export class FileUploadService {
   }
   
   async saveLocalFileData(fileDto: FileDto) {
+
     if(fileDto.image_id == 0){
-      
-      // const check = await this.localFilesRepository.findOne({where: {filename: fileDto.filename}})
-      // if(check){
-      //   return false
-      // }
+      let updatingEntity  
+
       const file = new FileUpload();
       file.filename = fileDto.filename
       file.path = fileDto.path
@@ -89,18 +87,21 @@ export class FileUploadService {
       if(fileDto.entity == 'Apartments'){
         
         await this.localFilesRepository.update({id: savedFile.id}, {apartment_id: +fileDto.record_id})
-        await Apartments.update({id: fileDto.record_id}, {file_id: savedFile.id})
+        updatingEntity = Apartments
         
       }else if(fileDto.entity == 'Buildings'){
+        
         await this.localFilesRepository.update({id: savedFile.id}, {building_id: +fileDto.record_id})
-        await Buildings.update({id: fileDto.record_id}, {file_id: savedFile.id})
+        updatingEntity = Buildings
         
         
       }else if(fileDto.entity == "Towns"){
+        
         await this.localFilesRepository.update({id: savedFile.id}, {town_id: +fileDto.record_id})
-        await Towns.update({id: fileDto.record_id}, {file_id: savedFile.id})
+        updatingEntity = Towns
         
       }
+      await this.localFilesRepository.manager.getRepository(updatingEntity).update({id: fileDto.record_id}, {file_id: savedFile.id})
       
       return savedFile
 
@@ -109,20 +110,24 @@ export class FileUploadService {
       //agar rasm yangilanadigan bo'lsa  else blok ishlaydi va eski rasm ochiriladi yangisi yoziladi
       try{
       let file
+      let entityToUpdate
+
       if(fileDto.entity == 'Apartments'){
-        console.log('apartment');
+       
         file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id, apartment_id: fileDto.record_id}})
+        entityToUpdate = Apartments
         
       }else if(fileDto.entity == 'Buildings'){
-        console.log('buildings');
+        
         file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id, building_id: fileDto.record_id}})
+        entityToUpdate = Buildings
         
         
       }else if(fileDto.entity == "Towns"){
-        console.log('towns');
+        
         file = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id, town_id: fileDto.record_id}})
+        entityToUpdate = Towns
       }
-      console.log(file.path);
 
 
       if(existsSync(file.path)){
@@ -131,8 +136,6 @@ export class FileUploadService {
       }else {
         return null
       }
-
-      console.log(file.path);
 
       const updatingFile = await this.localFilesRepository.update({id: +fileDto.image_id}, {
         mimetype: fileDto.mimetype,
@@ -144,23 +147,11 @@ export class FileUploadService {
 
       if(updatingFile.affected != 0){
         res = await this.localFilesRepository.findOne({where: {id: +fileDto.image_id}})
-        console.log(res.path);
       } 
 
-      
-      if(fileDto.entity == 'Apartments'){
-        
-        res.apartment_id =  +fileDto.record_id
-        await Apartments.update({id: fileDto.record_id}, {file_id: res.id})
-        
-      }else if(fileDto.entity == 'Buildings'){
-        await Buildings.update({id: fileDto.record_id}, {file_id:res.id })
-        
-      }else if(fileDto.entity == "Towns"){
-        await Towns.update({id: fileDto.record_id}, {file_id: res.id})
-        
-      }
+      await this.localFilesRepository.manager.getRepository(entityToUpdate).update({id: fileDto.record_id}, {file_id: res.id})
       return  res
+
     }catch(error) {
       if(error.code === 'ENOENT'){
         console.log('not found');

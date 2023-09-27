@@ -7,6 +7,9 @@ import { RolesModule } from '../roles/roles.module';
 import { Towns } from './entities/town.entity';
 import { RegionModule } from '../region/region.module';
 import { DistrictModule } from '../district/district.module';
+import { PaymentMethodModule } from '../payment-method/payment-method.module';
+import { UsersModule } from '../users/users.module';
+import { CurrenciesModule } from '../currencies/currencies.module';
 
 @Module({
   imports: [
@@ -15,6 +18,10 @@ import { DistrictModule } from '../district/district.module';
     DistrictModule,
     RolesModule,
     PermissionsModule,
+    PaymentMethodModule,
+    UsersModule,
+    CurrenciesModule
+    
   ],
   providers: [TownService],
   controllers: [TownController],

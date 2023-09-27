@@ -15,6 +15,7 @@ export class PaymentMethodsService {
   async addPaymentMethod(createPaymentMethodDto: CreatePaymentMethodDto) {
     let paymentMethod = new PaymentMethods();
     paymentMethod.name = createPaymentMethodDto.name;
+    paymentMethod.name_alias = createPaymentMethodDto.name_alias
     paymentMethod.is_active = createPaymentMethodDto.is_active;
 
     paymentMethod = await this.paymentMethodRepo.save(paymentMethod);

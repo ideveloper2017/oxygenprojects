@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import Model from '../../model/model.module';
 import { Buildings } from '../../buildings/entities/building.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
+import { Users } from 'src/modules/users/entities/user.entity';
 
 @Entity('Towns')
 export class Towns extends Model {
@@ -32,4 +33,12 @@ export class Towns extends Model {
 
   @Column({nullable: true})
   file_id: number
+
+  @ManyToOne(() => Users, users => users.towns)
+  @JoinColumn({name: "users_id",})
+  user: Users
+  
+  @Column({nullable: true,})
+  user_id: number
+
 }

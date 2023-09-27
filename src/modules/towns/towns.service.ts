@@ -16,6 +16,9 @@ import { Buildings } from '../buildings/entities/building.entity';
 import { Orders } from '../orders/entities/order.entity';
 import { Clients } from '../clients/entities/client.entity';
 import { ApartmentStatus } from 'src/common/enums/apartment-status';
+import { UsersService } from '../users/users.service';
+import { PaymentMethodsService } from '../payment-method/payment-method.service';
+import { CurrenciesService } from '../currencies/currencies.service';
 
 @Injectable()
 export class TownService {
@@ -25,6 +28,12 @@ export class TownService {
     private readonly districtService: DistrictsService,
     private readonly roleService: RolesService,
     private readonly permissionService: PermissionsService,
+    private readonly userserv: UsersService,
+    private readonly paymentMethodServ: PaymentMethodsService,
+    private readonly currencyServ: CurrenciesService,
+
+
+
   ) {}
 
   async createTown(createTownDto: CreateTownDto) {
@@ -44,15 +53,20 @@ export class TownService {
     }
   }
 
-  async findAllTowns(id: number) {
+  async findAllTowns(user_id: number, id: number) {
     let towns;
-    if (id != 0) {
+    const user = await Users.createQueryBuilder('user')
+    .where('user_id =: user_id', {user_id})
+    .addSelect('role_id')
+    .getRawOne()
+
+      if (id != 0) {
       towns = await this.townRepository.findOne({
         where: { id: id },
-        relations: ['buildings', 'file'],
+        relations: ['buildings'],
       });
     } else {
-      towns = await this.townRepository.find({ relations: ['buildings', 'file'] });
+      towns = await this.townRepository.find({ relations: ['buildings'] });
     }
     return towns;
   }
@@ -144,6 +158,9 @@ export class TownService {
     await this.districtService.fillDataDistrict();
     await this.roleService.filldata();
     await this.permissionService.filldata();
+    await this.userserv.createdefaultUser();
+    await this.currencyServ.createDefault();
+    await this.paymentMethodServ.createDefault();
 
     return table_names.length == check.length ? true : false;
   }

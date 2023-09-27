@@ -22,6 +22,9 @@ export class Booking extends Model {
   apartments: Apartments;
 
   @Column()
+  apartment_id: number
+  
+  @Column()
   bron_date: Date;
   
   @Column({nullable: true})

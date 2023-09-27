@@ -135,4 +135,21 @@ export class UsersController {
   public async getPermission(){
     return this.usersService.getRoles();
   }
+
+  @Post('/recover')
+  recoverUsers(@Body() userid: number[]) {
+    return this.usersService
+      .recoverUsers(userid)
+      .then((data) => {
+        return data
+          ? { success: true, message: 'user Restored' }
+          : { success: false, message: 'not restored!!!' };
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
+  }
+
+
 }
+
