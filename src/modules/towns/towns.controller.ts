@@ -27,10 +27,10 @@ export class TownController {
   }
 
   @ApiOperation({ summary: "mavjud turar-joylarni ro'yxatini olish" })
-  @Get('/all-one/:id')
-  getAllTowns(@Param('id') id: number) {
+  @Get('/all-one/:user_id/:id')
+  getAllTowns(@Param('user_id') user_id: number, @Param('id') id: number) {
     return this.townService
-      .findAllTowns(id)
+      .findAllTowns(user_id, id)
       .then((data) => {
         if (data || data.length > 0) {
           return {

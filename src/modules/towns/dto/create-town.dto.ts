@@ -21,4 +21,8 @@ export class CreateTownDto {
   @IsString()
   @ApiProperty({ example: '+998 90 222 1122' })
   contact_number?: string;
+
+  @IsInt()
+  @ApiProperty({example: 1})
+  user_id: number
 }

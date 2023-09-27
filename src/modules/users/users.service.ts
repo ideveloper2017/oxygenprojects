@@ -49,12 +49,10 @@ export class UsersService {
     let users;
     if (id != 0) {
       users = await this.usersRepository.findOne({
-        where: { id: id , user_is_deleted: false},
         relations: ['roles.permission'],
       });
     } else {
       users = await this.usersRepository.find({
-        where:{user_is_deleted: false},
         relations: ['roles.permission'],
       });
     }
@@ -125,24 +123,24 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    return await this.usersRepository.update(
-      { id: id },
-      {
-        first_name: updateUserDto.first_name,
-        last_name: updateUserDto.last_name,
-        username: updateUserDto.username,
-        phone_number: updateUserDto.phone_number,
-        password: await bcrypt.hash(updateUserDto.password, 20),
-        is_active: updateUserDto.is_active,
-        roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
-      },
+
+    return await this.usersRepository.update({id: id},
+        {
+          first_name: updateUserDto.first_name,
+          last_name: updateUserDto.last_name,
+          username: updateUserDto.username,
+          phone_number: updateUserDto.phone_number,
+          password: await bcrypt.hash(updateUserDto.password,10),
+          is_active:updateUserDto.is_active,
+          roles: await Roles.findOne({where: {id: updateUserDto.role_id}})
+        }
     );
   }
 
   public async deleteUsers(userid: number[]) {
     let counter = 0 
     for(let i of userid) {
-        let temp = await this.usersRepository.update({id: i}, {user_is_deleted: true})
+        let temp = await this.usersRepository.update({id: i}, {user_is_deleted: true, is_active: false})
       counter += temp.affected
       }
 
@@ -189,4 +187,15 @@ export class UsersService {
       .getRepository(Permissions)
       .find({ relations: ['roles'] });
   }
+
+  public async recoverUsers(arrayOfId: number[]){
+    let counter = 0 
+    for(let i of arrayOfId) {
+        let temp = await this.usersRepository.update({id: i}, {user_is_deleted: false, is_active: true})
+      counter += temp.affected
+      }
+
+      return counter == arrayOfId.length 
+  }
+
 }
