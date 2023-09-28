@@ -222,28 +222,32 @@ export class OrdersService {
   async getAppartmenOrderList(id: number) {
     let order, apartments;
 
-     apartments = await Apartments.findOne({
+    apartments = await Apartments.findOne({
       where: { id: id },
       relations: ['orderItems.orders'],
     });
-     // console.log(JSON.stringify(apartments));
+    // console.log(JSON.stringify(apartments));
     order = await this.ordersRepository.findOne({
       where: { id: apartments.orderItems.order_id },
       relations: [
         'orderItems',
         'clients',
         'payments',
-         'paymentMethods',
+        'paymentMethods',
         'orderItems.apartments.floor.entrance.buildings.towns',
       ],
     });
-    order.payments.forEach((orderItem) => {
-      const sumOfPayments = orderItem.reduce(
-        (accumulator, currentPayment) => accumulator + +currentPayment.amount,
-        0,
-      );
-      orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
-    });
+    // order.payments.forEach((orderItem) => {
+    const sumOfPayments = order.payments.reduce(
+      (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+      0,
+    );
+
+    order.payments.sumOfpayments = sumOfPayments
+      ? +sumOfPayments.toFixed(2)
+      : 0;
+    //   orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
+    // });
 
     return order;
   }
