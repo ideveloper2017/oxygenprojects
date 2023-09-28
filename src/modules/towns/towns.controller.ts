@@ -5,15 +5,16 @@ import {
   Get,
   Param,
   Patch,
-  Post, UseGuards,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
-import {ApiBearerAuth, ApiOperation, ApiTags} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TownService } from './towns.service';
 import { CreateTownDto } from './dto/create-town.dto';
-import { UpdateTownDto } from "./dto/update-town.dto";
-import {AuthUser} from "../../common/decorators/auth-user.decorator";
-import {Users} from "../users/entities/user.entity";
-import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import { UpdateTownDto } from './dto/update-town.dto';
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { Users } from '../users/entities/user.entity';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Towns')
 @Controller('town')
@@ -34,7 +35,8 @@ export class TownController {
   @ApiOperation({ summary: "mavjud turar-joylarni ro'yxatini olish" })
   @Get('/all-one/:id')
   getAllTowns(@AuthUser() user_id: Users, @Param('id') id: number) {
-    return this.townService.findAllTowns(user_id, id)
+    return this.townService
+      .findAllTowns(user_id, id)
       .then((data) => {
         if (data || data.length > 0) {
           return {
@@ -42,17 +44,15 @@ export class TownController {
             data,
             message: 'Fetched data',
           };
-        }else if(data === false){
+        } else if (data === false) {
+          return { success: false, message: 'No data found' };
+        } else {
           return { success: false, message: 'No data found' };
         }
-        else {
-           return { success: false, message: 'No data found' };
-        }
       })
-      .catch((error)=>
-    {
-      return {status: error.code, message: error.message}
-    });
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 
   @ApiOperation({ summary: 'Turar-joyni tahrirlash' })
@@ -72,12 +72,17 @@ export class TownController {
   @ApiOperation({ summary: "Turar-joyni o'chirish" })
   @Delete('/delete/:id')
   deleteTown(@Param('id') id: number) {
-    return this.townService.deleteTown(id).then((data) => {
-      if (data.affected == 0) {
-        return { success: false, message: 'Turar-joy topilmadi! ' };
-      }
-      return { success: true, message: "Turar-joy o'chirildi!" };
-    });
+    return this.townService
+      .deleteTown(id)
+      .then((data) => {
+        if (data.affected) {
+          return { success: false, message: 'Turar-joy topilmadi! ' };
+        }
+        return { success: true, message: "Turar-joy o'chirildi!" };
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 
   @ApiOperation({
