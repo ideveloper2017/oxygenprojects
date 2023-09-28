@@ -23,7 +23,7 @@ export class ReportService {
 
   public async getListByApartment() {
     const result = await Orders.find({
-      where: { order_status: OrderStatus.INACTIVE, is_deleted: false },
+      where: { order_status: OrderStatus.ACTIVE, is_deleted: false },
       relations: ['orderItems'],
     });
     return result;
