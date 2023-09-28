@@ -55,7 +55,7 @@ export class Users extends Model {
   bookings: Booking[];
 
   @OneToMany((type) => Towns, (towns) => towns.user)
-  towns: Towns[];
+  towns: Towns;
 
   @Column({
     default: 0,
