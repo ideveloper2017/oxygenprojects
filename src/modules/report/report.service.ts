@@ -21,7 +21,7 @@ export class ReportService {
   }
 
   public async getListByApartment() {
-    const result = await this.orderRepo.manager.query('select * from orders');
+    const result = await Orders.find();
     return result;
   }
 }
