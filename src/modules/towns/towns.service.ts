@@ -19,6 +19,8 @@ import { ApartmentStatus } from 'src/common/enums/apartment-status';
 import { UsersService } from '../users/users.service';
 import { PaymentMethodsService } from '../payment-method/payment-method.service';
 import { CurrenciesService } from '../currencies/currencies.service';
+import {Regions} from "../region/entities/region.entity";
+import {District} from "../district/entities/district.entity";
 
 @Injectable()
 export class TownService {
@@ -74,6 +76,8 @@ export class TownService {
 
     if (id!=0){
       towns=await this.townRepository.createQueryBuilder('town')
+          .leftJoinAndSelect(Regions,'region','region.id=town.region_id')
+          .leftJoinAndSelect(District,'district','district.id=town.district_id')
           .leftJoinAndSelect(Buildings,'buildings','buildings.town_id=town.id')
           .leftJoinAndSelect(Users,'users','users.id=town.users_id')
           .where('town.id=:id',{id:id})
