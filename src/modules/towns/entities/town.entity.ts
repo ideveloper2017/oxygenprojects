@@ -35,7 +35,7 @@ export class Towns extends Model {
   file_id: number
 
   @ManyToOne((type) => Users, users => users.towns)
-  @JoinColumn({name: "users_id",})
+  @JoinColumn({name: "users_id"})
   user: Users
   
   // @Column({nullable: true,})
