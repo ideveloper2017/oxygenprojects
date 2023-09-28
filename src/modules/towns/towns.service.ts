@@ -56,7 +56,7 @@ export class TownService {
   async findAllTowns(user_id: Users, id: number) {
     let towns;
     const user = await Users.createQueryBuilder('user')
-    .where('user_id =: user_id', {user_id})
+    .where('user_id =:user_id', {user_id:user_id.id})
     .addSelect('role_id')
     .getRawOne();
 
