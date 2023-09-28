@@ -49,7 +49,7 @@ export class CreditTableService {
       (accumulator, currentValue) => accumulator + Number(currentValue.amount),
       0,
     );
-    order['payment'] = sum;
+    order['sumOFpayments'] = sum;
 
     // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
 
