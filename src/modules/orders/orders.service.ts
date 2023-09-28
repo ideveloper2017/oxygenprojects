@@ -241,7 +241,7 @@ export class OrdersService {
     } else {
       apartments = Apartments.findOne({ where: { id: id } });
       orderItems = OrderItems.findOne({ where: { apartments: apartments } });
-      order = await this.ordersRepository.findOne({
+      order = await this.ordersRepository.find({
         where: { orderItems: orderItems },
         relations: [
           'orderItems',
@@ -261,12 +261,12 @@ export class OrdersService {
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       });
 
-      const sum = order['payments'].reduce(
-        (accumulator, currentValue) =>
-          accumulator + Number(currentValue.amount),
-        0,
-      );
-      order['payment'] = sum;
+      // const sum = order['payments'].reduce(
+      //   (accumulator, currentValue) =>
+      //     accumulator + Number(currentValue.amount),
+      //   0,
+      // );
+     // order['payment'] = sum;
     }
     return order;
   }
