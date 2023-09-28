@@ -279,7 +279,7 @@ export class OrdersService {
         'payments',
         'payments.order_id=orders.id',
       )
-      .where('orders.order_status =:logic', { logic: 'active' })
+      .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
       .getMany();
 
     orders.forEach((data, key) => {
