@@ -19,7 +19,6 @@ import { CurrenciesModule } from '../currencies/currencies.module';
     RolesModule,
     PermissionsModule,
     PaymentMethodModule,
-    UsersModule,
     CurrenciesModule
     
   ],
