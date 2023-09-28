@@ -50,11 +50,11 @@ export class UsersService {
     let users;
     if (id != 0) {
       users = await this.usersRepository.findOne({
-        relations: ['roles.permission', 'userTowns'],
+        relations: ['roles.permission'],
       });
     } else {
       users = await this.usersRepository.find({
-        relations: ['roles.permission', 'userTowns'],
+        relations: ['roles.permission'],
       });
     }
     return users;
