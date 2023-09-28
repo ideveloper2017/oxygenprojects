@@ -8,6 +8,7 @@ import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Permissions } from '../permissions/entities/permission.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import {Towns} from "../towns/entities/town.entity";
 
 @Injectable()
 export class UsersService {
@@ -80,16 +81,8 @@ export class UsersService {
           });
         });
 
-      // const newUser = new Users();
-      // newUser.first_name = createUserDto.first_name;
-      // newUser.last_name = createUserDto.last_name;
-      // newUser.username = createUserDto.username;
-      // newUser.phone_number = createUserDto.phone_number;
-      // newUser.password = await bcrypt.hash(createUserDto.password,10);
-      // newUser.is_active = createUserDto.is_active;
-      // newUser.roles = role_id;
 
-
+      const town=await Towns.find({where:{id: In(createUserDto.town_id)}});
       const isExists = await this.usersRepository.findOne({where: {username: createUserDto.username}})
       if(isExists){
         return {success: false, message: "User already exists"}
@@ -104,6 +97,7 @@ export class UsersService {
           is_active: createUserDto.is_active,
           user_is_deleted: false,
           roles: role_id,
+          userTowns:town,
         },
       ]);
       return createUserDto;

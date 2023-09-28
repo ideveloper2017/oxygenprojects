@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne} from 'typeorm';
 import Model from '../../model/model.module';
 import { Buildings } from '../../buildings/entities/building.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
@@ -37,4 +37,7 @@ export class Towns extends Model {
   @ManyToOne((type) => Users, users => users.towns)
   @JoinColumn({name: "users_id"})
   user: Users
+
+  @ManyToMany((type)=>Users,(users)=>users.userTowns)
+  townUser:Users[]
 }

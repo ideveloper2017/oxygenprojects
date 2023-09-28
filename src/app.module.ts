@@ -47,6 +47,7 @@ import { BookingModule } from './modules/booking/booking.module';
 import { LoggerMiddleware } from './common/middleware/logger-middleware';
 import { ReportModule } from './modules/report/report.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({

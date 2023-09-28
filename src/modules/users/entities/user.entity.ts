@@ -3,7 +3,7 @@ import {
   BeforeUpdate,
   Column,
   Entity,
-  JoinColumn,
+  JoinColumn, JoinTable, ManyToMany,
   ManyToOne,
   OneToMany,
 } from 'typeorm';
@@ -56,6 +56,10 @@ export class Users extends Model {
 
   @OneToMany((type) => Towns, (towns) => towns.user)
   towns: Towns;
+
+  @ManyToMany((type)=>Towns,(town)=>town.townUser)
+  @JoinTable({name:"UserTowns"})
+  userTowns:Towns[];
 
   @Column({
     default: 0,

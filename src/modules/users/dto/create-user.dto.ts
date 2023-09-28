@@ -26,4 +26,7 @@ export class CreateUserDto {
 
   @ApiProperty({ example: 3 })
   role_id: number;
+
+  @ApiProperty()
+  town_id:number[];
 }

@@ -48,6 +48,9 @@ export class UsersController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @Post('/save')
   public async createLogin(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createLogin(createUserDto);
