@@ -56,8 +56,8 @@ export class Users extends Model {
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];
 
-  // @OneToMany((type) => Towns, (towns) => towns.user)
-  // towns: Towns;
+  @OneToMany((type) => Towns, (towns) => towns.user)
+  towns: Towns;
 
   @ManyToMany((type) => Towns, (town) => town.townUser, {
     onDelete: 'CASCADE',
