@@ -112,12 +112,12 @@ export class OrdersController {
       return {succes: false, message: 'IDs not gven' };
     }
     return this.orderService.deleteOrder(arrayOfId).then((response) => {
-      if (response == arrayOfId.length) {
+      if (response == arrayOfId) {
         return {
           success: true,
           message: `Orders deleted successfully`,
         };
-      } else if(response < arrayOfId.length) {
+      } else if(response < arrayOfId) {
         return { success: true, message: 'order deleted ' };
       }else {
         return { success: false, message: 'order not found ' };
