@@ -1,12 +1,10 @@
 import {
   Column,
   Entity,
-  getConnection,
   JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
-  ViewEntity,
 } from 'typeorm';
 import Model from '../../model/model.module';
 import { Floor } from '../../floor/entities/floor.entity';
