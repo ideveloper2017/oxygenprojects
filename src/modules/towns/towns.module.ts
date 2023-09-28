@@ -24,6 +24,6 @@ import { CurrenciesModule } from '../currencies/currencies.module';
   ],
   providers: [TownService],
   controllers: [TownController],
-  exports: [TypeOrmModule],
+  exports: [TownService],
 })
 export class TownsModule {}
