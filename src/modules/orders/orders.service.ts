@@ -221,10 +221,13 @@ export class OrdersService {
 
   async getAppartmenOrderList(id: number) {
     let order, orderItems, apartments;
-    apartments = Apartments.findOne({ where: { id: id } });
+    apartments = Apartments.findOne({
+      where: { id: id },
+      relations: ['orderItems'],
+    });
     // orderItems = OrderItems.findOne({ where: { apartments: apartments } });
     order = await this.ordersRepository.find({
-      where: { orderItems: apartments.orders.orderItems},
+      where: { orderItems: apartments.orders.orderItems },
       relations: [
         'orderItems',
         'clients',
