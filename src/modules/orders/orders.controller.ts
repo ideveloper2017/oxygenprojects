@@ -102,6 +102,7 @@ export class OrdersController {
     });
   }
 
+
   @ApiOperation({
     summary: "Order ni o'chirish IDlar ni array ichida berish kerak",
   })
