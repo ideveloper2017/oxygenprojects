@@ -222,15 +222,13 @@ export class OrdersService {
   async getAppartmenOrderList(id: number) {
     let order, orderItems, apartments;
     apartments = Apartments.findOne({ where: { id: id } });
-    orderItems = OrderItems.findOne({ where: { apartments: apartments } });
+    // orderItems = OrderItems.findOne({ where: { apartments: apartments } });
     order = await this.ordersRepository.find({
-      where: { orderItems: orderItems },
+      where: { orderItems: apartments.orderItems.orderItems },
       relations: [
         'orderItems',
         'clients',
         'payments',
-        'users',
-        'paymentMethods',
         'orderItems.apartments.floor.entrance.buildings.towns',
       ],
     });
@@ -241,7 +239,6 @@ export class OrdersService {
       );
       orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
     });
-
 
     return order;
   }
