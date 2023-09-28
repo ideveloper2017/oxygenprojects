@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
-import { getManager, Repository } from 'typeorm';
+import { Between, getManager, Repository } from 'typeorm';
 import { OrderStatus } from '../../common/enums/order-status';
 
 @Injectable()
@@ -22,8 +22,18 @@ export class ReportService {
   }
 
   public async getListByApartment() {
+    const startDate = new Date(); // Set the desired start date
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(); // Set the desired end date
+    endDate.setHours(23, 59, 59, 999);
+
     const result = await Orders.find({
-      where: { order_status: OrderStatus.ACTIVE, is_deleted: false },
+      where: {
+        order_status: OrderStatus.ACTIVE,
+        is_deleted: false,
+        order_date: Between(startDate, endDate),
+      },
       relations: ['orderItems.apartments'],
     });
     return result;
