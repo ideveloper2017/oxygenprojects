@@ -224,11 +224,9 @@ export class OrdersService {
 
      apartments = await Apartments.findOne({
       where: { id: id },
-      relations: ['floor.entrance.buildings.towns', 'file'],
+      relations: ['orderItems'],
     });
-
-    console.log(JSON.stringify(apartments)+' '+ id);
-    // orderItems = OrderItems.findOne({ where: { apartments: apartments } });
+     console.log(apartments);
     order = await this.ordersRepository.find({
       where: { id: apartments.orderItems },
       relations: [
