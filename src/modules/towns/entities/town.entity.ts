@@ -46,8 +46,4 @@ export class Towns extends Model {
   @JoinColumn({ name: 'users_id' })
   user: Users;
 
-  @ManyToMany((type) => Users, (users) => users.userTowns, {
-    onDelete: 'CASCADE',
-  })
-  townUser: Users[];
 }

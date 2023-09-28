@@ -121,7 +121,7 @@ export class OrdersService {
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
-      { total_amount: total, amount_in_usd: total_in_usd },
+      { total_amount: total, total_amount_usd: total_in_usd },
     );
 
     const orderItem = new OrderItems();

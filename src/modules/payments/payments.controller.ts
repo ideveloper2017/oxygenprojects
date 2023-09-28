@@ -22,8 +22,8 @@ export class PaymentsController {
 
   @Get('/list')
   public getAll(@Query('page') page: number) {
-    const limit : number = 20
-    const offset = (page - 1) * limit
+    const limit: number = 20;
+    const offset = (page - 1) * limit;
 
     return this.paymentsService
       .getAllPayments(offset, limit)
@@ -62,46 +62,44 @@ export class PaymentsController {
 
   @Post('/delete')
   deletePayment(@Body() id: number[]) {
-    if(!id.length) {
-      return { success: false, message: "ID lar jo'natilmadi"}
+    if (!id.length) {
+      return { success: false, message: "ID lar jo'natilmadi" };
     }
     return this.paymentsService
-              .deletePayment(id)
-              .then((data) => {
-                  if (data == id.length) {
-                      return { success: true, message: 'completely deteled' };
-                  } else if(data < id.length) {
-                      return { success: false, message: 'not deleted fully' };
-                    }else{
-                      return { success: false, message: 'not deleted' };
-                      
-                  }
-              })
-              .catch((error) => {
-                  return { success: false, message: error.message };
-              });
+      .deletePayment(id)
+      .then((data) => {
+        if (data == id.length) {
+          return { success: true, message: 'completely deteled' };
+        } else if (data < id.length) {
+          return { success: false, message: 'not deleted fully' };
+        } else {
+          return { success: false, message: 'not deleted' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
   }
 
   @Post('/recover')
   recoverPayment(@Body() id: number[]) {
-    if(!id.length) {
-      return { success: false, message: "ID lar jo'natilmadi"}
+    if (!id.length) {
+      return { success: false, message: "ID lar jo'natilmadi" };
     }
     return this.paymentsService
-              .deletePayment(id)
-              .then((data) => {
-                  if (data == id.length) {
-                      return { success: true, message: 'completely deteled' };
-                  } else if(data < id.length) {
-                      return { success: false, message: 'not deleted fully' };
-                    }else{
-                      return { success: false, message: 'not deleted' };
-                      
-                  }
-              })
-              .catch((error) => {
-                  return { success: false, message: error.message };
-              });
+      .deletePayment(id)
+      .then((data) => {
+        if (data == id.length) {
+          return { success: true, message: 'completely deteled' };
+        } else if (data < id.length) {
+          return { success: false, message: 'not deleted fully' };
+        } else {
+          return { success: false, message: 'not deleted' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
   }
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')

@@ -32,7 +32,7 @@ export class Orders extends Model {
   total_amount: number;
 
   @Column({ type: 'float', nullable: true })
-  amount_in_usd: number;
+  total_amount_usd: number;
 
   @Column()
   order_date: Date;

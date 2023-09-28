@@ -22,4 +22,9 @@ export class ReportController {
         return { status: 400, message: error.message };
       });
   }
+
+  @Get('/order-apartments')
+  async listOrders() {
+    return this.reportService.getListByApartment();
+  }
 }
