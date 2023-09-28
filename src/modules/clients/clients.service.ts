@@ -15,7 +15,7 @@ export class ClientsService {
     try {
       const client = await this.clientRepo.findBy({
         passport_seria: createClientDto.passport_seria,
-        contact_number: createClientDto.contact_number
+        contact_number: createClientDto.contact_number,
       });
 
       if (client.length != 0) {
@@ -54,7 +54,7 @@ export class ClientsService {
       if (error.code === '23505') {
         return {
           message: 'Duplicate key value violates unique constraint',
-          status: 409
+          status: 409,
         };
       }
     }
@@ -72,7 +72,7 @@ export class ClientsService {
 
   async findOneClient(id: number) {
     const client = await this.clientRepo.findBy({ id: id });
-    if(!client) {
+    if (!client) {
       return { status: 400, message: 'client not fount' };
     }
     return { status: 200, data: client, message: 'success' };
@@ -83,7 +83,7 @@ export class ClientsService {
       const updatedClient = await this.clientRepo.update(
         { id: id },
         updateClientDto,
-        );
+      );
       if (updatedClient.affected) {
         return { status: 400, message: 'Mijoz topilmadi!' };
       }

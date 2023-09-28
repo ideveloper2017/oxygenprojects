@@ -26,6 +26,9 @@ export class Orders extends Model {
   initial_pay: number;
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
+  currency_value: number;
+
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   total_amount: number;
 
   @Column({ type: 'float', nullable: true })
