@@ -13,39 +13,39 @@ export class CreditTableService {
   ) {}
 
   async getCreditTableOfClient(order_id: number) {
-    let order;
-    order = await this.creditTableRepo.manager.getRepository(Orders).findOne({
+    // let order;
+    // order = await this.creditTableRepo.manager.getRepository(Orders).findOne({
+    //   where: { id: order_id },
+    //   relations: [
+    //     'clients',
+    //     'payments',
+    //     'users',
+    //     'paymentMethods',
+    //     'orderItems.apartments.floor.entrance.buildings.towns',
+    //   ],
+    // });
+    //
+    // const sum = order['payments'].reduce(
+    //   (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+    //   0,
+    // );
+    // order['payments'] = sum;
+    // return order;
+    const creditTable = await Orders.findOne({
       where: { id: order_id },
-      relations: [
-        'clients',
-        'payments',
-        'users',
-        'paymentMethods',
-        'orderItems.apartments.floor.entrance.buildings.towns',
-      ],
+      relations: ['creditTables'],
+      order: { creditTables: { due_date: 'ASC' } },
     });
 
-    const sum = order['payments'].reduce(
-      (accumulator, currentValue) => accumulator + Number(currentValue.amount),
-      0,
-    );
-    order['payments'] = sum;
-    return order;
-    //   const creditTable = await Orders.findOne({
-    //     where: { id: order_id },
-    //     relations: ['creditTables'],
-    //     order: { creditTables: { due_date: 'ASC' } },
-    //   });
-    //
-    //   // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
-    //
-    //   const payment = await Payments.createQueryBuilder('payment')
-    //     .select('SUM(payment.amount)', 'sum')
-    //     .where('payment.order_id = :order_id', { order_id })
-    //     .getRawOne();
-    //
-    //   creditTable.payments = payment;
-    //
-    //   return creditTable;
+    // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
+
+    const payment = await Payments.createQueryBuilder('payment')
+      .select('SUM(payment.amount)', 'sum')
+      .where('payment.order_id = :order_id', { order_id })
+      .getRawOne();
+
+    creditTable.payments = payment;
+
+    return creditTable;
   }
 }
