@@ -126,13 +126,19 @@ export class OrdersService {
       { status: ApartmentStatus.SOLD },
     );
 
-    await Booking.createQueryBuilder()
-      .update(Booking)
-      .set({ bron_is_active: false })
-      .where('apartment_id = :apartment_id', {
-        apartment_id: createOrderDto.apartment_id,
-      })
-      .execute();
+    const inBooking = await Booking.findOne({where: {apartment_id: +createOrderDto.apartment_id}})
+    if(inBooking){
+      // await Booking.createQueryBuilder()
+      // .update(Booking)
+      // .set({ bron_is_active: false })
+      // .where('apartment_id = :apartment_id', {
+      //   apartment_id: createOrderDto.apartment_id,
+      // })
+      // .execute();
+
+      inBooking.bron_is_active = false
+      await Booking.save(inBooking)
+    }
 
     await OrderItems.save(orderItem);
 
@@ -158,7 +164,6 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        where: {is_deleted: false},
         relations: [
           'clients',
           'users',
@@ -178,7 +183,7 @@ export class OrdersService {
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id, is_deleted: false},
+        where: { id: id},
         relations: [
           'clients',
           'payments',
@@ -296,7 +301,7 @@ export class OrdersService {
       conteiner+= temp.affected
     }
 
-    return arrayOfId.length == conteiner
+    return conteiner
   }
 
   public async orderReject(id: number) {
@@ -318,13 +323,13 @@ export class OrdersService {
           .update({ id: data.id }, { status: ApartmentStatus.FREE });
       });
 
-      // const apartment=await this.ordersRepository.manager.getRepository(Apartments).findOne({where:{id:order.apartment_id}})
-      // apartment.status=ApartmentStatus.FREE;
-      // apartment.save()
-
       return;
     } catch (error) {
       return { status: error.code, message: error.message };
     }
+  }
+
+  async findRejectedOrders(){
+    const orders = await this.ordersRepository.find({where: {order_status: OrderStatus.INACTIVE}, })
   }
 }

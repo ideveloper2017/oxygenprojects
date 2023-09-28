@@ -62,24 +62,46 @@ export class PaymentsController {
 
   @Post('/delete')
   deletePayment(@Body() id: number[]) {
-      let result;
-      for(let i of id){
-          result= this.paymentsService
-              .delete(i)
+    if(!id.length) {
+      return { success: false, message: "ID lar jo'natilmadi"}
+    }
+    return this.paymentsService
+              .deletePayment(id)
               .then((data) => {
-                  if (data.affected > 0) {
-                      return { success: true, message: 'deteled' };
-                  } else {
+                  if (data == id.length) {
+                      return { success: true, message: 'completely deteled' };
+                  } else if(data < id.length) {
+                      return { success: false, message: 'not deleted fully' };
+                    }else{
                       return { success: false, message: 'not deleted' };
+                      
                   }
               })
               .catch((error) => {
                   return { success: false, message: error.message };
               });
-      }
+  }
 
-
-      return result;
+  @Post('/recover')
+  recoverPayment(@Body() id: number[]) {
+    if(!id.length) {
+      return { success: false, message: "ID lar jo'natilmadi"}
+    }
+    return this.paymentsService
+              .deletePayment(id)
+              .then((data) => {
+                  if (data == id.length) {
+                      return { success: true, message: 'completely deteled' };
+                  } else if(data < id.length) {
+                      return { success: false, message: 'not deleted fully' };
+                    }else{
+                      return { success: false, message: 'not deleted' };
+                      
+                  }
+              })
+              .catch((error) => {
+                  return { success: false, message: error.message };
+              });
   }
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')

@@ -55,18 +55,26 @@ export class TownService {
 
   async findAllTowns(user_id: number, id: number) {
     let towns;
-    const user = await Users.createQueryBuilder('user')
-    .where('user_id =: user_id', {user_id})
-    .addSelect('role_id')
-    .getRawOne()
+    const {roles} = await Users.findOne({where: {id: user_id}, relations:['roles']})
 
       if (id != 0) {
       towns = await this.townRepository.findOne({
-        where: { id: id },
+        where: { id: id, user_id: user_id},
         relations: ['buildings'],
       });
+      
+      if(!towns){
+          return false
+      }
+
     } else {
-      towns = await this.townRepository.find({ relations: ['buildings'] });
+
+      if(roles.role_name === "SuperAdmin") {
+        towns = await this.townRepository.find({ relations: ['buildings'] });
+      }else {
+        towns = await this.townRepository.find({where: {user_id: user_id}, relations: ['buildings'] });
+
+      }
     }
     return towns;
   }

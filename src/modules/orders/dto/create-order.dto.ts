@@ -42,15 +42,10 @@ export class CreateOrderDto {
   @ApiProperty({ example: 'active', enum: OrderStatus })
   order_status: OrderStatus;
 
-  @ApiProperty({ example: 2, description: 'nechta kvartira olayotgani' })
+  @ApiProperty({ example: 1, description: 'nechta kvartira olayotgani' })
   quantity: number;
 
-  @ApiProperty({
-    example: false,
-    description: 'buyurtma qabul qilingan yoki yoqligi',
-  })
-  is_accepted: boolean;
-
+  
   @ApiProperty({ example: 12, description: "bo'lib tolash oyi = 12 ..." })
   installment_month?: number;
 }

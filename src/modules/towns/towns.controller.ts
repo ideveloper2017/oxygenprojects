@@ -38,8 +38,11 @@ export class TownController {
             data,
             message: 'Fetched data',
           };
-        } else {
+        }else if(data === false){
           return { success: false, message: 'No data found' };
+        }
+        else {
+           return { success: false, message: 'No data found' };
         }
       })
       .catch((error) => console.log(error));
