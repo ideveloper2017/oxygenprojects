@@ -21,8 +21,8 @@ export class Booking extends Model {
   @JoinColumn({ name: 'apartment_id' })
   apartments: Apartments;
 
-  @Column()
-  apartment_id: number
+  // @Column()
+  // apartment_id: number
   
   @Column()
   bron_date: Date;

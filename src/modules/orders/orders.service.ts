@@ -118,12 +118,15 @@ export class OrdersService {
     });
     orderItem.final_price = total;
 
+
     await Apartments.update(
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
     );
 
-    const inBooking = await Booking.findOne({where: {apartment_id: +createOrderDto.apartment_id}})
+    let apr;
+    apr=await Apartments.findOne({where:{ id: createOrderDto.apartment_id }})
+    const inBooking = await Booking.findOne({where: {apartments: apr}})
     if(inBooking){
       // await Booking.createQueryBuilder()
       // .update(Booking)
@@ -297,7 +300,6 @@ export class OrdersService {
       let temp = await this.ordersRepository.update({id: val}, {is_deleted: true})
       conteiner+= temp.affected
     }
-
     return conteiner
   }
 
