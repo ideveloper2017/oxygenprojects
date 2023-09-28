@@ -56,7 +56,7 @@ export class AuthService {
       relations: ['roles', 'roles.permission','userTowns'],
     });
 
-    delete loggedUser.password;
+   // delete loggedUser.password;
     return loggedUser;
   }
 
