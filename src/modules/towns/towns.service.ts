@@ -74,9 +74,10 @@ export class TownService {
 
     towns=await this.townRepository.createQueryBuilder('town')
         .leftJoinAndSelect(Buildings,'buildings','buildings.town_id=town.id')
+        .leftJoinAndSelect(Users,'users','users.id=town.users_id')
         .where('id=:id',{id:id})
         .where('town.id=:id',{id:id})
-        .andWhere('town.user_id=:user_id',{user_id:user_id.id})
+        .andWhere('town.users_id=:user_id',{user_id:user_id.id})
         .getMany()
     return towns;
   }
