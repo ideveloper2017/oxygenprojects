@@ -204,22 +204,12 @@ export class OrdersService {
         ],
       });
 
-      order.forEach((orderItem) => {
-        orderItem.total_amount = Number(orderItem.total_amount);
-        const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + Number(currentPayment.amount),
-          0,
-        );
-        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
-      });
-
       const sum = order['payments'].reduce(
         (accumulator, currentValue) =>
           accumulator + Number(currentValue.amount),
         0,
       );
-      order['payment'] = sum;
+      order['payments'] = sum;
     }
     return order;
   }
@@ -262,13 +252,21 @@ export class OrdersService {
           'orderItems.apartments.floor.entrance.buildings.towns',
         ],
       });
+      order.forEach((orderItem) => {
+        const sumOfPayments = orderItem.payments.reduce(
+          (accumulator, currentPayment) =>
+            accumulator + Number(currentPayment.amount),
+          0,
+        );
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+      });
 
       const sum = order['payments'].reduce(
         (accumulator, currentValue) =>
           accumulator + Number(currentValue.amount),
         0,
       );
-      order['payments'] = sum;
+      order['payment'] = sum;
     }
     return order;
   }
