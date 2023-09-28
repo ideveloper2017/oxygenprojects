@@ -57,9 +57,6 @@ export class OrdersService {
     order.clients = await Clients.findOne({
       where: { id: +createOrderDto.client_id },
     });
-    order.users = await Users.findOne({
-      where: { id: +createOrderDto.user_id },
-    });
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
