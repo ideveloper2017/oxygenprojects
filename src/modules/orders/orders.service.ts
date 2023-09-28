@@ -222,7 +222,7 @@ export class OrdersService {
   async getAppartmenOrderList(id: number) {
     let order, apartments;
     apartments = Apartments.findOne({
-      where: { id: id },
+      where: { id: 580 },
       relations: ['orderItems.orders'],
     });
 
