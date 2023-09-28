@@ -35,7 +35,7 @@ export class OrdersService {
       .getOne();
   }
 
-  async createOrder(createOrderDto: CreateOrderDto, user_id: Users) {
+  async createOrder(createOrderDto: CreateOrderDto, users: Users) {
     const payment_method = await PaymentMethods.findOne({
       where: { id: +createOrderDto.payment_method_id },
     });
@@ -61,7 +61,7 @@ export class OrdersService {
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
     order.initial_pay = createOrderDto.initial_pay;
-    order.users = user_id;
+    order.users = users;
     order.quantity = 1;
 
     const savedOrder = await this.ordersRepository.save(order);
