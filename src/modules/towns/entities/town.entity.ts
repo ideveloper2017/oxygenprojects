@@ -38,7 +38,7 @@ export class Towns extends Model {
   @JoinColumn({name: "users_id",})
   user: Users
   
-  @Column({nullable: true,})
-  user_id: number
+  // @Column({nullable: true,})
+  // user_id: number
 
 }

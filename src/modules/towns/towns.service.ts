@@ -23,7 +23,8 @@ import { CurrenciesService } from '../currencies/currencies.service';
 @Injectable()
 export class TownService {
   constructor(
-    @InjectRepository(Towns) private readonly townRepository: Repository<Towns>,
+    @InjectRepository(Towns)
+    private readonly townRepository: Repository<Towns>,
     private readonly regionService: RegionsService,
     private readonly districtService: DistrictsService,
     private readonly roleService: RolesService,
@@ -60,14 +61,21 @@ export class TownService {
     .addSelect('role_id')
     .getRawOne();
 
-      if (id != 0) {
-      towns = await this.townRepository.findOne({
-        where: { id: id },
-        relations: ['buildings'],
-      });
-    } else {
-      towns = await this.townRepository.find({ relations: ['buildings'] });
-    }
+    //   if (id != 0) {
+    //   towns = await this.townRepository.findOne({
+    //     where: { id: id, user:user },
+    //     relations: ['buildings'],
+    //   });
+    // } else {
+    //   towns = await this.townRepository.find(
+    //       { where:{user:user},
+    //         relations: ['buildings'] });
+    // }
+
+    towns=await this.townRepository.createQueryBuilder()
+        .leftJoinAndSelect('buildings','buildings','buildings.town_id=towns.id')
+        .where('id=:id',{id:id}).andWhere('user_id=:user_id',{user_id:user_id.id})
+        .getMany()
     return towns;
   }
 
