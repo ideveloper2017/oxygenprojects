@@ -72,9 +72,10 @@ export class TownService {
     //         relations: ['buildings'] });
     // }
 
-    towns=await this.townRepository.createQueryBuilder()
-        .leftJoinAndSelect('buildings','buildings','buildings.town_id=towns.id')
-        .where('id=:id',{id:id}).andWhere('user_id=:user_id',{user_id:user_id.id})
+    towns=await this.townRepository.createQueryBuilder('town')
+        .leftJoinAndSelect(Buildings,'buildings','buildings.town_id=town.id')
+        .where('id=:id',{id:id})
+        .andWhere('user_id=:user_id',{user_id:user_id.id})
         .getMany()
     return towns;
   }
