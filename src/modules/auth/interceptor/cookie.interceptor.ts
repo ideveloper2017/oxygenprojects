@@ -12,7 +12,7 @@ import { map } from 'rxjs/operators';
 export class CookieInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
-      map(data => {
+      map((data) => {
         const res = context.switchToHttp().getResponse();
         // const req = context.switchToHttp().getRequest();
 
@@ -27,13 +27,13 @@ export class CookieInterceptor implements NestInterceptor {
         // })
         res.cookie('refreshToken', refreshToken, {
           httpOnly: true,
-          secure:true,
-          sameSite:'none',
+          secure: true,
+          sameSite: 'none',
           // maxAge: 1000 * 60 * 60 * 24 * 7,
           // path: '/api/auth/refresh-token',
         });
 
-        return { accessToken,refreshToken };
+        return { accessToken, refreshToken };
       }),
     );
   }

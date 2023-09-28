@@ -7,8 +7,8 @@ import { In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Permissions } from '../permissions/entities/permission.entity';
-import { ApiProperty } from '@nestjs/swagger';
 import { Towns } from '../towns/entities/town.entity';
+import { UserTowns } from './entities/user-towns';
 
 @Injectable()
 export class UsersService {
@@ -122,9 +122,7 @@ export class UsersService {
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
     const town = await Towns.find({ where: { id: In(updateUserDto.town_id) } });
 
-    this.usersRepository.manager.query(
-      'delete from UserTown where UserTown.userId=${id}',
-    );
+    await UserTowns.delete({ usersId: id });
 
     return await this.usersRepository.update(
       { id: id },

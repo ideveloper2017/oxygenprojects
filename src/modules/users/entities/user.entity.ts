@@ -3,7 +3,9 @@ import {
   BeforeUpdate,
   Column,
   Entity,
-  JoinColumn, JoinTable, ManyToMany,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
 } from 'typeorm';
@@ -16,6 +18,7 @@ import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { Exclude } from 'class-transformer';
 import { Towns } from 'src/modules/towns/entities/town.entity';
+import { UserTowns } from './user-towns';
 
 @Entity('Users')
 export class Users extends Model {
@@ -28,7 +31,7 @@ export class Users extends Model {
   @Column({ nullable: true })
   phone_number: string;
 
-  @Column({unique: true})
+  @Column({ unique: true })
   username: string;
 
   @Column()
@@ -54,22 +57,23 @@ export class Users extends Model {
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];
 
-  @OneToMany((type) => Towns, (towns) => towns.user)
-  towns: Towns;
+  // @OneToMany((type) => Towns, (towns) => towns.user)
+  // towns: Towns;
 
-  @ManyToMany((type)=>Towns,(town)=>town.townUser)
-  @JoinTable({name:"UserTowns"})
-  userTowns:Towns[];
+  @ManyToMany((type) => Towns, (town) => town.townUser, {
+    onDelete: 'CASCADE',
+  })
+  @JoinTable({ name: 'UserTowns' })
+  userTowns: Towns[];
 
   @Column({
     default: 0,
   })
-
   tokenVersion: number;
 
   @Column()
-  user_is_deleted: boolean
- 
+  user_is_deleted: boolean;
+
   @BeforeInsert()
   async hashPasswordBeforeInsert() {
     if (this.password) {

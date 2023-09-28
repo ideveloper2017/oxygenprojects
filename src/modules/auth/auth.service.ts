@@ -12,7 +12,6 @@ import { ExceptionTitleList } from '../../common/constants/exception-title-list.
 import { StatusCodesList } from '../../common/constants/status-codes-list.constants';
 import { CustomHttpException } from '../../common/exception/exception-filter';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -47,13 +46,14 @@ export class AuthService {
     });
   }
 
-  async getLoggedUser(user: Users) {
+  async getLoggedUser(user: number) {
+
     const loggedUser = await Users.findOne({
       where: {
-        id: user.id,
+        id: user,
         is_active: true,
       },
-      relations: ['roles', 'roles.permission','userTowns'],
+      relations: ['roles', 'roles.permission', 'userTowns'],
     });
 
     delete loggedUser.password;

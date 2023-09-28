@@ -42,9 +42,9 @@ export class Towns extends Model {
   @Column({ nullable: true })
   file_id: number;
 
-  @ManyToOne((type) => Users, (users) => users.towns)
-  @JoinColumn({ name: 'users_id' })
-  user: Users;
+  // @ManyToOne((type) => Users, (users) => users.towns)
+  // @JoinColumn({ name: 'users_id' })
+  // user: Users;
 
   @ManyToMany((type) => Users, (users) => users.userTowns, {
     onDelete: 'CASCADE',

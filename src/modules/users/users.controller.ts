@@ -121,8 +121,8 @@ export class UsersController {
   @Roles('admin', 'manager')
   @ApiBearerAuth()
   @Get('profile')
-  getLoggedUser(@AuthUser() user: Users) {
-    return this.authService.getLoggedUser(user);
+  getLoggedUser(@AuthUser() user: any) {
+    return this.authService.getLoggedUser(user.userId).catch((error)=>console.log(error));
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -160,7 +160,4 @@ export class UsersController {
         return { success: false, message: error.message };
       });
   }
-
-
 }
-
