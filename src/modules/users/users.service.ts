@@ -118,6 +118,10 @@ export class UsersService {
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
 
+    const town=await Towns.find({where:{id: In(updateUserDto.town_id)}});
+
+    this.usersRepository.manager.query('delete from UserTown where UserTown.userId=${id}')
+
     return await this.usersRepository.update({id: id},
         {
           first_name: updateUserDto.first_name,
@@ -126,7 +130,8 @@ export class UsersService {
           phone_number: updateUserDto.phone_number,
           password: await bcrypt.hash(updateUserDto.password,10),
           is_active:updateUserDto.is_active,
-          roles: await Roles.findOne({where: {id: updateUserDto.role_id}})
+          roles: await Roles.findOne({where: {id: updateUserDto.role_id}}),
+          userTowns:town
         }
     );
   }
