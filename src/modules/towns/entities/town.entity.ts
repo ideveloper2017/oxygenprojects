@@ -37,8 +37,4 @@ export class Towns extends Model {
   @ManyToOne((type) => Users, users => users.towns)
   @JoinColumn({name: "users_id"})
   user: Users
-  
-  // @Column({nullable: true,})
-  // user_id: number
-
 }
