@@ -33,18 +33,25 @@ export class CreditTableService {
     // return order;
     const creditTable = await Orders.findOne({
       where: { id: order_id },
-      relations: ['creditTables'],
+      relations: [
+        'clients',
+        'users',
+        'payments',
+        'paymentMethods',
+        'orderItems.apartments.floor.entrance.buildings.towns',
+        'creditTables',
+      ],
       order: { creditTables: { due_date: 'ASC' } },
     });
 
     // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
 
-    const payment = await Payments.createQueryBuilder('payment')
-      .select('SUM(payment.amount)', 'sum')
-      .where('payment.order_id = :order_id', { order_id })
-      .getRawOne();
-
-    creditTable.payments = payment;
+   //  const payment = await Payments.createQueryBuilder('payment')
+   //    .select('SUM(payment.amount)', 'sum')
+   //    .where('payment.order_id = :order_id', { order_id })
+   //    .getRawOne();
+   //
+   // // creditTable.payments = payment;
 
     return creditTable;
   }
