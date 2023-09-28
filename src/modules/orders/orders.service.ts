@@ -204,6 +204,16 @@ export class OrdersService {
         ],
       });
 
+      order.forEach((orderItem) => {
+        orderItem.total_amount = Number(orderItem.total_amount);
+        const sumOfPayments = orderItem.payments.reduce(
+          (accumulator, currentPayment) =>
+            accumulator + Number(currentPayment.amount),
+          0,
+        );
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+      });
+
       const sum = order['payments'].reduce(
         (accumulator, currentValue) =>
           accumulator + Number(currentValue.amount),
