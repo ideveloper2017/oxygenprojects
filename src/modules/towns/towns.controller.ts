@@ -34,8 +34,7 @@ export class TownController {
   @ApiOperation({ summary: "mavjud turar-joylarni ro'yxatini olish" })
   @Get('/all-one/:id')
   getAllTowns(@AuthUser() user_id: Users, @Param('id') id: number) {
-    return this.townService
-      .findAllTowns(user_id, id)
+    return this.townService.findAllTowns(user_id, id)
       .then((data) => {
         if (data || data.length > 0) {
           return {
