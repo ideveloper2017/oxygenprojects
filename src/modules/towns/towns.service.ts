@@ -185,6 +185,6 @@ export class TownService {
     await this.currencyServ.createDefault();
     await this.paymentMethodServ.createDefault();
 
-    return table_names.length == check.length ? true : false;
+    return table_names.length == check.length
   }
 }
