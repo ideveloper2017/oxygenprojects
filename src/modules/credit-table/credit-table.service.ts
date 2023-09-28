@@ -26,7 +26,7 @@ export class CreditTableService {
       .where('payment.order_id = :order_id', { order_id })
       .getRawOne();
 
-    creditTable.payments = payment?.sum ? payment.sum : 0;
+    creditTable.payments = payment;
 
     return creditTable;
   }
