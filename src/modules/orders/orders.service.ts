@@ -223,7 +223,7 @@ export class OrdersService {
     let order, apartments;
     apartments = Apartments.findOne({
       where: { id: 580 },
-      relations: ['orderItems.orders'],
+
     });
 
     console.log(JSON.stringify(apartments)+' '+ id);
