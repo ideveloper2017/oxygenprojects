@@ -227,7 +227,7 @@ export class OrdersService {
       relations: ['orderItems.orders'],
     });
      // console.log(JSON.stringify(apartments));
-    order = await this.ordersRepository.find({
+    order = await this.ordersRepository.findOne({
       where: { id: apartments.orderItems.order_id },
       relations: [
         'orderItems',
