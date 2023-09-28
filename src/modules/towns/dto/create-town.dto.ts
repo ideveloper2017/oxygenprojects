@@ -22,7 +22,7 @@ export class CreateTownDto {
   @ApiProperty({ example: '+998 90 222 1122' })
   contact_number?: string;
 
-  @IsInt()
-  @ApiProperty({example: 1})
-  user_id: number
+  // @IsInt()
+  // @ApiProperty({example: 1})
+  // user_id: number
 }
