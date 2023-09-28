@@ -6,6 +6,7 @@ import {
   ManyToOne,
   OneToMany,
   OneToOne,
+  ViewEntity,
 } from 'typeorm';
 import Model from '../../model/model.module';
 import { Floor } from '../../floor/entities/floor.entity';
@@ -14,8 +15,8 @@ import { OrderItems } from '../../order-items/entities/order-item.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { ApartmentStatus } from '../../../common/enums/apartment-status';
-import {Query} from "@nestjs/common";
 
+@ViewEntity()
 @Entity('Apartments')
 export class Apartments extends Model {
   @ManyToOne((type) => Floor, (floor) => floor.apartments)
@@ -52,18 +53,4 @@ export class Apartments extends Model {
 
   @OneToMany(() => Booking, (booking) => booking.apartments)
   bookings: Booking[];
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  @Query(() => Promise<any>)
-  public static async customQuery(): Promise<any> {
-    const query = 'SELECT * FROM Apartments';
-    const connection = getConnection();
-    const queryRunner = connection.createQueryRunner();
-    const result = await queryRunner.query(query);
-    await queryRunner.release();
-    return result;
-  }
 }
-
-

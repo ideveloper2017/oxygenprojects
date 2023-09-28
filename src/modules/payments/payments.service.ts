@@ -98,9 +98,7 @@ export class PaymentsService {
       payment.pay_note = newPaymentDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
       newPay = await this.paymentRepo.save(payment);
-    
     } else {
-
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
@@ -141,22 +139,28 @@ export class PaymentsService {
     return await this.paymentRepo.update({ id: id }, newPaymentDto);
   }
 
-  async deletePayment (arrayOfId: number[]) {
-    let counter = 0 
-    for(let i of arrayOfId) {
-        let temp = await this.paymentRepo.update({id: i}, {is_deleted: true})
-      counter += temp.affected
-      }
+  async deletePayment(arrayOfId: number[]) {
+    let counter = 0;
+    for (const i of arrayOfId) {
+      const temp = await this.paymentRepo.update(
+        { id: i },
+        { is_deleted: true },
+      );
+      counter += temp.affected;
+    }
 
-      return counter     
+    return counter;
   }
 
-  async recoverPayment (arrayOfId: number[]) {
-    let counter = 0 
-    for(let i of arrayOfId) {
-        let temp = await this.paymentRepo.update({id: i}, {is_deleted: false})
-      counter += temp.affected
-      }
-      return counter     
+  async recoverPayment(arrayOfId: number[]) {
+    let counter = 0;
+    for (const i of arrayOfId) {
+      const temp = await this.paymentRepo.update(
+        { id: i },
+        { is_deleted: false },
+      );
+      counter += temp.affected;
+    }
+    return counter;
   }
 }
