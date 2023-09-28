@@ -111,19 +111,19 @@ export class OrdersController {
     if (arrayOfId.length == 0) {
       return {succes: false, message: 'IDs not gven' };
     }
-    return this.orderService.deleteOrder(arrayOfId).then((response) => {
-      if (response == arrayOfId) {
-        return {
-          success: true,
-          message: `Orders deleted successfully`,
-        };
-      } else if(response < arrayOfId) {
-        return { success: true, message: 'order deleted ' };
-      }else {
-        return { success: false, message: 'order not found ' };
-        
-      }
-    });
+    // return this.orderService.deleteOrder(arrayOfId).then((response) => {
+    //   if (response==arrayOfId.length) {
+    //     return {
+    //       success: true,
+    //       message: `Orders deleted successfully`,
+    //     };
+    //   } else if(response < arrayOfId.length) {
+    //     return { success: true, message: 'order deleted ' };
+    //   }else {
+    //     return { success: false, message: 'order not found ' };
+    //
+    //   }
+    // });
   }
 
   @Get('/last')
