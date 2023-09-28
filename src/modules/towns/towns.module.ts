@@ -19,11 +19,12 @@ import { CurrenciesModule } from '../currencies/currencies.module';
     RolesModule,
     PermissionsModule,
     PaymentMethodModule,
+    UsersModule,
     CurrenciesModule
     
   ],
   providers: [TownService],
   controllers: [TownController],
-  exports: [TownService],
+  exports: [TypeOrmModule],
 })
 export class TownsModule {}
