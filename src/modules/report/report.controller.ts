@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ApiTags } from '@nestjs/swagger';
+import {Apartments} from "../apartments/entities/apartment.entity";
 
 @Controller('report')
 @ApiTags('Reports')
@@ -25,6 +26,7 @@ export class ReportController {
 
   @Get('/order-apartments')
   async listOrders() {
-    return this.reportService.getListByApartment();
+    // return this.reportService.getListByApartment();
+    return Apartments.customQuery();
   }
 }

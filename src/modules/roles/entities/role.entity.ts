@@ -2,12 +2,6 @@ import { Column, Entity, JoinTable, ManyToMany, OneToMany } from 'typeorm';
 import { Users } from '../../users/entities/user.entity';
 import { Permissions } from '../../permissions/entities/permission.entity';
 import Model from '../../model/model.module';
-export enum UserRole {
-  ADMIN = 'admin',
-  MANAGER = 'manager',
-  CUSTOMER = 'customer',
-  GUEST = 'guest',
-}
 @Entity('Roles')
 export class Roles extends Model {
   @Column()
