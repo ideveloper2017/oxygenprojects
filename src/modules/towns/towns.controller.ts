@@ -47,7 +47,10 @@ export class TownController {
           return { success: false, message: 'No data found' };
         }
       })
-      .catch((error) => console.log(error));
+      .catch((error)=>
+    {
+      return {status: error.code, message: error.message}
+    });
   }
 
   @ApiOperation({ summary: 'Turar-joyni tahrirlash' })
