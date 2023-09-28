@@ -16,7 +16,7 @@ export class OrderItems extends Model {
   @JoinColumn({ name: 'apartment_id' })
   apartments: Apartments;
 
-  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2})
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   final_price: number;
 
   @ManyToOne(() => Currencies, (currency) => currency.orderitems)
