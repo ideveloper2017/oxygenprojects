@@ -192,7 +192,7 @@ export class OrdersService {
         orderItem.total_amount = +(orderItem.total_amount);
         const sumOfPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
+            accumulator + currentPayment.amount,
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
