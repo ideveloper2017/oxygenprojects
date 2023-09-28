@@ -47,16 +47,16 @@ export class AuthService {
     });
   }
 
-  async getLoggedUser(user: any) {
+  async getLoggedUser(user: Users) {
     const loggedUser = await Users.findOne({
       where: {
-        id: user,
+        id: user.id,
         is_active: true,
       },
       relations: ['roles', 'roles.permission','userTowns'],
     });
 
-   // delete loggedUser.password;
+    delete loggedUser.password;
     return loggedUser;
   }
 

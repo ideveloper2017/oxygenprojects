@@ -121,8 +121,8 @@ export class UsersController {
   @Roles('admin', 'manager')
   @ApiBearerAuth()
   @Get('profile')
-  getLoggedUser(@AuthUser() user: any) {
-    return this.authService.getLoggedUser(user.userId);
+  getLoggedUser(@AuthUser() user: Users) {
+    return this.authService.getLoggedUser(user);
   }
 
   @UseGuards(AuthGuard('jwt'))
