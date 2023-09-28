@@ -189,13 +189,12 @@ export class OrdersService {
       });
 
       order.forEach((orderItem) => {
-        orderItem.total_amount = +(orderItem.total_amount);
+        orderItem.total_amount = +orderItem.total_amount;
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
+          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
+        orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
@@ -210,11 +209,10 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) =>
-          accumulator + (+currentValue.amount),
+        (accumulator, currentValue) => accumulator + +currentValue.amount,
         0,
       );
-      order['payments'] = +(sum.toFixed(2));
+      order['payments'] = +sum.toFixed(2);
     }
     return order;
   }
@@ -223,56 +221,28 @@ export class OrdersService {
 
   async getAppartmenOrderList(id: number) {
     let order, orderItems, apartments;
+    apartments = Apartments.findOne({ where: { id: id } });
+    orderItems = OrderItems.findOne({ where: { apartments: apartments } });
+    order = await this.ordersRepository.find({
+      where: { orderItems: orderItems },
+      relations: [
+        'orderItems',
+        'clients',
+        'payments',
+        'users',
+        'paymentMethods',
+        'orderItems.apartments.floor.entrance.buildings.towns',
+      ],
+    });
+    order.forEach((orderItem) => {
+      const sumOfPayments = orderItem.payments.reduce(
+        (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+        0,
+      );
+      orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
+    });
 
-    if (id == 0) {
-      order = await this.ordersRepository.find({
-        relations: [
-          'orderItems',
-          'clients',
-          'users',
-          'payments',
-          'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
-        ],
-      });
-      order.forEach((orderItem) => {
-        const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
-          0,
-        );
-        orderItem.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
-      });
-    } else {
-      apartments = Apartments.findOne({ where: { id: id } });
-      orderItems = OrderItems.findOne({ where: { apartments: apartments } });
-      order = await this.ordersRepository.find({
-        where: { orderItems: orderItems },
-        relations: [
-          'orderItems',
-          'clients',
-          'payments',
-          'users',
-          'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
-        ],
-      });
-      order.forEach((orderItem) => {
-        const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
-          0,
-        );
-        orderItem.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
-      });
 
-      // const sum = order['payments'].reduce(
-      //   (accumulator, currentValue) =>
-      //     accumulator + Number(currentValue.amount),
-      //   0,
-      // );
-      // order['payment'] = sum;
-    }
     return order;
   }
 
@@ -397,22 +367,20 @@ export class OrdersService {
       });
 
       cancelledOrders.forEach((orderItem) => {
-        orderItem.total_amount = +(orderItem.total_amount);
+        orderItem.total_amount = +orderItem.total_amount;
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
+          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
+        orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
       });
 
       cancelledOrders.forEach((order) => {
         const sumOfPayments = order.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
+          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
-        order.sumOfPayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
+        order.sumOfPayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
       });
     }
 
