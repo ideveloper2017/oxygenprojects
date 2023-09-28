@@ -16,7 +16,7 @@ import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity'
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { ApartmentStatus } from '../../../common/enums/apartment-status';
 
-@ViewEntity()
+
 @Entity('Apartments')
 export class Apartments extends Model {
   @ManyToOne((type) => Floor, (floor) => floor.apartments)
