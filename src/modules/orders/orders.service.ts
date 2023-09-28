@@ -220,34 +220,30 @@ export class OrdersService {
   //================================================================================================
 
   async getAppartmenOrderList(id: number) {
-    let order, apartments, ordetItems;
+    let order, orderItems, apartments;
 
-    apartments = await Apartments.findOne({
-      where: { id: id },
-    });
+    apartments = Apartments.findOne({ where: { id: id } });
+    orderItems = OrderItems.findOne({ where: { apartments: apartments } });
 
-    ordetItems = await OrderItems.findOne({
-      where: { apartments: apartments.id },relations:['orders']
-    });
-
-    // console.log(JSON.stringify(ordetItems.orders));
     order = await this.ordersRepository.findOne({
-      where: { id: ordetItems.orders.id },
+      where: { orderItems: orderItems },
       relations: [
-        'orderItems',
+        'orderItems.apartments',
         'clients',
         'payments',
+        'users',
         'paymentMethods',
-        'orderItems.apartments.floor.entrance.buildings.towns',
+
       ],
     });
-    // order.payments.forEach((orderItem) => {
-    const sumOfPayments = order.payments.reduce(
-      (accumulator, currentPayment) => accumulator + +currentPayment.amount,
-      0,
-    );
 
-    order['sumOfpayments'] = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
+    const sumOfPayments = order.payments.reduce(
+        (accumulator, currentPayment) =>
+            accumulator + (+currentPayment.amount),
+        0,
+    );
+    order.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
+
 
     return order;
   }
