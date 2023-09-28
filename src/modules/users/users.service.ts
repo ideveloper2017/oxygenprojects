@@ -120,20 +120,6 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    let town_id;
-
-    const user = await this.usersRepository.findOne({
-      where: { id: id },
-      relations: ['userTowns'],
-    });
-
-    user.userTowns = user.userTowns.filter((towns) => {
-      return towns.id != id;
-    });
-    await this.usersRepository.save(user);
-
-    town_id = await Towns.find({ where: { id: In(updateUserDto.town_id) } });
-
     return await this.usersRepository.update(
       { id: id },
       {
@@ -144,7 +130,6 @@ export class UsersService {
         password: await bcrypt.hash(updateUserDto.password, 10),
         is_active: updateUserDto.is_active,
         roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
-        userTowns: town_id,
       },
     );
   }
