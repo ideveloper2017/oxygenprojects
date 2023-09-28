@@ -237,7 +237,7 @@ export class OrdersService {
         'orderItems.apartments.floor.entrance.buildings.towns',
       ],
     });
-    order.forEach((orderItem) => {
+    order.payments.forEach((orderItem) => {
       const sumOfPayments = orderItem.payments.reduce(
         (accumulator, currentPayment) => accumulator + +currentPayment.amount,
         0,
