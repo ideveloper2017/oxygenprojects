@@ -87,6 +87,8 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
+      payment.amount_usd = newPaymentDto.amount_usd;
+      payment.currency_value = newPaymentDto.currency_value;
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({
@@ -107,6 +109,8 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
+      payment.amount_usd = newPaymentDto.amount_usd;
+      payment.currency_value = newPaymentDto.currency_value;
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({
