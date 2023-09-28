@@ -221,9 +221,10 @@ export class OrdersService {
 
   async getAppartmenOrderList(id: number) {
     let order, apartments;
-    apartments = Apartments.findOne({
-      where: { id: 580 },
 
+     apartments = await Apartments.findOne({
+      where: { id: id },
+      relations: ['floor.entrance.buildings.towns', 'file'],
     });
 
     console.log(JSON.stringify(apartments)+' '+ id);
