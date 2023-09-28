@@ -58,7 +58,7 @@ export class TownService {
     const user = await Users.createQueryBuilder('user')
     .where('user_id =: user_id', {user_id})
     .addSelect('role_id')
-    .getRawOne()
+    .getRawOne();
 
       if (id != 0) {
       towns = await this.townRepository.findOne({
