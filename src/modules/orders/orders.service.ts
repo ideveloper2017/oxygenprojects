@@ -233,6 +233,7 @@ export class OrdersService {
         'orderItems',
         'clients',
         'payments',
+         'paymentMethods',
         'orderItems.apartments.floor.entrance.buildings.towns',
       ],
     });
