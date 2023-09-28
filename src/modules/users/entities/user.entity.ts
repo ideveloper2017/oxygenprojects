@@ -18,7 +18,6 @@ import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { Exclude } from 'class-transformer';
 import { Towns } from 'src/modules/towns/entities/town.entity';
-import { UserTowns } from './user-towns';
 
 @Entity('Users')
 export class Users extends Model {

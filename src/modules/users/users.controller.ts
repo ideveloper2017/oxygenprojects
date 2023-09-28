@@ -92,7 +92,7 @@ export class UsersController {
     return this.usersService
       .updateUser(id, updateUserDto)
       .then((data) => {
-        if (data.affected) {
+        if (data) {
           return { success: true, message: 'Updated is record!!!' };
         } else {
           return { success: false, message: 'not updated is record!!!' };
@@ -122,7 +122,9 @@ export class UsersController {
   @ApiBearerAuth()
   @Get('profile')
   getLoggedUser(@AuthUser() user: any) {
-    return this.authService.getLoggedUser(user.userId).catch((error)=>console.log(error));
+    return this.authService
+      .getLoggedUser(user.userId)
+      .catch((error) => console.log(error));
   }
 
   @UseGuards(AuthGuard('jwt'))
