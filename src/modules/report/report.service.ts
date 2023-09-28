@@ -3,6 +3,7 @@ import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
 import { getManager, Repository } from 'typeorm';
+import { OrderStatus } from '../../common/enums/order-status';
 
 @Injectable()
 export class ReportService {
@@ -21,7 +22,10 @@ export class ReportService {
   }
 
   public async getListByApartment() {
-    const result = await Orders.find();
+    const result = await Orders.find({
+      where: { order_status: OrderStatus.INACTIVE, is_deleted: false },
+      relations: ['orderItems'],
+    });
     return result;
   }
 }
