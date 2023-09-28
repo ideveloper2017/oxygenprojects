@@ -243,7 +243,7 @@ export class OrdersService {
       0,
     );
 
-    order.payments['sumOfpayments'] = sumOfPayments
+    order['sumOfpayments'] = sumOfPayments
       ? +sumOfPayments.toFixed(2)
       : 0;
     //   orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
