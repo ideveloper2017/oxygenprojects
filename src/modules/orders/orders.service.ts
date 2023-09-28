@@ -238,7 +238,7 @@ export class OrdersService {
       ],
     });
     order.payments.forEach((orderItem) => {
-      const sumOfPayments = orderItem.payments.reduce(
+      const sumOfPayments = orderItem.reduce(
         (accumulator, currentPayment) => accumulator + +currentPayment.amount,
         0,
       );
