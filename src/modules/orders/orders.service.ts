@@ -223,7 +223,7 @@ export class OrdersService {
     let order, apartments;
     apartments = Apartments.findOne({
       where: { id: id },
-      relations: ['orderItems'],
+      relations: ['orderItems.orders'],
     });
     // orderItems = OrderItems.findOne({ where: { apartments: apartments } });
     order = await this.ordersRepository.find({
