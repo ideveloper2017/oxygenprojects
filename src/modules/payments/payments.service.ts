@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { NewPaymentDto } from './dto/create-payment.dto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Payments } from './entities/payment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
@@ -134,7 +134,25 @@ export class PaymentsService {
     return await this.paymentRepo.update({ id: id }, newPaymentDto);
   }
 
-  async delete(id: number) {
-    return this.paymentRepo.delete({ id: id });
+  async deletePayment (arrayOfId: number[]) {
+    let counter = 0 
+    for(let i of arrayOfId) {
+        let temp = await this.paymentRepo.update({id: i}, {is_deleted: true})
+      counter += temp.affected
+      }
+
+      console.log(counter);
+      return counter     
+  }
+
+  async recoverPayment (arrayOfId: number[]) {
+    let counter = 0 
+    for(let i of arrayOfId) {
+        let temp = await this.paymentRepo.update({id: i}, {is_deleted: false})
+      counter += temp.affected
+      }
+
+      console.log(counter);
+      return counter     
   }
 }

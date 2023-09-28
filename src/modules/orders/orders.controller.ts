@@ -108,16 +108,19 @@ export class OrdersController {
   @Post('/delete')
   deleteOrder(@Body() arrayOfId: number[]) {
     if (arrayOfId.length == 0) {
-      throw new HttpException('provide order ids', HttpStatus.LENGTH_REQUIRED);
+      return {succes: false, message: 'IDs not gven' };
     }
     return this.orderService.deleteOrder(arrayOfId).then((response) => {
-      if (response) {
+      if (response == arrayOfId.length) {
         return {
           success: true,
           message: `Orders deleted successfully`,
         };
-      } else {
-        return { success: false, message: 'order not exists' };
+      } else if(response < arrayOfId.length) {
+        return { success: true, message: 'order deleted ' };
+      }else {
+        return { success: false, message: 'order not found ' };
+        
       }
     });
   }

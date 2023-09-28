@@ -33,10 +33,10 @@ export class Payments extends Model {
   amount: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  currency_amount: number;
+  amount_in_usd: number;
 
-  @Column({ type: 'decimal', precision: 20, scale: 2, default: 0 })
-  currency_value: number;
+  // @Column({ type: 'decimal', precision: 20, scale: 2, default: 0 })
+  // currency_value: number;
 
   @Column({ type: 'enum', enum: Caishertype, default: Caishertype.IN })
   caisher_type: Caishertype;
@@ -53,4 +53,7 @@ export class Payments extends Model {
 
   @Column({ nullable: true })
   pay_note: string;
+
+  @Column({default: false})
+  is_deleted: boolean
 }
