@@ -41,10 +41,9 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================
 
   async createOrder(createOrderDto: CreateOrderDto, users: Users) {
-    
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
-    const usdRate = await ExchangRates.findOne({where: {is_default: true}});
-  
+    const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
+
     const payment_method = await PaymentMethods.findOne({
       where: { id: +createOrderDto.payment_method_id },
     });
@@ -52,7 +51,7 @@ export class OrdersService {
     const checkApartment = await Apartments.findOne({
       where: { id: +createOrderDto.apartment_id },
     });
-    
+
     if (
       checkApartment.status === ApartmentStatus.SOLD ||
       checkApartment.status === ApartmentStatus.INACTIVE
@@ -63,7 +62,7 @@ export class OrdersService {
       );
     }
 
-    const order = new Orders()
+    const order = new Orders();
     order.clients = await Clients.findOne({
       where: { id: +createOrderDto.client_id },
     });
@@ -73,7 +72,6 @@ export class OrdersService {
     order.initial_pay = createOrderDto.initial_pay;
     order.users = users;
     order.quantity = 1;
-
 
     const savedOrder = await this.ordersRepository.save(order);
 
@@ -88,17 +86,17 @@ export class OrdersService {
       ? createOrderDto.price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
-      let schedule;
-      
-      if (
-        payment_method.name_alias.toLowerCase() === 'rassrochka' ||
-        payment_method.name_alias.toLowerCase() === 'ipoteka'
-        ) {
-      
-          // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
-  
+    let schedule;
+
+    if (
+      payment_method.name_alias.toLowerCase() === 'rassrochka' ||
+      payment_method.name_alias.toLowerCase() === 'ipoteka'
+    ) {
+      // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
+
       const oneMonthDue = createOrderDto.initial_pay
-        ? (total - createOrderDto.initial_pay) / createOrderDto.installment_month
+        ? (total - createOrderDto.initial_pay) /
+          createOrderDto.installment_month
         : total / createOrderDto.installment_month;
 
       const creditSchedule = [];
@@ -119,7 +117,7 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    const total_in_usd = Number((total/usdRate.rate_value).toFixed(2))
+    const total_in_usd = Number((total / usdRate.rate_value).toFixed(2));
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
@@ -133,22 +131,20 @@ export class OrdersService {
     });
     orderItem.final_price = total;
 
-
-    
     await Apartments.update(
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
     );
 
     let apr;
-    apr=await Apartments.findOne({where:{ id: createOrderDto.apartment_id }})
-    const inBooking = await Booking.findOne({where: {apartments: apr}})
-   
-    if(inBooking){
-      
-      inBooking.bron_is_active = false
-      await Booking.save(inBooking)
-   
+    apr = await Apartments.findOne({
+      where: { id: createOrderDto.apartment_id },
+    });
+    const inBooking = await Booking.findOne({ where: { apartments: apr } });
+
+    if (inBooking) {
+      inBooking.bron_is_active = false;
+      await Booking.save(inBooking);
     }
 
     await OrderItems.save(orderItem);
@@ -177,7 +173,7 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        where: {order_status: OrderStatus.ACTIVE},
+        where: { order_status: OrderStatus.ACTIVE },
         relations: [
           'clients',
           'users',
@@ -188,16 +184,17 @@ export class OrdersService {
       });
 
       order.forEach((orderItem) => {
-        orderItem.total_amount = Number(orderItem.total_amount)
+        orderItem.total_amount = Number(orderItem.total_amount);
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + Number(currentPayment.amount),
+          (accumulator, currentPayment) =>
+            accumulator + Number(currentPayment.amount),
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
-        where: { id: id},
+        where: { id: id },
         relations: [
           'clients',
           'payments',
@@ -208,7 +205,8 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+        (accumulator, currentValue) =>
+          accumulator + Number(currentValue.amount),
         0,
       );
       order['payments'] = sum;
@@ -234,7 +232,8 @@ export class OrdersService {
       });
       order.forEach((orderItem) => {
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + Number(currentPayment.amount),
+          (accumulator, currentPayment) =>
+            accumulator + Number(currentPayment.amount),
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
@@ -255,7 +254,8 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+        (accumulator, currentValue) =>
+          accumulator + Number(currentValue.amount),
         0,
       );
       order['payments'] = sum;
@@ -315,86 +315,110 @@ export class OrdersService {
   // ============= shartnomalarni o'chirish ========================================
 
   async deleteOrder(arrayOfId: number[]) {
-    let conteiner:number
-    
-    for(let val of arrayOfId) {
-      let temp = await this.ordersRepository.update({id: val}, {is_deleted: true})
-      conteiner+= temp.affected
+    let conteiner: number;
+
+    for (const val of arrayOfId) {
+      const temp = await this.ordersRepository.update(
+        { id: val },
+        { is_deleted: true },
+      );
+      conteiner += temp.affected;
     }
-    return conteiner
+    return conteiner;
   }
 
-// =============== shartnomalarni bekor qilish =====================================
+  // =============== shartnomalarni bekor qilish =====================================
 
   public async orderReject(arrayOfId: number[]) {
-    let order, orderItem, counter=0;
+    let order,
+      orderItem,
+      counter = 0;
     try {
-      for(let val of arrayOfId) {
-        await this.ordersRepository.update({id: val}, {order_status: OrderStatus.INACTIVE})
-        order = await this.ordersRepository.findOne({where: {id: val}})
+      for (const val of arrayOfId) {
+        await this.ordersRepository.update(
+          { id: val },
+          { order_status: OrderStatus.INACTIVE },
+        );
+        order = await this.ordersRepository.findOne({ where: { id: val } });
 
         orderItem = await OrderItems.findOne({ where: { orders: order } });
-        counter += (await Apartments.update({id:orderItem}, {status: ApartmentStatus.FREE})).affected
-        
+        counter += (
+          await Apartments.update(
+            { id: orderItem },
+            { status: ApartmentStatus.FREE },
+          )
+        ).affected;
       }
-      if(counter === arrayOfId.length){
-        return {success: true, message: "Orders cancelled  completely"}
-      } else if(counter < arrayOfId.length){
-        return {success: true, message: "Orders cancelled partially"}
-      }else {
-        return {success: false, message: "Orders not found"}
+      if (counter === arrayOfId.length) {
+        return { success: true, message: 'Orders cancelled  completely' };
+      } else if (counter < arrayOfId.length) {
+        return { success: true, message: 'Orders cancelled partially' };
+      } else {
+        return { success: false, message: 'Orders not found' };
       }
-
     } catch (error) {
       return { status: error.code, message: error.message };
     }
   }
 
-
   // ======================== bekor qilingan shartnomalar ro'yxatini olish =================
 
-  async findRejectedOrders(id: number){
-    let cancelledOrders
+  async findRejectedOrders(id: number) {
+    let cancelledOrders;
 
-    if(id > 0){
-      cancelledOrders = await this.ordersRepository.findOne({where: {order_status:OrderStatus.INACTIVE, id: id},relations: [
-        'clients',
-        'payments',
-        'users',
-        'paymentMethods',
-        'orderItems.apartments.floor.entrance.buildings.towns']})
-  
-    }else {
-      cancelledOrders = await this.ordersRepository.find({where: {order_status: OrderStatus.INACTIVE},relations: [
-        'clients',
-        'payments',
-        'users',
-        'paymentMethods',
-        'orderItems.apartments.floor.entrance.buildings.towns']})
+    if (id > 0) {
+      cancelledOrders = await this.ordersRepository.findOne({
+        where: { order_status: OrderStatus.INACTIVE, id: id },
+        relations: [
+          'clients',
+          'payments',
+          'users',
+          'paymentMethods',
+          'orderItems.apartments.floor.entrance.buildings.towns',
+        ],
+      });
+    } else {
+      cancelledOrders = await this.ordersRepository.find({
+        where: { order_status: OrderStatus.INACTIVE },
+        relations: [
+          'clients',
+          'payments',
+          'users',
+          'paymentMethods',
+          'orderItems.apartments.floor.entrance.buildings.towns',
+        ],
+      });
 
-    cancelledOrders.forEach((order) => {
-    const companyDebt = order.payments.reduce(
-      (accumulator, currentPayment) => accumulator + Number(currentPayment.amount),
-      0,
-    );
-    order.companyDebt = companyDebt ? companyDebt : 0;
-  });
+      cancelledOrders.forEach((orderItem) => {
+        orderItem.total_amount = Number(orderItem.total_amount);
+        const sumOfPayments = orderItem.payments.reduce(
+          (accumulator, currentPayment) =>
+            accumulator + Number(currentPayment.amount),
+          0,
+        );
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+      });
 
+      cancelledOrders.forEach((order) => {
+        const companyDebt = order.payments.reduce(
+          (accumulator, currentPayment) =>
+            accumulator + Number(currentPayment.amount),
+          0,
+        );
+        order.companyDebt = companyDebt ? companyDebt : 0;
+      });
     }
 
-    if(cancelledOrders && cancelledOrders.length) {
-    
-      return {success: true, data: cancelledOrders, message: "Fetched Cancelled Orders"}
-    
-    }else if(cancelledOrders){
-    
-      return {success: true, data: cancelledOrders, message: "Fetched data"}
-    
-    }else {
-    
-      return {success: false, message: "No data fetched"}
-
+    if (cancelledOrders && cancelledOrders.length) {
+      return {
+        success: true,
+        data: cancelledOrders,
+        message: 'Fetched Cancelled Orders',
+      };
+    } else if (cancelledOrders) {
+      return { success: true, data: cancelledOrders, message: 'Fetched data' };
+    } else {
+      return { success: false, message: 'No data fetched' };
     }
-  
   }
 }
