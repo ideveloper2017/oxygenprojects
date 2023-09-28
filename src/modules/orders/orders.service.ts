@@ -70,8 +70,8 @@ export class OrdersService {
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
     order.initial_pay = createOrderDto.initial_pay;
-    order.currency_value = usdRate.rate_value
-    order.users = await Users.findOne({where: {id: users.userId}, });
+    order.currency_value = usdRate.rate_value;
+    order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
 
     const savedOrder = await this.ordersRepository.save(order);
@@ -159,8 +159,10 @@ export class OrdersService {
     payment.caishers = await Caisher.findOne({
       where: { is_active: true, is_default: true },
     });
-    payment.amount_usd = +(savedOrder.initial_pay/usdRate.rate_value).toFixed(2)
-    payment.currency_value = usdRate.rate_value
+    payment.amount_usd = +(savedOrder.initial_pay / usdRate.rate_value).toFixed(
+      2,
+    );
+    payment.currency_value = usdRate.rate_value;
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;
     payment.pay_note = "Boshlangich to'lov";
@@ -269,7 +271,7 @@ export class OrdersService {
       //     accumulator + Number(currentValue.amount),
       //   0,
       // );
-     // order['payment'] = sum;
+      // order['payment'] = sum;
     }
     return order;
   }
@@ -295,7 +297,7 @@ export class OrdersService {
 
     orders.forEach((data, key) => {
       const sum = data.payments.reduce((accumulator, currentValue) => {
-        return accumulator + (+currentValue.amount);
+        return accumulator + +currentValue.amount;
       }, 1);
       result.push({
         order_id: data.id,
@@ -304,8 +306,7 @@ export class OrdersService {
         totalsum: +(data.total_amount - sum),
       });
     });
-    return result
-
+    return result;
   }
 
   // =================== shartnomani tahrirlash ==================================
