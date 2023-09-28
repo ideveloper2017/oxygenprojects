@@ -12,6 +12,6 @@ import { ApartmentsService } from '../apartments/apartments.service';
 @Module({
   imports: [OrdersModule, PaymentsModule],
   controllers: [ReportController],
-  providers: [ReportService, OrdersService, ApartmentsService],
+  providers: [ReportService, OrdersService],
 })
 export class ReportModule {}
