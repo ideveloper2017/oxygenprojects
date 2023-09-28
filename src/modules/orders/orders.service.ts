@@ -220,17 +220,19 @@ export class OrdersService {
   //================================================================================================
 
   async getAppartmenOrderList(id: number) {
-    let order, apartments;
+    let order, apartments, ordetItems;
 
     apartments = await Apartments.findOne({
       where: { id: id },
-      //relations: ['orderItems.orders'],
     });
 
-    const res=await OrderItems.findOne({where:{apartments:apartments}})
-    console.log(res);
+    ordetItems = await OrderItems.findOne({
+      where: { apartments: apartments.id },relations:['orders']
+    });
+
+    // console.log(JSON.stringify(ordetItems.orders));
     order = await this.ordersRepository.findOne({
-      where: { id: apartments.orderItems.orders.id },
+      where: { id: ordetItems.orders.id },
       relations: [
         'orderItems',
         'clients',
@@ -245,11 +247,7 @@ export class OrdersService {
       0,
     );
 
-    order['sumOfpayments'] = sumOfPayments
-      ? +sumOfPayments.toFixed(2)
-      : 0;
-    //   orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
-    // });
+    order['sumOfpayments'] = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
 
     return order;
   }
