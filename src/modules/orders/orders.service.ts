@@ -19,6 +19,7 @@ import { Booking } from '../booking/entities/booking.entity';
 import { ApartmentStatus } from '../../common/enums/apartment-status';
 import { OrderStatus } from '../../common/enums/order-status';
 import { PaymentStatus } from 'src/common/enums/payment-status';
+import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 
 @Injectable()
 export class OrdersService {
@@ -28,6 +29,8 @@ export class OrdersService {
     private readonly paymentService: PaymentsService,
   ) {}
 
+  //==================== yangi qo'shiladigan shartnima raqani ===========================
+
   async getLastID() {
     return await this.ordersRepository
       .createQueryBuilder('orders')
@@ -35,7 +38,13 @@ export class OrdersService {
       .getOne();
   }
 
+  // =================== Yangi shartnoma tuzisha ===================================
+
   async createOrder(createOrderDto: CreateOrderDto, users: Users) {
+    
+    //shartnoma tuziliyotgan vaqtdagi dollar kursi
+    const usdRate = await ExchangRates.findOne({where: {is_default: true}});
+  
     const payment_method = await PaymentMethods.findOne({
       where: { id: +createOrderDto.payment_method_id },
     });
@@ -43,6 +52,7 @@ export class OrdersService {
     const checkApartment = await Apartments.findOne({
       where: { id: +createOrderDto.apartment_id },
     });
+    
     if (
       checkApartment.status === ApartmentStatus.SOLD ||
       checkApartment.status === ApartmentStatus.INACTIVE
@@ -53,7 +63,7 @@ export class OrdersService {
       );
     }
 
-    const order = new Orders();
+    const order = new Orders()
     order.clients = await Clients.findOne({
       where: { id: +createOrderDto.client_id },
     });
@@ -63,6 +73,7 @@ export class OrdersService {
     order.initial_pay = createOrderDto.initial_pay;
     order.users = users;
     order.quantity = 1;
+
 
     const savedOrder = await this.ordersRepository.save(order);
 
@@ -77,17 +88,19 @@ export class OrdersService {
       ? createOrderDto.price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
-    // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
+      let schedule;
+      
+      if (
+        payment_method.name_alias.toLowerCase() === 'rassrochka' ||
+        payment_method.name_alias.toLowerCase() === 'ipoteka'
+        ) {
+      
+          // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
+  
+      const oneMonthDue = createOrderDto.initial_pay
+        ? (total - createOrderDto.initial_pay) / createOrderDto.installment_month
+        : total / createOrderDto.installment_month;
 
-    const oneMonthDue = createOrderDto.initial_pay
-      ? (total - createOrderDto.initial_pay) / createOrderDto.installment_month
-      : total / createOrderDto.installment_month;
-    let schedule;
-
-    if (
-      payment_method.name_alias.toLowerCase() === 'rassrochka' ||
-      payment_method.name_alias.toLowerCase() === 'ipoteka'
-    ) {
       const creditSchedule = [];
       const date = new Date();
 
@@ -119,6 +132,7 @@ export class OrdersService {
     orderItem.final_price = total;
 
 
+    
     await Apartments.update(
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
@@ -127,17 +141,12 @@ export class OrdersService {
     let apr;
     apr=await Apartments.findOne({where:{ id: createOrderDto.apartment_id }})
     const inBooking = await Booking.findOne({where: {apartments: apr}})
+   
     if(inBooking){
-      // await Booking.createQueryBuilder()
-      // .update(Booking)
-      // .set({ bron_is_active: false })
-      // .where('apartment_id = :apartment_id', {
-      //   apartment_id: createOrderDto.apartment_id,
-      // })
-      // .execute();
-
+      
       inBooking.bron_is_active = false
       await Booking.save(inBooking)
+   
     }
 
     await OrderItems.save(orderItem);
@@ -160,10 +169,13 @@ export class OrdersService {
     return updatedOrder;
   }
 
-  async getOrderList(id: number, user_id: Users) {
+  // ===================== active shartnomalar ro'yxatini olish =============================
+
+  async getActiveOrdersList(id: number, user_id: Users) {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
+        where: {order_status: OrderStatus.ACTIVE},
         relations: [
           'clients',
           'users',
@@ -201,6 +213,8 @@ export class OrdersService {
     }
     return order;
   }
+
+  //================================================================================================
 
   async getAppartmenOrderList(id: number) {
     let order, orderItems, apartments;
@@ -286,6 +300,8 @@ export class OrdersService {
     // .getMany()
   }
 
+  // =================== shartnomani tahrirlash ==================================
+
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
     const order = await this.ordersRepository.update(
       { id: id },
@@ -294,8 +310,11 @@ export class OrdersService {
     return order;
   }
 
+  // ============= shartnomalarni o'chirish ========================================
+
   async deleteOrder(arrayOfId: number[]) {
-    let conteiner
+    let conteiner:number
+    
     for(let val of arrayOfId) {
       let temp = await this.ordersRepository.update({id: val}, {is_deleted: true})
       conteiner+= temp.affected
@@ -303,32 +322,77 @@ export class OrdersService {
     return conteiner
   }
 
-  public async orderReject(id: number) {
-    let order, orderItem;
+// =============== shartnomalarni bekor qilish =====================================
+
+  public async orderReject(arrayOfId: number[]) {
+    let order, orderItem, counter=0;
     try {
-      this.ordersRepository.update(
-        { id: id },
-        { order_status: OrderStatus.INACTIVE },
-      );
-      order = await this.ordersRepository.findOne({ where: { id: id } });
-      orderItem = await OrderItems.findOne({ where: { orders: order } });
+      for(let val of arrayOfId) {
+        await this.ordersRepository.update({id: val}, {order_status: OrderStatus.INACTIVE})
+        order = await this.ordersRepository.findOne({where: {id: val}})
 
-      const apartment = this.ordersRepository.manager
-        .getRepository(Apartments)
-        .findOne({ where: { id: orderItem } });
-      apartment.then((data) => {
-        this.ordersRepository.manager
-          .getRepository(Apartments)
-          .update({ id: data.id }, { status: ApartmentStatus.FREE });
-      });
+        orderItem = await OrderItems.findOne({ where: { orders: order } });
+        counter += (await Apartments.update({id:orderItem}, {status: ApartmentStatus.FREE})).affected
+        
+      }
+      if(counter === arrayOfId.length){
+        return {success: true, message: "Orders cancelled  completely"}
+      } else if(counter < arrayOfId.length){
+        return {success: true, message: "Orders cancelled partially"}
+      }else {
+        return {success: false, message: "Orders not found"}
+      }
 
-      return;
     } catch (error) {
       return { status: error.code, message: error.message };
     }
   }
 
-  async findRejectedOrders(){
-    const orders = await this.ordersRepository.find({where: {order_status: OrderStatus.INACTIVE}, })
+
+  // ======================== bekor qilingan shartnomalar ro'yxatini olish =================
+
+  async findRejectedOrders(id: number){
+    let cancelledOrders
+
+    if(id > 0){
+      cancelledOrders = await this.ordersRepository.findOne({where: {order_status:OrderStatus.INACTIVE, id: id},relations: [
+        'clients',
+        'payments',
+        'users',
+        'paymentMethods',
+        'orderItems.apartments.floor.entrance.buildings.towns']})
+  
+    }else {
+      cancelledOrders = await this.ordersRepository.find({where: {order_status: OrderStatus.INACTIVE},relations: [
+        'clients',
+        'payments',
+        'users',
+        'paymentMethods',
+        'orderItems.apartments.floor.entrance.buildings.towns']})
+
+    cancelledOrders.forEach((order) => {
+    const companyDebt = order.payments.reduce(
+      (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+      0,
+    );
+    order.companyDebt = companyDebt ? companyDebt : 0;
+  });
+
+    }
+
+    if(cancelledOrders && cancelledOrders.length) {
+    
+      return {success: true, data: cancelledOrders, message: "Fetched Cancelled Orders"}
+    
+    }else if(cancelledOrders){
+    
+      return {success: true, data: cancelledOrders, message: "Fetched data"}
+    
+    }else {
+    
+      return {success: false, message: "No data fetched"}
+
+    }
+  
   }
 }

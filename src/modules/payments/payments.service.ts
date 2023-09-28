@@ -58,7 +58,7 @@ export class PaymentsService {
           if (!nextPaid.left_amount) {
             await CreditTable.update(
               { id: nextPaid.id },
-              { left_amount: +(nextPaid.due_amount - money).toFixed(3) },
+              { left_amount: +(nextPaid.due_amount - money).toFixed(2) },
             );
             break;
           } else {
@@ -71,13 +71,14 @@ export class PaymentsService {
             } else {
               await CreditTable.update(
                 { id: nextPaid.id },
-                { left_amount: +(nextPaid.left_amount - money).toFixed(3) },
+                { left_amount: +(nextPaid.left_amount - money).toFixed(2) },
               );
               break;
             }
           }
         }
       }
+
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: +newPaymentDto.order_id },
@@ -95,7 +96,9 @@ export class PaymentsService {
       payment.pay_note = newPaymentDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
       newPay = await this.paymentRepo.save(payment);
+    
     } else {
+
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
@@ -141,7 +144,6 @@ export class PaymentsService {
       counter += temp.affected
       }
 
-      console.log(counter);
       return counter     
   }
 
@@ -151,8 +153,6 @@ export class PaymentsService {
         let temp = await this.paymentRepo.update({id: i}, {is_deleted: false})
       counter += temp.affected
       }
-
-      console.log(counter);
       return counter     
   }
 }
