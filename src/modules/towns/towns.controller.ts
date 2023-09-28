@@ -5,12 +5,15 @@ import {
   Get,
   Param,
   Patch,
-  Post,
+  Post, UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {ApiBearerAuth, ApiOperation, ApiTags} from '@nestjs/swagger';
 import { TownService } from './towns.service';
 import { CreateTownDto } from './dto/create-town.dto';
 import { UpdateTownDto } from "./dto/update-town.dto";
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
+import {Users} from "../users/entities/user.entity";
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 
 @ApiTags('Towns')
 @Controller('town')
@@ -26,9 +29,11 @@ export class TownController {
     return this.townService.createTown(createTownDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: "mavjud turar-joylarni ro'yxatini olish" })
-  @Get('/all-one/:user_id/:id')
-  getAllTowns(@Param('user_id') user_id: number, @Param('id') id: number) {
+  @Get('/all-one/:id')
+  getAllTowns(@AuthUser() user_id: Users, @Param('id') id: number) {
     return this.townService
       .findAllTowns(user_id, id)
       .then((data) => {
