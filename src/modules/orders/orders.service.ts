@@ -209,7 +209,7 @@ export class OrdersService {
           accumulator + Number(currentValue.amount),
         0,
       );
-      order['payments'] = sum;
+      order['payment'] = sum;
     }
     return order;
   }
