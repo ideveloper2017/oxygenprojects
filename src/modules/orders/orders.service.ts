@@ -119,9 +119,11 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
+    const total_in_usd = Number((total/usdRate.rate_value).toFixed(2))
+
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
-      { total_amount: total },
+      { total_amount: total, amount_in_usd: total_in_usd },
     );
 
     const orderItem = new OrderItems();
@@ -188,7 +190,7 @@ export class OrdersService {
       order.forEach((orderItem) => {
         orderItem.total_amount = Number(orderItem.total_amount)
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          (accumulator, currentPayment) => accumulator + Number(currentPayment.amount),
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
@@ -206,7 +208,7 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + +currentValue.amount,
+        (accumulator, currentValue) => accumulator + Number(currentValue.amount),
         0,
       );
       order['payments'] = sum;
@@ -232,7 +234,7 @@ export class OrdersService {
       });
       order.forEach((orderItem) => {
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          (accumulator, currentPayment) => accumulator + Number(currentPayment.amount),
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
@@ -253,7 +255,7 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + +currentValue.amount,
+        (accumulator, currentValue) => accumulator + Number(currentValue.amount),
         0,
       );
       order['payments'] = sum;
@@ -372,7 +374,7 @@ export class OrdersService {
 
     cancelledOrders.forEach((order) => {
     const companyDebt = order.payments.reduce(
-      (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+      (accumulator, currentPayment) => accumulator + Number(currentPayment.amount),
       0,
     );
     order.companyDebt = companyDebt ? companyDebt : 0;

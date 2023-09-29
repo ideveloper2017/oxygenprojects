@@ -27,6 +27,9 @@ export class Orders extends Model {
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2})
   total_amount: number;
+  
+  @Column({type: 'float', nullable: true})
+  amount_in_usd: number
 
   @Column()
   order_date: Date;
