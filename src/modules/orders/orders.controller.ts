@@ -65,7 +65,7 @@ export class OrdersController {
   @Get('/order-list/:id')
   getOrder(@AuthUser() user_id: Users, @Param('id') id?: number) {
     return this.orderService
-      .getOrderList(id, user_id)
+      .getActiveOrdersList(id, user_id)
       .then((response) => {
         if (response !== null && response.length != 0) {
           return { data: response, message: 'Fetched data' };
@@ -109,21 +109,21 @@ export class OrdersController {
   @Post('/delete')
   deleteOrder(@Body() arrayOfId: number[]) {
     if (arrayOfId.length == 0) {
-      return {succes: false, message: 'IDs not gven' };
+      return {succes: false, message: 'IDs not given' };
     }
-    // return this.orderService.deleteOrder(arrayOfId).then((response) => {
-    //   if (response==arrayOfId.length) {
-    //     return {
-    //       success: true,
-    //       message: `Orders deleted successfully`,
-    //     };
-    //   } else if(response < arrayOfId.length) {
-    //     return { success: true, message: 'order deleted ' };
-    //   }else {
-    //     return { success: false, message: 'order not found ' };
-    //
-    //   }
-    // });
+    return this.orderService.deleteOrder(arrayOfId).then((response) => {
+      if (response==arrayOfId.length) {
+        return {
+          success: true,
+          message: `Orders deleted successfully`,
+        };
+      } else if(response < arrayOfId.length) {
+        return { success: true, message: 'order deleted ' };
+      }else {
+        return { success: false, message: 'order not found ' };
+    
+      }
+    });
   }
 
   @Get('/last')
@@ -137,13 +137,23 @@ export class OrdersController {
     });
   }
 
-  @Post('/orderreject')
-  orderreject(@Param('order_id') order_id: number) {
-    return this.orderService.orderReject(order_id);
+  @Post('/cancel')
+  cancelOrders(@Body() arraOfId: number[]) {
+    console.log(arraOfId);
+    if(arraOfId.length){
+      return this.orderService.orderReject(arraOfId);
+    }else {
+      return {success: false, message: "IDs not provided"}
+    }
   }
 
   @Get('/listdue')
   getOrderListDue() {
     return this.orderService.getOrderListIsDue();
+  }
+
+  @Get('/canceled-orders/:orderId')
+  getCanceledOrders(@Param('orderId') orderId: number) {
+    return this.orderService.findRejectedOrders(orderId)
   }
 }

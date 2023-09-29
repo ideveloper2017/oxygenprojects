@@ -54,7 +54,7 @@ export class ClientsService {
       if (error.code === '23505') {
         return {
           message: 'Duplicate key value violates unique constraint',
-          errorcode: error.code,
+          status: 409
         };
       }
     }
@@ -83,7 +83,7 @@ export class ClientsService {
       const updatedClient = await this.clientRepo.update(
         { id: id },
         updateClientDto,
-      );
+        );
       if (updatedClient.affected) {
         return { status: 400, message: 'Mijoz topilmadi!' };
       }
