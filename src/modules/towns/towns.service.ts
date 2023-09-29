@@ -19,8 +19,8 @@ import { ApartmentStatus } from 'src/common/enums/apartment-status';
 import { UsersService } from '../users/users.service';
 import { PaymentMethodsService } from '../payment-method/payment-method.service';
 import { CurrenciesService } from '../currencies/currencies.service';
-import {Regions} from "../region/entities/region.entity";
-import {District} from "../district/entities/district.entity";
+import { Regions } from '../region/entities/region.entity';
+import { District } from '../district/entities/district.entity';
 
 @Injectable()
 export class TownService {
@@ -34,9 +34,6 @@ export class TownService {
     private readonly userserv: UsersService,
     private readonly paymentMethodServ: PaymentMethodsService,
     private readonly currencyServ: CurrenciesService,
-
-
-
   ) {}
 
   async createTown(createTownDto: CreateTownDto) {
@@ -59,9 +56,9 @@ export class TownService {
   async findAllTowns(user_id: Users, id: number) {
     let towns;
     const user = await Users.createQueryBuilder('user')
-    .where('user.id =:user_id', {user_id:user_id.id})
-    .addSelect('role_id')
-    .getRawOne();
+      .where('user.id =:user_id', { user_id: user_id.id })
+      .addSelect('role_id')
+      .getRawOne();
 
     //   if (id != 0) {
     //   towns = await this.townRepository.findOne({
@@ -74,23 +71,25 @@ export class TownService {
     //         relations: ['buildings'] });
     // }
 
-    if (id!=0){
-      towns=await this.townRepository.createQueryBuilder('town')
-          .leftJoinAndSelect(Regions,'region','region.id=town.region_id')
-          .leftJoinAndSelect(District,'district','district.id=town.district_id')
-          .leftJoinAndSelect(Buildings,'buildings','buildings.town_id=town.id')
-          .leftJoinAndSelect(Users,'users','users.id=town.users_id')
-          .where('town.id=:id',{id:id})
+    if (id != 0) {
+      towns = await this.townRepository
+        .createQueryBuilder('town')
+        .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
+        .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
+        .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
+        .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
+        .where('town.id=:id', { id: id })
         //  .andWhere('town.users_id=:user_id',{user_id:user_id.id})
-          .getMany()
+        .getMany();
     } else {
-      towns=await this.townRepository.createQueryBuilder('town')
-          .leftJoinAndSelect(Regions,'region','region.id=town.region_id')
-          .leftJoinAndSelect(District,'district','district.id=town.district_id')
-          .leftJoinAndSelect(Buildings,'buildings','buildings.town_id=town.id')
-          .leftJoinAndSelect(Users,'users','users.id=town.users_id')
-          //.andWhere('town.users_id=:user_id',{user_id:user_id.id})
-          .getMany()
+      towns = await this.townRepository
+        .createQueryBuilder('town')
+        .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
+        .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
+        .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
+        .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
+        //.andWhere('town.users_id=:user_id',{user_id:user_id.id})
+        .getMany();
     }
 
     return towns;
@@ -102,8 +101,7 @@ export class TownService {
   }
 
   async deleteTown(id: number) {
-    const deletedTown = await this.townRepository.delete(id);
-    return deletedTown;
+    return await this.townRepository.delete(id);
   }
 
   async getCountOfBuildingsAndApartmentsInTown() {
@@ -148,7 +146,7 @@ export class TownService {
       .count();
     const bookedApartments = await this.townRepository.manager
       .getRepository(Apartments)
-      .count({ where: { status: ApartmentStatus.BRON} });
+      .count({ where: { status: ApartmentStatus.BRON } });
 
     return {
       towns,

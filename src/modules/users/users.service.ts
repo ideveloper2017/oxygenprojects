@@ -8,7 +8,7 @@ import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Permissions } from '../permissions/entities/permission.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import {Towns} from "../towns/entities/town.entity";
+import { Towns } from '../towns/entities/town.entity';
 
 @Injectable()
 export class UsersService {
@@ -50,11 +50,11 @@ export class UsersService {
     let users;
     if (id != 0) {
       users = await this.usersRepository.findOne({
-        relations: ['roles.permission','userTowns'],
+        relations: ['roles.permission', 'userTowns'],
       });
     } else {
       users = await this.usersRepository.find({
-        relations: ['roles.permission','userTowns'],
+        relations: ['roles.permission', 'userTowns'],
       });
     }
     return users;
@@ -81,11 +81,14 @@ export class UsersService {
           });
         });
 
-
-      const town=await Towns.find({where:{id: In(createUserDto.town_id)}});
-      const isExists = await this.usersRepository.findOne({where: {username: createUserDto.username}})
-      if(isExists){
-        return {success: false, message: "User already exists"}
+      const town = await Towns.find({
+        where: { id: In(createUserDto.town_id) },
+      });
+      const isExists = await this.usersRepository.findOne({
+        where: { username: createUserDto.username },
+      });
+      if (isExists) {
+        return { success: false, message: 'User already exists' };
       }
       const user = await this.usersRepository.save([
         {
@@ -97,7 +100,7 @@ export class UsersService {
           is_active: createUserDto.is_active,
           user_is_deleted: false,
           roles: role_id,
-          userTowns:town,
+          userTowns: town,
         },
       ]);
       return createUserDto;
@@ -117,40 +120,44 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
+    const town = await Towns.find({ where: { id: In(updateUserDto.town_id) } });
 
-    const town=await Towns.find({where:{id: In(updateUserDto.town_id)}});
+    this.usersRepository.manager.query(
+      'delete from UserTown where UserTown.userId=${id}',
+    );
 
-    this.usersRepository.manager.query('delete from UserTown where UserTown.userId=${id}')
-
-    return await this.usersRepository.update({id: id},
-        {
-          first_name: updateUserDto.first_name,
-          last_name: updateUserDto.last_name,
-          username: updateUserDto.username,
-          phone_number: updateUserDto.phone_number,
-          password: await bcrypt.hash(updateUserDto.password,10),
-          is_active:updateUserDto.is_active,
-          roles: await Roles.findOne({where: {id: updateUserDto.role_id}}),
-          userTowns:town
-        }
+    return await this.usersRepository.update(
+      { id: id },
+      {
+        first_name: updateUserDto.first_name,
+        last_name: updateUserDto.last_name,
+        username: updateUserDto.username,
+        phone_number: updateUserDto.phone_number,
+        password: await bcrypt.hash(updateUserDto.password, 10),
+        is_active: updateUserDto.is_active,
+        roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
+        userTowns: town,
+      },
     );
   }
 
   public async deleteUsers(userid: number[]) {
-    let counter = 0 
-    for(let i of userid) {
-        let temp = await this.usersRepository.update({id: i}, {user_is_deleted: true, is_active: false})
-      counter += temp.affected
-      }
+    let counter = 0;
+    for (const i of userid) {
+      const temp = await this.usersRepository.update(
+        { id: i },
+        { user_is_deleted: true, is_active: false },
+      );
+      counter += temp.affected;
+    }
 
-      return counter == userid.length
+    return counter == userid.length;
   }
 
   async findOneById(id: number) {
     return await this.usersRepository.findOne({
       where: { id },
       relations: ['roles'],
-      
     });
   }
 
@@ -160,20 +167,21 @@ export class UsersService {
     });
   }
 
-
-  async createdefaultUser(){
-    const user=await this.usersRepository.find();
-    if (user.length==0){
-      this.usersRepository.save([{
-        first_name: "Admin",
-        last_name: "Admin",
-        username: "admin",
-        phone_number: "+998 94 995 1254",
-        password: await bcrypt.hash("1234",10),
-        is_active: true,
-        user_is_deleted: false,
-        roles: await Roles.findOne({where:{id:1}})
-      }]);
+  async createdefaultUser() {
+    const user = await this.usersRepository.find();
+    if (user.length == 0) {
+      this.usersRepository.save([
+        {
+          first_name: 'Admin',
+          last_name: 'Admin',
+          username: 'admin',
+          phone_number: '+998 94 995 1254',
+          password: await bcrypt.hash('1234', 10),
+          is_active: true,
+          user_is_deleted: false,
+          roles: await Roles.findOne({ where: { id: 1 } }),
+        },
+      ]);
     }
   }
 
@@ -187,14 +195,16 @@ export class UsersService {
       .find({ relations: ['roles'] });
   }
 
-  public async recoverUsers(arrayOfId: number[]){
-    let counter = 0 
-    for(let i of arrayOfId) {
-        let temp = await this.usersRepository.update({id: i}, {user_is_deleted: false, is_active: true})
-      counter += temp.affected
-      }
+  public async recoverUsers(arrayOfId: number[]) {
+    let counter = 0;
+    for (const i of arrayOfId) {
+      const temp = await this.usersRepository.update(
+        { id: i },
+        { user_is_deleted: false, is_active: true },
+      );
+      counter += temp.affected;
+    }
 
-      return counter == arrayOfId.length 
+    return counter == arrayOfId.length;
   }
-
 }
