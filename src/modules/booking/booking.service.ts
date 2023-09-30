@@ -29,7 +29,7 @@ export class BookingService {
       where: { id: +bookingDto.apartment_id },
     });
     booking.bron_amount = bookingDto.bron_amount;
-    booking.bron_date = new Date();
+    booking.bron_date = bookingDto.bron_date? bookingDto.bron_date:  new Date();
     booking.bron_expires = bookingDto.bron_expires;
     booking.bron_is_active = true;
 
@@ -39,7 +39,7 @@ export class BookingService {
 
       savedBooking = await this.bookingsRepository.save(booking);
     } else {
-      throw new NotFoundException('this apartment is already booked');
+      throw new NotFoundException('this apartment can not  booked');
     }
 
     return savedBooking;
