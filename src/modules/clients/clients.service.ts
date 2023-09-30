@@ -80,17 +80,25 @@ export class ClientsService {
 
   async editClientInfo(id: number, updateClientDto: UpdateClientDto) {
     try {
-      const updatedClient = await this.clientRepo.update(
-        { id: id },
-        updateClientDto,
-        );
-      if (updatedClient.affected) {
-        return { status: 400, message: 'Mijoz topilmadi!' };
+      const updatedClient = await this.clientRepo.createQueryBuilder()
+      .update(Clients)
+      .set(updateClientDto)
+      .where('id = :id', {id})
+      .execute()
+      
+      if(updatedClient.affected){
+
+        return {
+          success: true,
+          message: "Mijoz ma'lumotalri tahrirlandi",
+        };
+      }else {
+        return {
+          success: false,
+          message: "Mijoz tahrirlanmadi",
+        };
+
       }
-      return {
-        status: 200,
-        message: "Mijoz ma'lumotalri tahrirlandi",
-      };
     } catch (error) {
       if (error.code === '23505') {
         return {
