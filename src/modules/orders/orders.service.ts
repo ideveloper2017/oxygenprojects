@@ -290,12 +290,12 @@ export class OrdersService {
         'payments',
         'payments.order_id=orders.id',
       )
-      .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
+      .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
       .getMany();
 
     orders.forEach((data, key) => {
       const sum = data.payments.reduce((accumulator, currentValue) => {
-        return accumulator + Number(currentValue.amount);
+        return accumulator + (+currentValue.amount);
       }, 1);
       result.push({
         order_id: data.id,
