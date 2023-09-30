@@ -40,7 +40,7 @@ export class OrdersService {
 
   // =================== Yangi shartnoma tuzisha ===================================
 
-  async createOrder(createOrderDto: CreateOrderDto, users: Users) {
+  async createOrder(createOrderDto: CreateOrderDto, users: any) {
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
 
@@ -71,7 +71,7 @@ export class OrdersService {
     order.order_date = new Date();
     order.initial_pay = createOrderDto.initial_pay;
     order.currency_value = usdRate.rate_value
-    order.users = users;
+    order.users = await Users.findOne({where: {id: users.userId}, });
     order.quantity = 1;
 
     const savedOrder = await this.ordersRepository.save(order);
@@ -118,7 +118,7 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    const total_in_usd = Number((total / usdRate.rate_value).toFixed(2));
+    const total_in_usd = +(total / usdRate.rate_value).toFixed(2);
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
@@ -159,6 +159,8 @@ export class OrdersService {
     payment.caishers = await Caisher.findOne({
       where: { is_active: true, is_default: true },
     });
+    payment.amount_usd = +(savedOrder.initial_pay/usdRate.rate_value).toFixed(2)
+    payment.currency_value = usdRate.rate_value
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;
     payment.pay_note = "Boshlangich to'lov";
@@ -288,7 +290,7 @@ export class OrdersService {
         'payments',
         'payments.order_id=orders.id',
       )
-      .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
+      .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
       .getMany();
 
     orders.forEach((data, key) => {
@@ -302,7 +304,8 @@ export class OrdersService {
         totalsum: +(data.total_amount - sum),
       });
     });
-    return result;
+    return orders
+
   }
 
   // =================== shartnomani tahrirlash ==================================

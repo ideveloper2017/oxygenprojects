@@ -32,7 +32,7 @@ export class OrdersController {
   @ApiOperation({ summary: "Order qo'shishi" })
   @Post('/add')
   createOrder(
-    @AuthUser() user_id: Users,
+    @AuthUser() user_id: any,
     @Body() createOrderDto: CreateOrderDto,
     @Res() res: Response,
   ) {
