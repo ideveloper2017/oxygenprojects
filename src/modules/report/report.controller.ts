@@ -26,7 +26,6 @@ export class ReportController {
 
   @Get('/order-apartments')
   async listOrders() {
-    // return this.reportService.getListByApartment();
-    return Apartments.customQuery();
+    return this.reportService.getListByApartment();
   }
 }

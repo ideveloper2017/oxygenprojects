@@ -53,7 +53,7 @@ export class AuthService {
         id: user,
         is_active: true,
       },
-      relations: ['roles', 'roles.permission', 'userTowns'],
+      relations: ['roles', 'roles.permission'],
     });
 
     delete loggedUser.password;

@@ -89,7 +89,8 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
-      payment.amount_usd = newPaymentDto.amount_usd
+      payment.amount_usd = newPaymentDto.amount_usd;
+      payment.currency_value = newPaymentDto.currency_value;
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({
@@ -99,9 +100,7 @@ export class PaymentsService {
       payment.pay_note = newPaymentDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
       newPay = await this.paymentRepo.save(payment);
-    
     } else {
-
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
@@ -110,7 +109,8 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
-      payment.amount_usd = newPaymentDto.amount_usd
+      payment.amount_usd = newPaymentDto.amount_usd;
+      payment.currency_value = newPaymentDto.currency_value;
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({
@@ -141,14 +141,17 @@ export class PaymentsService {
     return await this.paymentRepo.update({ id: id }, newPaymentDto);
   }
 
-  async deletePayment (arrayOfId: number[]) {
-    let counter = 0 
-    for(let i of arrayOfId) {
-        let temp = await this.paymentRepo.update({id: i}, {is_deleted: true})
-      counter += temp.affected
-      }
+  async deletePayment(arrayOfId: number[]) {
+    let counter = 0;
+    for (const i of arrayOfId) {
+      const temp = await this.paymentRepo.update(
+        { id: i },
+        { is_deleted: true },
+      );
+      counter += temp.affected;
+    }
 
-      return counter     
+    return counter;
   }
 
   async recoverPayment (arrayOfId: number[]) {
