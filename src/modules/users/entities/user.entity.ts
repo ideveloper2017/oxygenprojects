@@ -18,7 +18,6 @@ import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { Exclude } from 'class-transformer';
 import { Towns } from 'src/modules/towns/entities/town.entity';
-import { UserTowns } from './user-towns';
 
 @Entity('Users')
 export class Users extends Model {
@@ -57,14 +56,8 @@ export class Users extends Model {
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];
 
-  // @OneToMany((type) => Towns, (towns) => towns.user)
-  // towns: Towns;
-
-  @ManyToMany((type) => Towns, (town) => town.townUser, {
-    onDelete: 'CASCADE',
-  })
-  @JoinTable({ name: 'UserTowns' })
-  userTowns: Towns[];
+  @OneToMany((type) => Towns, (towns) => towns.user)
+  towns: Towns;
 
   @Column({
     default: 0,

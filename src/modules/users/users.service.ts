@@ -3,18 +3,18 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entities/user.entity';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { Roles } from '../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
 import { Permissions } from '../permissions/entities/permission.entity';
 import { Towns } from '../towns/entities/town.entity';
-import { UserTowns } from './entities/user-towns';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async getUsers(id: number) {
@@ -120,10 +120,6 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    const town = await Towns.find({ where: { id: In(updateUserDto.town_id) } });
-
-    await UserTowns.delete({ usersId: id });
-
     return await this.usersRepository.update(
       { id: id },
       {
@@ -134,7 +130,6 @@ export class UsersService {
         password: await bcrypt.hash(updateUserDto.password, 10),
         is_active: updateUserDto.is_active,
         roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
-        userTowns: town,
       },
     );
   }

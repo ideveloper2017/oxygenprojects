@@ -25,11 +25,14 @@ export class Orders extends Model {
   @Column({ nullable: true })
   initial_pay: number;
 
-  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2})
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
+  currency_value: number;
+
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   total_amount: number;
-  
-  @Column({type: 'float', nullable: true})
-  amount_in_usd: number
+
+  @Column({ type: 'float', nullable: true })
+  total_amount_usd: number;
 
   @Column()
   order_date: Date;
@@ -41,9 +44,9 @@ export class Orders extends Model {
   })
   order_status: OrderStatus;
 
-  @Column({default: false})
+  @Column({ default: false })
   is_deleted: boolean;
- 
+
   @ManyToOne(
     (type) => PaymentMethods,
     (paymentMethods) => paymentMethods.orders,

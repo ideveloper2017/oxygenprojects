@@ -7,7 +7,6 @@ export class CreateOrderDto {
   @IsInt()
   client_id: number;
 
-
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
   @IsInt()
   apartment_id: number;
@@ -30,6 +29,12 @@ export class CreateOrderDto {
   @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi' })
   total_amount: number;
 
+  @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi $' })
+  currency_value: number;
+
+  @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi $' })
+  total_amount_usd: number;
+
   @ApiProperty({ example: '2023-09-04' })
   order_date: Date;
 
@@ -39,7 +44,6 @@ export class CreateOrderDto {
   @ApiProperty({ example: 1, description: 'nechta kvartira olayotgani' })
   quantity: number;
 
-  
   @ApiProperty({ example: 12, description: "bo'lib tolash oyi = 12 ..." })
   installment_month?: number;
 }

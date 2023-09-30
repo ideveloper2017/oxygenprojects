@@ -12,7 +12,6 @@ import { CaisherService } from './caisher.service';
 import { CreateCaisherDto } from './dto/create-caisher.dto';
 import { UpdateCaisherDto } from './dto/update-caisher.dto';
 import {ApiProperty, ApiQuery, ApiTags} from "@nestjs/swagger";
-import { UserRole } from "../roles/entities/role.entity";
 import { Caisher } from "./entities/caisher.entity";
 import { Paymentmethods } from "../../common/enums/paymentmethod";
 
