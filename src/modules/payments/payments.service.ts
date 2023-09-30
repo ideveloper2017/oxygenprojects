@@ -18,6 +18,8 @@ export class PaymentsService {
   ) {}
 
   async newPayment(newPaymentDto: NewPaymentDto) {
+
+    console.log(newPaymentDto);
     const { paymentMethods } = await Orders.findOne({
       where: { id: newPaymentDto.order_id },
       relations: ['paymentMethods'],
@@ -87,6 +89,7 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
+      payment.amount_usd = newPaymentDto.amount_usd
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({
@@ -107,6 +110,7 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
+      payment.amount_usd = newPaymentDto.amount_usd
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
       payment.caishers = await Caisher.findOne({
@@ -150,9 +154,13 @@ export class PaymentsService {
   async recoverPayment (arrayOfId: number[]) {
     let counter = 0 
     for(let i of arrayOfId) {
-        let temp = await this.paymentRepo.update({id: i}, {is_deleted: false})
-      counter += temp.affected
+      counter += (await this.paymentRepo.update({id: i}, {is_deleted: false})).affected
       }
       return counter     
+  }
+
+
+  public async checkOrderIsCompleted(order_id: number){
+      
   }
 }

@@ -30,9 +30,6 @@ export class CreateOrderDto {
   total_amount: number;
 
   @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi $' })
-  currency_value: number;
-
-  @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi $' })
   total_amount_usd: number;
 
   @ApiProperty({ example: '2023-09-04' })

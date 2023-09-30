@@ -70,6 +70,7 @@ export class OrdersService {
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
     order.initial_pay = createOrderDto.initial_pay;
+    order.currency_value = usdRate.rate_value
     order.users = users;
     order.quantity = 1;
 
