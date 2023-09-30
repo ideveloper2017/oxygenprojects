@@ -19,7 +19,6 @@ export class PaymentsService {
 
   async newPayment(newPaymentDto: NewPaymentDto) {
 
-    console.log(newPaymentDto);
     const { paymentMethods } = await Orders.findOne({
       where: { id: newPaymentDto.order_id },
       relations: ['paymentMethods'],
@@ -89,7 +88,7 @@ export class PaymentsService {
         where: { id: +newPaymentDto.user_id },
       });
       payment.amount = newPaymentDto.amount;
-      payment.amount_usd = newPaymentDto.amount_usd;
+      payment.amount_usd = newPaymentDto.amount_usd ? newPaymentDto.amount_usd : +(newPaymentDto.amount/newPaymentDto.currency_value).toFixed(2);
       payment.currency_value = newPaymentDto.currency_value;
       payment.payment_date = new Date();
       payment.paymentmethods = newPaymentDto.paymentmethods;
