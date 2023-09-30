@@ -191,7 +191,7 @@ export class OrdersService {
             accumulator + Number(currentPayment.amount),
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments.toFixed(2) : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
@@ -210,7 +210,7 @@ export class OrdersService {
           accumulator + Number(currentValue.amount),
         0,
       );
-      order['payments'] = sum;
+      order['payments'] = sum.toFixed(2);
     }
     return order;
   }
@@ -237,7 +237,7 @@ export class OrdersService {
             accumulator + Number(currentPayment.amount),
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments.toFixed(2) : 0;
       });
     } else {
       apartments = Apartments.findOne({ where: { id: id } });
@@ -259,7 +259,7 @@ export class OrdersService {
             accumulator + Number(currentPayment.amount),
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments.toFixed(2) : 0;
       });
 
       // const sum = order['payments'].reduce(
@@ -303,12 +303,6 @@ export class OrdersService {
       });
     });
     return result;
-    // return await this.ordersRepository.
-    // find({where: {order_status: OrderStatus.ACTIVE}, relations: ['clients']})
-    //  .createQueryBuilder('orders')
-    //  .leftJoinAndSelect('clients','client','client.id=orders.client_id')
-    // .where("orders.order_status =:logic", { logic: "active" })
-    // .getMany()
   }
 
   // =================== shartnomani tahrirlash ==================================
