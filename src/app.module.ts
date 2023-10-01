@@ -22,7 +22,6 @@ import { PaymentMethodModule } from './modules/payment-method/payment-method.mod
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CreditTableModule } from './modules/credit-table/credit-table.module';
 import { ClientsModule } from './modules/clients/clients.module';
-import { SalesModule } from './modules/sales/sales.module';
 import { RegionModule } from './modules/region/region.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
 import { ExchangRatesModule } from './modules/exchang-rates/exchang-rates.module';
@@ -40,7 +39,6 @@ import { Currencies } from './modules/currencies/entities/currency.entity';
 import { AuthMiddleware } from './modules/auth/middleware/auth.middleware';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskSchedulerModule } from './modules/task-scheduler/task-scheduler.module';
-import { ReturnModule } from './modules/return/return.module';
 import { CaisherModule } from './modules/caisher/caisher.module';
 import { WordexportModule } from './modules/wordexport/wordexport.module';
 import { BookingModule } from './modules/booking/booking.module';
@@ -81,13 +79,11 @@ import { ReportModule } from './modules/report/report.module';
     PaymentsModule,
     CreditTableModule,
     ClientsModule,
-    SalesModule,
     RegionModule,
     CurrenciesModule,
     ExchangRatesModule,
     FileUploadModule,
     TaskSchedulerModule,
-    ReturnModule,
     CaisherModule,
     WordexportModule,
     BookingModule,
