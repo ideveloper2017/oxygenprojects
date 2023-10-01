@@ -157,7 +157,7 @@ export class OrdersService {
     payment.payment_date = new Date();
     payment.paymentmethods = Paymentmethods.CARD;
     payment.caishers = await Caisher.findOne({
-      where: { is_active: true, is_default: true },
+      where: { is_active: true },
     });
     payment.amount_usd = +(savedOrder.initial_pay / usdRate.rate_value).toFixed(
       2,
