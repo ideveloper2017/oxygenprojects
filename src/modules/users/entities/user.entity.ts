@@ -12,7 +12,6 @@ import {
 import Model from '../../model/model.module';
 import { Roles } from '../../roles/entities/role.entity';
 import * as bcrypt from 'bcryptjs';
-import { Sales } from '../../sales/entities/sale.entity';
 import { Orders } from '../../orders/entities/order.entity';
 import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
@@ -46,9 +45,6 @@ export class Users extends Model {
   @OneToMany((type) => Payments, (payment) => payment.users)
   @JoinColumn({ name: 'payment_id' })
   payments: Payments;
-
-  @OneToMany((type) => Sales, (sales) => sales.users)
-  sales: Sales[];
 
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
