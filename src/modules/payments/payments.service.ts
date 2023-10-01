@@ -134,7 +134,7 @@ export class PaymentsService {
   }
 
   async getAllPayments(offset: number, limit: number, users:any) {
-    const user=await Users.findOne({where:{id:users.userId}})
+    const user=await Users.findOne({where:{id:users.userId},relations:['roles']})
     const temp_array=user.town_access?.split(',');
     const town_access:number[]=temp_array?.map((str)=>Number(str))
     let orders_res;
