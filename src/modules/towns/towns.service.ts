@@ -106,11 +106,11 @@ export class TownService {
   async getCountOfBuildingsAndApartmentsInTown(user:any) {
     let result
     const users=await Users.findOne({where:{id:user.userId},relations:['roles']});
-    console.log(users.town_access);
-    const temp_array=users.town_access.split(',');
-    const town_access:number[]=temp_array.map((str)=>Number(str))
-    console.log(town_access);
-   if  (users.roles.role_name=='admin'){
+    const temp_array=users.town_access?.split(',');
+    const town_access:number[]=temp_array?.map((str)=>Number(str))
+
+    console.log(users)
+   if  (users.roles.role_name=='SuperAdmin'){
      result = this.townRepository
          .createQueryBuilder()
          .select('town.id, town.name, town.created_at')
@@ -121,7 +121,7 @@ export class TownService {
          .leftJoin('buildings.entrances', 'entrances')
          .leftJoin('entrances.floors', 'floors')
          .leftJoin('floors.apartments', 'apartments')
-         .groupBy('town.id').getRawMany;
+         .groupBy('town.id').getRawMany();
    }
 
    if  (users.roles.role_name=='manager'){
@@ -136,7 +136,7 @@ export class TownService {
          .leftJoin('entrances.floors', 'floors')
          .leftJoin('floors.apartments', 'apartments')
          .where("town.id In(:...town_access)",{town_access})
-         .groupBy('town.id').getRawMany;
+         .groupBy('town.id').getRawMany();
    }
 
    if (users.roles.role_name=='Seller'){
@@ -151,7 +151,7 @@ export class TownService {
          .leftJoin('entrances.floors', 'floors')
          .leftJoin('floors.apartments', 'apartments')
          .where("town.id In(:...town_access)",{town_access})
-         .groupBy('town.id').getRawMany;
+         .groupBy('town.id').getRawMany();
    }
 
 
