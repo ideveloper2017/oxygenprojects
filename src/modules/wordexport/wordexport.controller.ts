@@ -19,7 +19,7 @@ export class WordexportController {
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id:number,@Res() res) {
     let client;
-    const filename = 'contract.docx';
+    const filename = 'data/contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
 
