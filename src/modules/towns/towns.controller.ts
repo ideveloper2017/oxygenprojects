@@ -101,7 +101,7 @@ export class TownController {
           return { success: false, message: "Turar-joy ma'lumotlari yoq" };
         }
       }).catch((error)=>{
-
+          return { status: error.code, message: error.message };
         });
   }
   @ApiOperation({ summary: 'Home page infolar' })
