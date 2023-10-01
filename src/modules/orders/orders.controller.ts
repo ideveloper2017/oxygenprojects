@@ -52,10 +52,10 @@ export class OrdersController {
             message: 'No order created successfully',
           });
         }
-      });
-    // .catch((error) => {
-    //   res.send({ status: 409, success: false, message: error.message });
-    // });
+      })
+    .catch((error) => {
+      res.send({ status: 409, success: false, message: error.message });
+    });
   }
 
   @UseGuards(JwtAuthGuard)

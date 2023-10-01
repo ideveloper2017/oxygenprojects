@@ -19,12 +19,12 @@ export class WordexportController {
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id:number,@Res() res) {
     let client;
-    const filename = 'data/contract.docx';
+    const filename = 'contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
 
-    client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
-    const order=await this.orderRepo.findOne({where:{clients:client },
+    // client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
+    const order=await this.orderRepo.findOne({where:{id:client_id },
         relations:['clients','orderItems.apartments.floor.entrance.buildings.towns']});
 
     let apartment=order?.orderItems?.map((data)=>{

@@ -1,7 +1,6 @@
 import { Column, Entity, OneToMany } from 'typeorm';
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
-import { Sales } from '../../sales/entities/sale.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 
 @Entity('Clients')
@@ -50,9 +49,6 @@ export class Clients extends Model {
 
   @Column({ nullable: true })
   description: string;
-
-  @OneToMany((type) => Sales, (sales) => sales.clients)
-  sales: Sales[];
 
   @OneToMany((type) => Orders, (orders) => orders.clients)
   orders: Orders[];
