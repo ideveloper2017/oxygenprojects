@@ -34,12 +34,9 @@ export class CaisherService {
   async update(id: number, updateCaisherDto: UpdateCaisherDto) {
 
     const town=await Towns.findOne({where:{id:updateCaisherDto.town_id}});
-    this.caisherServ.createQueryBuilder().update(Caisher).set({is_default:false}).where("id<>:id",{id})
-
     return this.caisherServ.update({ id: id }, {
       caisher_name: updateCaisherDto.caisher_name,
       is_active: updateCaisherDto.is_active,
-      is_default: updateCaisherDto.is_default,
       towns:town
     });
   }

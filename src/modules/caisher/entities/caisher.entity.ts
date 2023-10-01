@@ -11,9 +11,6 @@ export class Caisher extends Model {
   @Column()
   is_active: boolean;
 
-  @Column()
-  is_default: boolean;
-
   @OneToMany(() => Payments, (payments) => payments.caishers, {
     onDelete: 'CASCADE',
   })

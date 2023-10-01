@@ -153,11 +153,7 @@ export class TownService {
          .where("town.id In(:...town_access)",{town_access})
          .groupBy('town.id').getRawMany();
    }
-
-
-
-
-    return result;
+   return result;
   }
   async homePageDatas() {
     const towns = await this.townRepository.count();
