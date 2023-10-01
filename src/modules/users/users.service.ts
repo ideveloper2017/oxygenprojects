@@ -122,6 +122,7 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
+    console.log(updateUserDto);
     return await this.usersRepository.update(
       { id: id },
       {
