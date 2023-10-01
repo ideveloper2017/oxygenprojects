@@ -52,10 +52,10 @@ export class OrdersController {
             message: 'No order created successfully',
           });
         }
-      })
-      // .catch((error) => {
-      //   res.send({ status: 409, success: false, message: error.message });
-      // });
+      });
+    // .catch((error) => {
+    //   res.send({ status: 409, success: false, message: error.message });
+    // });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -102,26 +102,24 @@ export class OrdersController {
     });
   }
 
-
   @ApiOperation({
     summary: "Order ni o'chirish IDlar ni array ichida berish kerak",
   })
   @Post('/delete')
   deleteOrder(@Body() arrayOfId: number[]) {
     if (arrayOfId.length == 0) {
-      return {succes: false, message: 'IDs not given' };
+      return { succes: false, message: 'IDs not given' };
     }
     return this.orderService.deleteOrder(arrayOfId).then((response) => {
-      if (response==arrayOfId.length) {
+      if (response == arrayOfId.length) {
         return {
           success: true,
           message: `Orders deleted successfully`,
         };
-      } else if(response < arrayOfId.length) {
+      } else if (response < arrayOfId.length) {
         return { success: true, message: 'order deleted ' };
-      }else {
+      } else {
         return { success: false, message: 'order not found ' };
-    
       }
     });
   }
@@ -141,8 +139,8 @@ export class OrdersController {
   cancelOrders(@Body() arraOfId: number[]) {
     if(arraOfId.length){
       return this.orderService.orderReject(arraOfId);
-    }else {
-      return {success: false, message: "IDs not provided"}
+    } else {
+      return { success: false, message: 'IDs not provided' };
     }
   }
 
@@ -153,6 +151,6 @@ export class OrdersController {
 
   @Get('/canceled-orders/:orderId')
   getCanceledOrders(@Param('orderId') orderId: number) {
-    return this.orderService.findRejectedOrders(orderId)
+    return this.orderService.findRejectedOrders(orderId);
   }
 }

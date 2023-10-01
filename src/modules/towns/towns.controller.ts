@@ -34,7 +34,7 @@ export class TownController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "mavjud turar-joylarni ro'yxatini olish" })
   @Get('/all-one/:id')
-  getAllTowns(@AuthUser() user_id: Users, @Param('id') id: number) {
+  getAllTowns(@AuthUser() user_id: any, @Param('id') id: number) {
     return this.townService
       .findAllTowns(user_id, id)
       .then((data) => {
@@ -88,17 +88,21 @@ export class TownController {
   @ApiOperation({
     summary: 'Turar-joylardagi bino va kvartiralar sonini korish',
   })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('/get-count')
-  getCountOfBuildingsAndApartmentsInTown() {
+  getCountOfBuildingsAndApartmentsInTown(@AuthUser() user:any) {
     return this.townService
-      .getCountOfBuildingsAndApartmentsInTown()
+      .getCountOfBuildingsAndApartmentsInTown(user)
       .then((data) => {
         if (data.length != 0) {
           return { success: true, message: "Turar-joy ma'lumotlari", data };
         } else {
           return { success: false, message: "Turar-joy ma'lumotlari yoq" };
         }
-      });
+      }).catch((error)=>{
+          return { status: error.code, message: error.message };
+        });
   }
   @ApiOperation({ summary: 'Home page infolar' })
   @Get('/homepage')

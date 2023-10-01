@@ -70,7 +70,7 @@ export class UsersService {
   }
 
   public async createLogin(createUserDto: CreateUserDto) {
-    let role_id;
+    let role_id
     try {
       const role = await this.usersRepository.manager
         .getRepository(Roles)
@@ -81,15 +81,16 @@ export class UsersService {
           });
         });
 
-      const town = await Towns.find({
-        where: { id: In(createUserDto.town_id) },
-      });
+
       const isExists = await this.usersRepository.findOne({
         where: { username: createUserDto.username },
       });
       if (isExists) {
         return { success: false, message: 'User already exists' };
       }
+
+
+
       const user = await this.usersRepository.save([
         {
           first_name: createUserDto.first_name,
@@ -100,7 +101,7 @@ export class UsersService {
           is_active: createUserDto.is_active,
           user_is_deleted: false,
           roles: role_id,
-          userTowns: town,
+          town_access:createUserDto.town_access.join(',') ,
         },
       ]);
       return createUserDto;
@@ -125,11 +126,12 @@ export class UsersService {
       {
         first_name: updateUserDto.first_name,
         last_name: updateUserDto.last_name,
-        username: updateUserDto.username,
+       // username: updateUserDto.username,
         phone_number: updateUserDto.phone_number,
         password: await bcrypt.hash(updateUserDto.password, 10),
         is_active: updateUserDto.is_active,
         roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
+        town_access:updateUserDto.town_access.join(',')
       },
     );
   }

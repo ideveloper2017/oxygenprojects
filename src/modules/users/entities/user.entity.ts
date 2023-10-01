@@ -64,6 +64,9 @@ export class Users extends Model {
   })
   tokenVersion: number;
 
+  @Column({nullable:true})
+  town_access:string;
+
   @Column()
   user_is_deleted: boolean;
 
