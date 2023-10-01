@@ -55,43 +55,41 @@ export class TownService {
 
   async findAllTowns(user_id: any, id: number) {
     let towns;
-
-    const  user=await Users.findOne({where:{id:user_id.userId},relations:['roles']});
-
-
-      if (user.roles.role_name=='admin'){
-        if (id != 0) {
-          towns = await this.townRepository.findOne({
-            where: { id: In(user.town_access.split(',')) },
-            relations: ['buildings'],
-          });
-        } else {
-          towns = await this.townRepository.find(
-              { relations: ['buildings'] });
-        }
-      }
-
-
-    // if (id != 0) {
-    //   towns = await this.townRepository
-    //     .createQueryBuilder('town')
-    //     .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
-    //     .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
-    //     .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
-    //     .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
-    //     .where('town.id=:id', { id: id })
-    //     //  .andWhere('town.users_id=:user_id',{user_id:user_id.id})
-    //     .getMany();
+    // const user = await Users.createQueryBuilder('user')
+    //   .where('user.id =:user_id', { user_id: user_id.user_ })
+    //   .addSelect('role_id')
+    //   .getRawOne();
+    //
+    //   if (id != 0) {
+    //   towns = await this.townRepository.findOne({
+    //     where: { id: In(user.town_access) },
+    //     relations: ['buildings'],
+    //   });
     // } else {
-    //   towns = await this.townRepository
-    //     .createQueryBuilder('town')
-    //     .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
-    //     .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
-    //     .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
-    //     .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
-    //     //.andWhere('town.users_id=:user_id',{user_id:user_id.id})
-    //     .getMany();
+    //   towns = await this.townRepository.find(
+    //       { relations: ['buildings'] });
     // }
+
+    if (id != 0) {
+      towns = await this.townRepository
+        .createQueryBuilder('town')
+        .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
+        .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
+        .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
+        .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
+        .where('town.id=:id', { id: id })
+        //  .andWhere('town.users_id=:user_id',{user_id:user_id.id})
+        .getMany();
+    } else {
+      towns = await this.townRepository
+        .createQueryBuilder('town')
+        .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
+        .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
+        .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
+        .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
+        //.andWhere('town.users_id=:user_id',{user_id:user_id.id})
+        .getMany();
+    }
 
     return towns;
   }
@@ -105,7 +103,11 @@ export class TownService {
     return await this.townRepository.delete(id);
   }
 
-  async getCountOfBuildingsAndApartmentsInTown() {
+  async getCountOfBuildingsAndApartmentsInTown(user:any) {
+
+    const users=await Users.findOne({where:{id:user.userId},relations:['roles']});
+    //user.town_access;
+    console.log(users);
     const result = this.townRepository
       .createQueryBuilder()
       .select('town.id, town.name, town.created_at')
@@ -116,6 +118,7 @@ export class TownService {
       .leftJoin('buildings.entrances', 'entrances')
       .leftJoin('entrances.floors', 'floors')
       .leftJoin('floors.apartments', 'apartments')
+       .where("town.id=:town_id",{town_id:+In(users.town_access.split(','))})
       .groupBy('town.id');
 
     const res = await result.getRawMany();

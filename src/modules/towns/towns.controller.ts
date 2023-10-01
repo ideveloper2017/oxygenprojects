@@ -88,17 +88,21 @@ export class TownController {
   @ApiOperation({
     summary: 'Turar-joylardagi bino va kvartiralar sonini korish',
   })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('/get-count')
-  getCountOfBuildingsAndApartmentsInTown() {
+  getCountOfBuildingsAndApartmentsInTown(@AuthUser() user:any) {
     return this.townService
-      .getCountOfBuildingsAndApartmentsInTown()
+      .getCountOfBuildingsAndApartmentsInTown(user)
       .then((data) => {
         if (data.length != 0) {
           return { success: true, message: "Turar-joy ma'lumotlari", data };
         } else {
           return { success: false, message: "Turar-joy ma'lumotlari yoq" };
         }
-      });
+      }).catch((error)=>{
+
+        });
   }
   @ApiOperation({ summary: 'Home page infolar' })
   @Get('/homepage')
