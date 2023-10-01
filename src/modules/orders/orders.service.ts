@@ -41,6 +41,7 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================
 
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
+
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
 
@@ -69,9 +70,9 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = createOrderDto.initial_pay;
+    order.initial_pay = createOrderDto.initial_pay ? createOrderDto.initial_pay : +(createOrderDto.initial_pay_usd * usdRate.rate_value).toFixed(2) ;
     order.currency_value = usdRate.rate_value;
-    order.users = await Users.findOne({ where: { id: users.userId } });
+    order.users = users
     order.quantity = 1;
 
     const savedOrder = await this.ordersRepository.save(order);
@@ -90,7 +91,7 @@ export class OrdersService {
     let schedule;
 
     if (
-      payment_method.name_alias.toLowerCase() === 'rassrochka' ||
+      payment_method.name_alias.toLowerCase() === 'subsidia' ||
       payment_method.name_alias.toLowerCase() === 'ipoteka'
     ) {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
@@ -111,6 +112,8 @@ export class OrdersService {
         installment.due_amount = +oneMonthDue.toFixed(2);
         installment.due_date = mon;
         installment.left_amount = 0;
+        installment.usd_due_amount = +(installment.due_amount / usdRate.rate_value).toFixed(2)
+        installment.currency_value = usdRate.rate_value
         installment.status = 'waiting';
         creditSchedule.push(installment);
       }
@@ -174,7 +177,7 @@ export class OrdersService {
 
   // ===================== active shartnomalar ro'yxatini olish =============================
 
-  async getActiveOrdersList(id: number, user_id: Users) {
+  async getActiveOrdersList(id: number, user_id: any) {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
@@ -191,7 +194,7 @@ export class OrdersService {
       order.forEach((orderItem) => {
         orderItem.total_amount = +orderItem.total_amount;
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
@@ -199,20 +202,14 @@ export class OrdersService {
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        relations: [
-          'clients',
-          'payments',
-          'users',
-          'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
-        ],
+        relations: ['clients', 'payments', 'users', 'paymentMethods'],
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + +currentValue.amount,
+        (accumulator, currentValue) => accumulator + (+currentValue.amount),
         0,
       );
-      order['payments'] = +sum.toFixed(2);
+      order['sumOfpayments'] = sum ? +sum.toFixed(2) : 0;
     }
     return order;
   }
@@ -221,22 +218,23 @@ export class OrdersService {
 
   async findOrderByApartmentID(id: number) {
     const order = await this.ordersRepository
-    .createQueryBuilder('order')
-    .leftJoin('order.orderItems', 'orderItem')
-    .leftJoinAndSelect('orderItem.apartments', 'apartment')
-    .leftJoinAndSelect('order.clients', 'clients')
-    .leftJoinAndSelect('order.payments', 'payment')
-    .where('apartment.id = :id', { id })
-    .getOne();
-  
-  if (order) {
-    const sumOfPayments = order.payments.reduce(
-      (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
-      0
-    );
-    order['sumOfPayments'] = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
+      .createQueryBuilder('order')
+      .leftJoin('order.orderItems', 'orderItem')
+      .leftJoinAndSelect('orderItem.apartments', 'apartment')
+      .leftJoinAndSelect('order.clients', 'clients')
+      .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
+      .leftJoinAndSelect('order.payments', 'payment')
+      .where('apartment.id = :id', { id })
+      .getOne();
+
+    if (order) {
+      const sumOfPayments = order.payments.reduce(
+        (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
+        0,
+      );
+      order['sumOfpayments'] = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
     }
-    return order
+    return order;
   }
 
   async getOrderListIsDue() {
@@ -258,17 +256,19 @@ export class OrdersService {
       .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
       .getMany();
 
-    orders.forEach((data, key) => {
+    orders.forEach((data) => {
       const sum = data.payments.reduce((accumulator, currentValue) => {
-        return accumulator + +currentValue.amount;
-      }, 1);
+        return accumulator + (+currentValue.amount);
+      }, 0);
+
       result.push({
         order_id: data.id,
         order_date: data.order_date,
         clients: data.clients.first_name + ' ' + data.clients.last_name,
-        totalsum: +(data.total_amount - sum),
+        totalsum: data.total_amount - sum,
       });
     });
+
     return result;
   }
 
@@ -359,18 +359,9 @@ export class OrdersService {
         ],
       });
 
-      cancelledOrders.forEach((orderItem) => {
-        orderItem.total_amount = +orderItem.total_amount;
-        const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
-          0,
-        );
-        orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
-      });
-
       cancelledOrders.forEach((order) => {
         const sumOfPayments = order.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
           0,
         );
         order.sumOfPayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
@@ -389,4 +380,44 @@ export class OrdersService {
       return { success: false, message: 'No data fetched' };
     }
   }
+
+  //============================ jami summasi to'langan shartnomalar ro'yxatini olish ===============================
+
+  async findCompletedOrders(id: number) {
+    let result
+    
+    if(id != 0){
+      result = await this.ordersRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.clients', 'client')
+      .leftJoinAndSelect('orders.users', 'user')
+      .leftJoinAndSelect('orders.paymentMethods', 'paymentMethod')
+      .leftJoinAndSelect('orders.payments', 'payment')
+      .where('orders.order_status = :status', {status: OrderStatus.COMPLETED})
+      .andWhere('orders.id = :id', {id})
+      .getOne()
+
+    }else {
+
+      result = await this.ordersRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.clients', 'client')
+      .leftJoinAndSelect('orders.users', 'user')
+      .leftJoinAndSelect('orders.paymentMethods', 'paymentMethod')
+      .leftJoinAndSelect('orders.payments', 'payment')
+      .where('orders.order_status = :status', {status: OrderStatus.COMPLETED})
+      .getMany()
+  }
+
+    if(result && result.length > 0) {
+      return {success: true, data: result, message: "all completed orders"}
+    }else if(result){
+      return {success: true, data: result, message: "completed order"}
+    }else{
+      return {success: false, message: "completed order not found"}
+      
+    }
+  }
+
+
 }

@@ -109,7 +109,6 @@ export class TownService {
     const temp_array=users.town_access?.split(',');
     const town_access:number[]=temp_array?.map((str)=>Number(str))
 
-    console.log(users)
    if  (users.roles.role_name=='SuperAdmin'){
      result = this.townRepository
          .createQueryBuilder()

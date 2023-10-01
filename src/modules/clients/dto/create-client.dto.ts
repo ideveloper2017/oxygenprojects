@@ -5,17 +5,17 @@ enum Gender {
   Female = 'female',
 }
 export class CreateClientDto {
-  @ApiProperty({ example: 'Jhonson', description: 'clients firstname ' })
+  @ApiProperty({ example: 'Abdulloh', description: 'clients firstname ' })
   @IsNotEmpty()
   @IsString()
   first_name: string;
 
-  @ApiProperty({ example: 'McCandy', description: 'clients lastname ' })
+  @ApiProperty({ example: 'Abdurahmonov', description: 'clients lastname ' })
   @IsNotEmpty()
   @IsString()
   last_name: string;
 
-  @ApiProperty({ example: 'Sardor ugli', description: 'clients middlename' })
+  @ApiProperty({ example: 'Abdurahim ugli', description: 'clients middlename' })
   @IsString()
   middle_name: string;
 
@@ -27,7 +27,7 @@ export class CreateClientDto {
   type: string = 'jismoniy' || 'yuridik';
 
   @ApiProperty({
-    example: 'Orlando Mallway street A4',
+    example: 'Namangan shahar islom karimov kochasi',
     description: 'clients address ',
   })
   @IsString()

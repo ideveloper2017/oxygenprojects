@@ -63,7 +63,7 @@ export class OrdersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Order/Orderlar ro'yxatini ko'rish" })
   @Get('/order-list/:id')
-  getOrder(@AuthUser() user_id: Users, @Param('id') id?: number) {
+  getOrder(@AuthUser() user_id: any, @Param('id') id?: number) {
     return this.orderService
       .getActiveOrdersList(id, user_id)
       .then((response) => {
@@ -135,6 +135,7 @@ export class OrdersController {
     });
   }
 
+  @ApiOperation({summary: "Shartnoma bekor qilish"})
   @Post('/cancel')
   cancelOrders(@Body() arraOfId: number[]) {
     if(arraOfId.length){
@@ -143,14 +144,22 @@ export class OrdersController {
       return { success: false, message: 'IDs not provided' };
     }
   }
-
+  
+  @ApiOperation({summary: "Qarzi bor shartnomalarni olish"})
   @Get('/listdue')
   getOrderListDue() {
     return this.orderService.getOrderListIsDue();
   }
 
+  @ApiOperation({summary: "Get Canceled orders"})
   @Get('/canceled-orders/:orderId')
   getCanceledOrders(@Param('orderId') orderId: number) {
     return this.orderService.findRejectedOrders(orderId);
+  }
+
+  @ApiOperation({summary: "Get Completed orders"})
+  @Get('/done-orders/:orderId')
+  getCompletedOrders(@Param('orderId') orderId: number) {
+    return this.orderService.findCompletedOrders(orderId);
   }
 }

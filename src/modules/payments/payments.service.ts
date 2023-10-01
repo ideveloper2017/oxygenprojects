@@ -10,7 +10,7 @@ import { Caisher } from '../caisher/entities/caisher.entity';
 import { Users } from '../users/entities/user.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
 import { OrderStatus } from 'src/common/enums/order-status';
-import {Clients} from "../clients/entities/client.entity";
+import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -26,11 +26,13 @@ export class PaymentsService {
       relations: ['paymentMethods'],
     });
 
+    const usdRate = await ExchangRates.findOne({where: {is_default: true}})
     let newPay;
 
     if (
       paymentMethods.name_alias.toLowerCase() == 'rassrochka' ||
-      paymentMethods.name_alias.toLowerCase() == 'ipoteka'
+      paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
+      paymentMethods.name_alias.toLowerCase() == 'subsidia'
     ) {
       let money = newPaymentDto.amount;
       while (money > 0) {
@@ -42,6 +44,7 @@ export class PaymentsService {
         if (!nextPaid) {
           break;
         }
+        const amount_usd = nextPaid.due_amount / usdRate.rate_value
 
         if (money >= nextPaid.due_amount) {
           if (!nextPaid.left_amount) {
@@ -89,7 +92,7 @@ export class PaymentsService {
       payment.users = await Users.findOne({
         where: { id: +newPaymentDto.user_id },
       });
-      payment.amount = newPaymentDto.amount;
+      payment.amount = newPaymentDto.amount ? newPaymentDto.amount : (newPaymentDto.amount_usd * newPaymentDto.currency_value);
       payment.amount_usd = newPaymentDto.amount_usd ? newPaymentDto.amount_usd : +(newPaymentDto.amount/newPaymentDto.currency_value).toFixed(2);
       payment.currency_value = newPaymentDto.currency_value;
       payment.payment_date = new Date();

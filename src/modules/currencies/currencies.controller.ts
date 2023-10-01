@@ -55,4 +55,11 @@ export class CurrenciesController {
         }
       });
   }
+  
+  
+    @ApiOperation({ summary: 'Valyuta kurslarini olish' })
+    @Get('/get-rates')
+    getRates() {
+      return  this.currancyService.findRates()
+    }
 }

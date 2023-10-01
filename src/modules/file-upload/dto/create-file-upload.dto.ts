@@ -1,4 +1,3 @@
-import { ApiProperty } from "@nestjs/swagger";
 
 export class FileDto {
     entity: string;
@@ -7,5 +6,4 @@ export class FileDto {
     path: string;
     mimetype: string;
     image_id:number;
-    file_id?:number;
 }

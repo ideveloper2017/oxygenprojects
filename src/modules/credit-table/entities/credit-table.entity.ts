@@ -12,7 +12,13 @@ export class CreditTable extends Model {
   
   @Column({ type: 'float' })
   due_amount: number;
- 
+  
+  @Column({ type: 'float' })
+  usd_due_amount: number
+  
+  @Column({ type: 'float' })
+  currency_value: number
+
   @Column({ type: 'float' })
   left_amount: number;
 

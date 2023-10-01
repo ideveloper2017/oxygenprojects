@@ -65,7 +65,6 @@ export class ClientsService {
       skip: offset,
       take: limit,
       order: { id: 'desc' },
-      relations: ['orders.payments'],
     });
     return { status: 200, data: clients, message: "Mijozlar ro'yxati" };
   }
@@ -80,6 +79,7 @@ export class ClientsService {
 
   async editClientInfo(id: number, updateClientDto: UpdateClientDto) {
     try {
+
       const updatedClient = await this.clientRepo.createQueryBuilder()
       .update(Clients)
       .set(updateClientDto)
