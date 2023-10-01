@@ -39,21 +39,17 @@ export class WordexportController {
               number_to_words:numberToWords(Number(data?.apartments?.floor?.entrance?.buildings?.mk_price*data?.apartments?.room_space))
             }
     });
-
     const data = {
          apartment
     };
 
-
     const handler = new TemplateHandler();
     const doc = await handler.process(templateFile, data);
-
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/octet-stream'); // You can set the appropriate MIME type
     res.send(doc)
     const fileStream = fs.createReadStream(filename);
     fileStream.pipe(res);
-    // fs.writeFileSync('myTemplate - output.docx', doc);
   }
 
 
