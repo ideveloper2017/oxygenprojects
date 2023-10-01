@@ -56,33 +56,6 @@ export class UsersController {
     return this.usersService.createLogin(createUserDto);
   }
 
-  // @Post('save')
-  // async registerUser(
-  //     @Body() registerUserDto: CreateUserDto,
-  // ): Promise<LoginResponse> {
-  //   const { username, password, ...rest } = registerUserDto;
-  //
-  //   const existingUser = await this.usersService.findUserWithPassword(username);
-  //
-  //   if (existingUser) {
-  //     throw new BadRequestException('User already exists.');
-  //   }
-  //
-  //   try {
-  //     const saltRounds = 12;
-  //     const hashedPassword = await bcrypt.hash(password, saltRounds);
-  //     const user = await this.usersService.create({
-  //       ...registerUserDto,
-  //       password: hashedPassword,
-  //     });
-  //     const { id, role, tokenVersion } = user;
-  //     const tokens = this.authService.assignTokens(id, role, tokenVersion);
-  //
-  //     return tokens;
-  //   } catch (error) {
-  //     throw new BadRequestException('Failed to register user.');
-  //   }
-  // }
 
   @Patch('/update/:id')
   update(

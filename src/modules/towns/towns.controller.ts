@@ -34,7 +34,7 @@ export class TownController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "mavjud turar-joylarni ro'yxatini olish" })
   @Get('/all-one/:id')
-  getAllTowns(@AuthUser() user_id: Users, @Param('id') id: number) {
+  getAllTowns(@AuthUser() user_id: any, @Param('id') id: number) {
     return this.townService
       .findAllTowns(user_id, id)
       .then((data) => {

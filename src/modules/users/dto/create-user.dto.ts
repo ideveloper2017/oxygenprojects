@@ -28,5 +28,5 @@ export class CreateUserDto {
   role_id: number;
 
   @ApiProperty()
-  town_id: number[];
+  town_access: string[];
 }

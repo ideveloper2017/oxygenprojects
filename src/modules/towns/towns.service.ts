@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {In, Repository} from 'typeorm';
 import { Towns } from './entities/town.entity';
 import { RegionsService } from '../region/region.service';
 import { DistrictsService } from '../district/district.service';
@@ -53,44 +53,45 @@ export class TownService {
     }
   }
 
-  async findAllTowns(user_id: Users, id: number) {
+  async findAllTowns(user_id: any, id: number) {
     let towns;
-    const user = await Users.createQueryBuilder('user')
-      .where('user.id =:user_id', { user_id: user_id.id })
-      .addSelect('role_id')
-      .getRawOne();
 
-    //   if (id != 0) {
-    //   towns = await this.townRepository.findOne({
-    //     where: { id: id, user:user },
-    //     relations: ['buildings'],
-    //   });
+    const  user=await Users.findOne({where:{id:user_id.userId},relations:['roles']});
+
+
+      if (user.roles.role_name=='admin'){
+        if (id != 0) {
+          towns = await this.townRepository.findOne({
+            where: { id: In(user.town_access.split(',')) },
+            relations: ['buildings'],
+          });
+        } else {
+          towns = await this.townRepository.find(
+              { relations: ['buildings'] });
+        }
+      }
+
+
+    // if (id != 0) {
+    //   towns = await this.townRepository
+    //     .createQueryBuilder('town')
+    //     .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
+    //     .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
+    //     .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
+    //     .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
+    //     .where('town.id=:id', { id: id })
+    //     //  .andWhere('town.users_id=:user_id',{user_id:user_id.id})
+    //     .getMany();
     // } else {
-    //   towns = await this.townRepository.find(
-    //       { where:{user:user},
-    //         relations: ['buildings'] });
+    //   towns = await this.townRepository
+    //     .createQueryBuilder('town')
+    //     .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
+    //     .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
+    //     .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
+    //     .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
+    //     //.andWhere('town.users_id=:user_id',{user_id:user_id.id})
+    //     .getMany();
     // }
-
-    if (id != 0) {
-      towns = await this.townRepository
-        .createQueryBuilder('town')
-        .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
-        .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
-        .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
-        .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
-        .where('town.id=:id', { id: id })
-        //  .andWhere('town.users_id=:user_id',{user_id:user_id.id})
-        .getMany();
-    } else {
-      towns = await this.townRepository
-        .createQueryBuilder('town')
-        .leftJoinAndSelect(Regions, 'region', 'region.id=town.region_id')
-        .leftJoinAndSelect(District, 'district', 'district.id=town.district_id')
-        .leftJoinAndSelect(Buildings, 'buildings', 'buildings.town_id=town.id')
-        .leftJoinAndSelect(Users, 'users', 'users.id=town.users_id')
-        //.andWhere('town.users_id=:user_id',{user_id:user_id.id})
-        .getMany();
-    }
 
     return towns;
   }
