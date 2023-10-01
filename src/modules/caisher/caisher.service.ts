@@ -18,7 +18,6 @@ export class CaisherService {
     return this.caisherServ.save([{
       caisher_name: createCaisherDto.caisher_name,
       is_active: createCaisherDto.is_active,
-      is_default: createCaisherDto.is_default,
       towns:town
     }]);
   }
