@@ -6,8 +6,9 @@ import {InjectRepository} from "@nestjs/typeorm";
 import {Orders} from "../orders/entities/order.entity";
 import {FindOptionsWhere, Repository} from "typeorm";
 import {Clients} from "../clients/entities/client.entity";
+import {numberToWords} from "../../common/utils/numbertowords";
 const fs=require('fs');
-import * as numberToWords from 'number-to-words';
+
 
 @Controller('wordexport')
 export class WordexportController {
