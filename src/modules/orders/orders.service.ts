@@ -219,61 +219,26 @@ export class OrdersService {
     return order;
   }
 
-  //================================================================================================
+  //=========================== apartment_id berilsa shu aydi boglangan orderni olib kelib beradi ==================================
 
-  async getAppartmenOrderList(id: number) {
-    let order, orderItems, apartments;
-
-    if (id == 0) {
-      order = await this.ordersRepository.find({
-        relations: [
-          'orderItems',
-          'clients',
-          'users',
-          'payments',
-          'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
-        ],
-      });
-      order.forEach((orderItem) => {
-        const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
-          0,
-        );
-        orderItem.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
-      });
-    } else {
-      apartments = Apartments.findOne({ where: { id: id } });
-      orderItems = OrderItems.findOne({ where: { apartments: apartments } });
-      order = await this.ordersRepository.find({
-        where: { orderItems: orderItems },
-        relations: [
-          'orderItems',
-          'clients',
-          'payments',
-          'users',
-          'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
-        ],
-      });
-      order.forEach((orderItem) => {
-        const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) =>
-            accumulator + (+currentPayment.amount),
-          0,
-        );
-        orderItem.sumOfpayments = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
-      });
-
-      // const sum = order['payments'].reduce(
-      //   (accumulator, currentValue) =>
-      //     accumulator + Number(currentValue.amount),
-      //   0,
-      // );
-      // order['payment'] = sum;
+  async findOrderByApartmentID(id: number) {
+    const order = await this.ordersRepository
+    .createQueryBuilder('order')
+    .leftJoin('order.orderItems', 'orderItem')
+    .leftJoinAndSelect('orderItem.apartments', 'apartment')
+    .leftJoinAndSelect('order.clients', 'clients')
+    .leftJoinAndSelect('order.payments', 'payment')
+    .where('apartment.id = :id', { id })
+    .getOne();
+  
+  if (order) {
+    const sumOfPayments = order.payments.reduce(
+      (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
+      0
+    );
+    order['sumOfPayments'] = sumOfPayments ? +(sumOfPayments.toFixed(2)) : 0;
     }
-    return order;
+    return order
   }
 
   async getOrderListIsDue() {
@@ -381,7 +346,7 @@ export class OrdersService {
           'payments',
           'users',
           'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
+          'orderItems.apartments',
         ],
       });
     } else {
@@ -392,7 +357,7 @@ export class OrdersService {
           'payments',
           'users',
           'paymentMethods',
-          'orderItems.apartments.floor.entrance.buildings.towns',
+          'orderItems.apartments',
         ],
       });
 

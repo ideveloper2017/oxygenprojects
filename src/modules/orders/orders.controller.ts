@@ -80,9 +80,9 @@ export class OrdersController {
 
   @ApiOperation({ summary: "Apartment/Orderlar ro'yxatini ko'rish" })
   @Get('/orderlistapartment/:apartment_id')
-  getOrderByAparment(@Param('apartment_id') id?: number) {
-    return this.orderService.getAppartmenOrderList(id).then((response) => {
-      if (response !== null && response.length != 0) {
+  getOrderByAparmentID(@Param('apartment_id') id?: number) {
+    return this.orderService.findOrderByApartmentID(id).then((response) => {
+      if (response) {
         return { data: response, message: 'Fetched data' };
       } else {
         return { success: true, message: 'Not found!' };
@@ -139,7 +139,6 @@ export class OrdersController {
 
   @Post('/cancel')
   cancelOrders(@Body() arraOfId: number[]) {
-    console.log(arraOfId);
     if(arraOfId.length){
       return this.orderService.orderReject(arraOfId);
     }else {

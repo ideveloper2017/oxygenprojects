@@ -9,6 +9,7 @@ import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Caisher } from '../caisher/entities/caisher.entity';
 import { Users } from '../users/entities/user.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
+import { OrderStatus } from 'src/common/enums/order-status';
 
 @Injectable()
 export class PaymentsService {
@@ -99,7 +100,9 @@ export class PaymentsService {
       payment.pay_note = newPaymentDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
       newPay = await this.paymentRepo.save(payment);
+
     } else {
+      
       const payment = new Payments();
       payment.orders = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
@@ -122,6 +125,10 @@ export class PaymentsService {
 
       newPay = await this.paymentRepo.save(payment);
     }
+    
+    if(newPaymentDto.is_completed){
+      await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.COMPLETED})
+    }
     return newPay;
   }
 
@@ -132,7 +139,6 @@ export class PaymentsService {
       take: limit,
       order: { id: 'desc' },
     });
-
     return orders;
   }
 
@@ -143,11 +149,7 @@ export class PaymentsService {
   async deletePayment(arrayOfId: number[]) {
     let counter = 0;
     for (const i of arrayOfId) {
-      const temp = await this.paymentRepo.update(
-        { id: i },
-        { is_deleted: true },
-      );
-      counter += temp.affected;
+      counter += (await this.paymentRepo.update({ id: i },{ is_deleted: true })).affected
     }
 
     return counter;

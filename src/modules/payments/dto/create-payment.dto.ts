@@ -36,4 +36,9 @@ export class NewPaymentDto {
 
   @ApiProperty()
   pay_note: string;
+
+  @ApiProperty()
+  is_completed: boolean
+
+
 }
