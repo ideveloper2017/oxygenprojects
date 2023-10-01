@@ -11,6 +11,7 @@ import Model from '../../model/model.module';
 import { Buildings } from '../../buildings/entities/building.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
 import { Users } from 'src/modules/users/entities/user.entity';
+import {Caisher} from "../../caisher/entities/caisher.entity";
 
 @Entity('Towns')
 export class Towns extends Model {
@@ -46,4 +47,6 @@ export class Towns extends Model {
   @JoinColumn({ name: 'users_id' })
   user: Users;
 
+  @OneToMany((type)=>Caisher,(caisher)=>{caisher.towns})
+  caisher:Caisher;
 }

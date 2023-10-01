@@ -9,4 +9,7 @@ export class CreateCaisherDto {
 
   @ApiProperty()
   is_default: boolean;
+
+  @ApiProperty()
+  town_id:number;
 }

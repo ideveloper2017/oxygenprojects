@@ -1,6 +1,7 @@
 import Model from '../../model/model.module';
-import { Column, Entity, OneToMany } from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, OneToMany} from 'typeorm';
 import { Payments } from '../../payments/entities/payment.entity';
+import {Towns} from "../../towns/entities/town.entity";
 
 @Entity('Caisher')
 export class Caisher extends Model {
@@ -17,4 +18,8 @@ export class Caisher extends Model {
     onDelete: 'CASCADE',
   })
   payments: Payments;
+
+  @ManyToOne((type)=>Towns,(towns)=>{towns.caisher})
+  @JoinColumn({name:"town_id"})
+  towns:Towns;
 }

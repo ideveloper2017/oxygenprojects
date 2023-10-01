@@ -25,7 +25,7 @@ export class CaisherController {
     return this.caisherService
       .create(createCaisherDto)
       .then((data) => {
-        if (data.hasId()) {
+        if (data) {
           return { success: true, message: 'created' };
         } else {
           return { success: false, message: 'not created' };

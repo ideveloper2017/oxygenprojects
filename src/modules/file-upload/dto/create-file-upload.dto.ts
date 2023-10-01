@@ -6,5 +6,6 @@ export class FileDto {
     filename: string;
     path: string;
     mimetype: string;
-    image_id:number
+    image_id:number;
+    file_id?:number;
 }

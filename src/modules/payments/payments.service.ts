@@ -10,6 +10,7 @@ import { Caisher } from '../caisher/entities/caisher.entity';
 import { Users } from '../users/entities/user.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
 import { OrderStatus } from 'src/common/enums/order-status';
+import {Clients} from "../clients/entities/client.entity";
 
 @Injectable()
 export class PaymentsService {
@@ -132,14 +133,64 @@ export class PaymentsService {
     return newPay;
   }
 
-  async getAllPayments(offset: number, limit: number) {
-    const orders = await this.paymentRepo.find({
-      relations: ['orders', 'orders.clients', 'caishers'],
-      skip: offset,
-      take: limit,
-      order: { id: 'desc' },
-    });
-    return orders;
+  async getAllPayments(offset: number, limit: number, users:any) {
+    const user=await Users.findOne({where:{id:users.userId}})
+    const temp_array=user.town_access?.split(',');
+    const town_access:number[]=temp_array?.map((str)=>Number(str))
+    let orders_res;
+
+    if (user.roles.role_name=='SuperAdmin') {
+      orders_res = await this.paymentRepo.createQueryBuilder('payments')
+          .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+          .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
+          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
+          .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+          .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+          .skip(offset)
+          .take(limit)
+          .orderBy('payments.id', "DESC")
+          .getMany();
+    } else if (user.roles.role_name=='manager'){
+      orders_res = await this.paymentRepo.createQueryBuilder('payments')
+          .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+          .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
+          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
+          .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+          .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+          .where('towns.id In(:...town_access)', {town_access})
+          .skip(offset)
+          .take(limit)
+          .orderBy('payments.id', "DESC")
+          .getMany();
+    } else if (user.roles.role_name=='Seller'){
+      orders_res = await this.paymentRepo.createQueryBuilder('payments')
+          .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+          .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
+          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
+          .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+          .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+          .where('towns.id In(:...town_access)', {town_access})
+          .skip(offset)
+          .take(limit)
+          .orderBy('payments.id', "DESC")
+          .getMany();
+    }
+
+
+
+    return orders_res;
   }
 
   async update(id: number, newPaymentDto: UpdatePaymentDto) {

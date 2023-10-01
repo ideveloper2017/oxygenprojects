@@ -1,32 +1,36 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  ParseIntPipe,
-  Query,
+    Controller,
+    Get,
+    Post,
+    Body,
+    Patch,
+    Param,
+    Delete,
+    ParseIntPipe,
+    Query, UseGuards,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import { ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags} from '@nestjs/swagger';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 
 @ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('/list')
-  public getAll(@Query('page') page: number) {
+  public getAll(@Query('page') page: number,@AuthUser() user:any) {
     const limit: number = 20;
     const offset = (page - 1) * limit;
 
     return this.paymentsService
-      .getAllPayments(offset, limit)
+      .getAllPayments(offset, limit,user)
       .then((data) => {
         if (data.length != 0) {
           // data.map((data) => {
