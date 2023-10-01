@@ -34,7 +34,7 @@ export class WordexportController {
               floor_number:data?.apartments?.floor?.floor_number,
               room_space:data?.apartments?.room_space,
               room_number:data?.apartments?.room_number,
-              total_sum:numberToWords.toWords(data?.apartments?.floor?.entrance?.buildings?.mk_price*data?.apartments?.room_space)
+              total_sum:data?.apartments?.floor?.entrance?.buildings?.mk_price*data?.apartments?.room_space
             }
     });
 
