@@ -71,7 +71,7 @@ export class ReportService {
         .addSelect('caishers.caisher_name')
         .addSelect('SUM(payments.amount)','total_sum_p')
         .addSelect('SUM(payments.amount_usd)','total_usd')
-        .addSelect(subqueryOut.getQuery(),'total_sum')
+        // .addSelect(subqueryOut.getQuery(),'total_sum')
         // .addSelect((qb)=>{
         //   const subQuery= qb.subQuery()
         //       .select('SUM(payout.amount)','total_sum')
