@@ -43,8 +43,8 @@ export class ReportService {
 
   async allPayment(){
     let res;
-    const paymentRepo=await this.orderRepo.manager.getRepository(Payments).createQueryBuilder();
-    let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo;
+    const paymentRepo=await this.orderRepo.manager.getRepository(Payments);
+    let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo.createQueryBuilder('payments');
         subqueryOut
             .select('SUM(payments.amount)','total_sum')
          .addSelect('SUM(payments.amount_usd)','total_usd')
