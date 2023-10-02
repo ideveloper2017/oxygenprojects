@@ -53,7 +53,7 @@ export class ReportService {
             .from(Payments,'payments')
 
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-        .getQuery();
+        ;
 
     // ['towns.name','caishers.caisher_name','payments.payment_date']
     res = await this.orderRepo.manager.getRepository(Payments)
@@ -72,13 +72,15 @@ export class ReportService {
        // .select('payments.paymentmethods')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect((subQuery) => {
-          return subQuery
-                   .subQuery().select('SUM(payout.amount)','total_sum')
-                  .from(Payments,'payout')
-                  .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-                  .where('payout.id=:pay_id',{pay_id:1})
-                },'totalAmount_out')
+        // .addSelect((subQuery) => {
+        //   return subQuery
+        //            .subQuery().select('SUM(payout.amount)','total_sum')
+        //           .from(Payments,'payout')
+        //           .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+        //           .where('payout.id=:pay_id')
+        //         },'totalAmount_out')
+        // .setParameter("pay_id",{'payments.id'})
+        .addSelect(subqueryOut.getQuery(),'totalAmount_out')
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.IN,Caishertype.OUT]})
