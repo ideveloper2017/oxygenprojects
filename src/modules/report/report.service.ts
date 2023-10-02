@@ -81,6 +81,12 @@ export class ReportService {
      //   .orderBy('payments.payment_date',"DESC")
         .getRawMany()
 
+       res.forEach((data)=>{
+        const sum= data.reduce((acc,acv)=>{
+             return acc+acv.amout;
+           })
+         res.amount=sum;
+       })
 
     return res;
   }
