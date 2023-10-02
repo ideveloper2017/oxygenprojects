@@ -59,7 +59,7 @@ export class ReportService {
     // ['towns.name','caishers.caisher_name','payments.payment_date']
     res = await this.orderRepo.manager.getRepository(Payments)
         .createQueryBuilder('payments')
-        .addSelect(subqueryOut.getQuery(),'total_sum')
+        .select(subqueryOut.getQuery(),'total_sum')
        //  .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
        //  .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
        //  .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
