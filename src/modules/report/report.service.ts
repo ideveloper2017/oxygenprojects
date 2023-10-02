@@ -44,9 +44,11 @@ export class ReportService {
   async allPayment(){
     let res;
     const paymentRepo=await this.orderRepo.manager.getRepository(Payments);
-    let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo.createQueryBuilder('payments');
+    let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo.createQueryBuilder();
         subqueryOut
+            .subQuery()
             .select('SUM(payments.amount)','total_sum')
+            .from(Payments,'payments')
          .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
         .getQuery();
