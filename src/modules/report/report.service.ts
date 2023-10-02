@@ -56,7 +56,7 @@ export class ReportService {
         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
         .select('towns.name')
-        // .addSelect('caishers.caisher_name')
+        .addSelect('caishers.caisher_name')
         .addSelect('SUM(payments.amount)','amount')
         .addSelect('SUM(payments.amount_usd)','amount_usd')
 
@@ -66,7 +66,7 @@ export class ReportService {
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
         .addGroupBy('payments.payment_date')
-                .getMany()
+        .getRawMany()
 
 
     return res;
