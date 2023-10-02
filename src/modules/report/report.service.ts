@@ -94,7 +94,7 @@ export class ReportService {
 
       const sum=  this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id);
 
-      data.summa=sum.then((data)=>{return data.total_sum})
+      data.summa=sum
     })
     return res;
   }
@@ -127,6 +127,6 @@ export class ReportService {
         .addGroupBy("payments.paymentmethods")
         .getRawOne();
     console.log(JSON.stringify(res.total_sum));
-    return res;
+    return res.total_sum;
   }
 }
