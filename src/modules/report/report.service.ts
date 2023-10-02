@@ -75,7 +75,7 @@ export class ReportService {
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
 
-        .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
+        .where('payments.caisher_type= :cash',{cash:Caishertype.IN})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
@@ -116,10 +116,10 @@ export class ReportService {
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
 
-        .where('payments.caisher_type=:cash)',{cash:Caishertype.OUT})
-        .where('town.id=:town_id',{town_id:town_id})
-        .where('caishers.id=:caisher_id',{caisher_id:caisher_id})
-        .where('payments.paymentmethods=:paymentmethods', {paymentmethods:paymentmethods})
+        .where('payments.caisher_type= :cash)',{cash:Caishertype.OUT})
+        .where('town.id= :town_id',{town_id:town_id})
+        .where('caishers.id= :caisher_id',{caisher_id:caisher_id})
+        .where('payments.paymentmethods= :paymentmethods', {paymentmethods:paymentmethods})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
