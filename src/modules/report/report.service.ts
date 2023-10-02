@@ -90,6 +90,13 @@ export class ReportService {
      //   .addGroupBy('payments.payment_date')
      //   .orderBy('payments.payment_date',"DESC")
         .getRawMany()
+
+    res.forEach((data)=>{
+       const sum=data.reduce((sum,total)=>{
+          this.payment_sum_in(total.id);
+        })
+      data.summa=sum
+    })
     return res;
   }
 
