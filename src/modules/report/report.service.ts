@@ -93,13 +93,13 @@ export class ReportService {
     res.forEach((data)=>{
 
       const sum=  this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id);
-      console.log(JSON.stringify(sum.then((data)=>{return data.total_sum})));
+
       data.summa=sum.then((data)=>{return data.total_sum})
     })
     return res;
   }
 
-  async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
+  public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
     const res= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
@@ -126,7 +126,7 @@ export class ReportService {
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
         .getRawOne();
-
+    console.log(JSON.stringify(res.then((data)=>{return data.total_sum})));
     return res;
   }
 }
