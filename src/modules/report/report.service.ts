@@ -92,7 +92,7 @@ export class ReportService {
 
           });
       //console.log(sum)
-
+    data.sum=sum;
     })
     return res;
   }
