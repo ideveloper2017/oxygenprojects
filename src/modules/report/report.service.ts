@@ -117,9 +117,9 @@ export class ReportService {
         .addSelect('SUM(payments.amount_usd)','total_usd')
 
         .where('payments.caisher_type= :cash)',{cash:Caishertype.OUT})
-        .andWhere('town.id= :town_id',{town_id:town_id})
-        .andWhere('caishers.id= :caisher_id',{caisher_id:caisher_id})
-        .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods:paymentmethods})
+        // .andWhere('town.id= :town_id',{town_id:town_id})
+        // .andWhere('caishers.id= :caisher_id',{caisher_id:caisher_id})
+        // .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods:paymentmethods})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
