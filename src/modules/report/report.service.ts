@@ -77,10 +77,9 @@ export class ReportService {
               .select('SUM(payout.amount)','total_sum')
               .from(Payments,'payout')
               .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-              .where('payout.id=:payment_id')
+              .where('payout.id=payments.id')
 
         },'totalAmount_sum')
-        .setParameter("payment_id","payments.id")
         .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
