@@ -43,7 +43,7 @@ export class ReportService {
 
   async allPayment(){
     let res;
-    const paymentRepo=await this.orderRepo.manager.getRepository(Payments).createQueryBuilder('payments');
+    const paymentRepo=await this.orderRepo.manager.getRepository(Payments).createQueryBuilder();
     let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo;
         subqueryOut
           .subQuery()
