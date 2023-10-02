@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
-import { Between, getManager, Repository } from 'typeorm';
+import {Between, getManager, getRepository, Repository, SelectQueryBuilder} from 'typeorm';
 import { OrderStatus } from '../../common/enums/order-status';
 import {Payments} from "../payments/entities/payment.entity";
 import {Caishertype} from "../../common/enums/caishertype";
@@ -43,6 +43,14 @@ export class ReportService {
 
   async allPayment(){
     let res;
+    const paymentRepo=await this.orderRepo.manager.getRepository(Payments);
+    const subqueryOut:SelectQueryBuilder<Payments>=paymentRepo;
+    subqueryOut.subQuery()
+         .select('SUM(payments.amount)','total_sum')
+         .addSelect('SUM(payments.amount_usd)','total_usd')
+        .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+        .getQuery();
+
     // ['towns.name','caishers.caisher_name','payments.payment_date']
     res = await this.orderRepo.manager.getRepository(Payments)
         .createQueryBuilder('payments')
@@ -60,8 +68,9 @@ export class ReportService {
        // .select('payments.paymentmethods')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect('SUM(payments.amount)','total_sum')
-        .addSelect('SUM(payments.amount_usd)','total_usd')
+        .addSelect(subqueryOut,'totalAmount')
+        // .addSelect('SUM(payments.amount)','total_sum')
+        // .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.IN,Caishertype.OUT]})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
