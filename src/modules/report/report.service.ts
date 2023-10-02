@@ -101,7 +101,7 @@ export class ReportService {
 
   public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
     let res;
-     res=  this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+     res=  await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
@@ -126,7 +126,7 @@ export class ReportService {
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
-        .getRawOne();
+        .getOne();
     console.log(JSON.stringify(res));
     return res;
   }
