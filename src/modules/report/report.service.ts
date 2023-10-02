@@ -126,7 +126,7 @@ export class ReportService {
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
         .getRawOne();
-    console.log(JSON.stringify(res.then((data)=>{return data.total_sum})));
+    console.log(JSON.stringify(res.total_sum));
     return res;
   }
 }
