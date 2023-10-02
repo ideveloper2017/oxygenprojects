@@ -120,7 +120,7 @@ export class ReportService {
         .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.OUT]})
         .where('town.id=:town_id',{town_id:town_id})
         .where('caishers.id=:caisher_id',{caisher_id:caisher_id})
-        .where('caishers.id=:paymentmethods', {paymentmethods:paymentmethods})
+        .where('payments.paymentmethods=:paymentmethods', {paymentmethods:paymentmethods})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
