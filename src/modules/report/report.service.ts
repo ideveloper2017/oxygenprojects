@@ -43,13 +43,15 @@ export class ReportService {
 
   async allPayment(){
     let res;
+    let subqueryOut:SelectQueryBuilder<Payments>;
     const paymentRepo=await this.orderRepo.manager.getRepository(Payments);
-    let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo.createQueryBuilder();
+     subqueryOut=paymentRepo.createQueryBuilder();
         subqueryOut
             .subQuery()
             .select('SUM(payments.amount)','total_sum')
+            .addSelect('SUM(payments.amount_usd)','total_usd')
             .from(Payments,'payments')
-         .addSelect('SUM(payments.amount_usd)','total_usd')
+
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
         .getQuery();
 
@@ -70,7 +72,12 @@ export class ReportService {
        // .select('payments.paymentmethods')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect(subqueryOut.subQuery,'totalAmount_out')
+        .addSelect((subQuery) => {
+          return subQuery.select('SUM(payments.amount)','total_sum')
+              .addSelect('SUM(payments.amount_usd)','total_usd')
+              .from(Payments, "payments")
+              .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+        },'totalAmount_out')
         // .addSelect('SUM(payments.amount)','total_sum')
         // .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.IN,Caishertype.OUT]})
