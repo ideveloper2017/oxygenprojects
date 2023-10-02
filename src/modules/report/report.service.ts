@@ -87,7 +87,7 @@ export class ReportService {
 
       const sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
           .then((data)=> {
-            console.log(data)
+
             return data.total_sum;
 
           });
@@ -116,7 +116,7 @@ export class ReportService {
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
 
-        .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.OUT]})
+        .where('payments.caisher_type=:cash)',{cash:Caishertype.OUT})
         .where('town.id=:town_id',{town_id:town_id})
         .where('caishers.id=:caisher_id',{caisher_id:caisher_id})
         .where('payments.paymentmethods=:paymentmethods', {paymentmethods:paymentmethods})
