@@ -86,9 +86,11 @@ export class ReportService {
     res.forEach((data)=>{
 
        sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
-          .then((res)=> { return res;}
+          .then((res)=> {
+            console.log(JSON.stringify(res))
+            return res;}
           );
-      console.log(JSON.stringify(sum))
+
     data.sum=sum;
     })
     return res;
