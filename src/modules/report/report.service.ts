@@ -49,46 +49,46 @@ export class ReportService {
         subqueryOut
             .subQuery()
             .select('SUM(payout.amount)','total_sum')
-            // .addSelect('SUM(payments.amount_usd)','total_usd')
             .from(Payments,'payout')
 
-        .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+            .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
             .where('payout.id=payments.id')
         ;
 
     // ['towns.name','caishers.caisher_name','payments.payment_date']
     res = await this.orderRepo.manager.getRepository(Payments)
         .createQueryBuilder('payments')
-        .select(subqueryOut.getQuery(),'total_sum')
-       //  .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
-       //  .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
-       //  .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
-       //  .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
-       //  .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
-       //  .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-       //  .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-       //  .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-       // .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-       // .select('towns.name')
-       //  .addSelect('payments.paymentmethods')
-       //  .addSelect('caishers.caisher_name')
-       //  .addSelect('SUM(payments.amount)','total_sum')
-       //  .addSelect('SUM(payments.amount_usd)','total_usd')
-       //  .addSelect((qb)=>{
-       //    const subQuery= qb.subQuery()
-       //        .select('SUM(payout.amount)','total_sum')
-       //        .from(Payments,'payout')
-       //        .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-       //
-       //
-       //    return subQuery
-       //
-       //  },'totalAmount_sum')
-       //  .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
-       //  .groupBy('payments.paymentmethods')
-       //  .addGroupBy('towns.id')
-       //  .addGroupBy('caishers.id')
-      //  .addGroupBy("payments.paymentmethods")
+
+        .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+        .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
+        .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
+        .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+        .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+        .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+        .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+        .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+       .select('towns.name')
+        .addSelect('payments.paymentmethods')
+        .addSelect('caishers.caisher_name')
+        .addSelect('SUM(payments.amount)','total_sum')
+        .addSelect('SUM(payments.amount_usd)','total_usd')
+        .addSelect(subqueryOut.getQuery(),'total_sum')
+        // .addSelect((qb)=>{
+        //   const subQuery= qb.subQuery()
+        //       .select('SUM(payout.amount)','total_sum')
+        //       .from(Payments,'payout')
+        //       .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+        //
+        //
+        //   return subQuery
+        //
+        // },'totalAmount_sum')
+        .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
+        .groupBy('payments.paymentmethods')
+        .addGroupBy('towns.id')
+        .addGroupBy('caishers.id')
+       .addGroupBy("payments.paymentmethods")
      //   .addGroupBy('payments.payment_date')
      //   .orderBy('payments.payment_date',"DESC")
         .getRawMany()
