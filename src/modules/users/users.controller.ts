@@ -65,18 +65,18 @@ export class UsersController {
 
     console.log(updateUserDto);
 
-    // return this.usersService
-    //   .updateUser(id, updateUserDto)
-    //   .then((data) => {
-    //     if (data) {
-    //       return { success: true, message: 'Updated is record!!!' };
-    //     } else {
-    //       return { success: false, message: 'not updated is record!!!' };
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     return { status: 401, message: error.message };
-    //   });
+    return this.usersService
+      .updateUser(id, updateUserDto)
+      .then((data) => {
+        if (data) {
+          return { success: true, message: 'Updated is record!!!' };
+        } else {
+          return { success: false, message: 'not updated is record!!!' };
+        }
+      })
+      .catch((error) => {
+        return { status: 401, message: error.message };
+      });
   }
 
   @Post('/delete')
