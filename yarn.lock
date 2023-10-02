@@ -4427,10 +4427,10 @@ npm-run-path@^5.1.0:
   dependencies:
     path-key "^4.0.0"
 
-number-to-words@^1.2.4:
-  version "1.2.4"
-  resolved "https://registry.npmjs.org/number-to-words/-/number-to-words-1.2.4.tgz"
-  integrity sha512-/fYevVkXRcyBiZDg6yzZbm0RuaD6i0qRfn8yr+6D0KgBMOndFPxuW10qCHpzs50nN8qKuv78k8MuotZhcVX6Pw==
+number-to-words-ru@^2.3.6:
+  version "2.3.6"
+  resolved "https://registry.npmjs.org/number-to-words-ru/-/number-to-words-ru-2.3.6.tgz"
+  integrity sha512-BzJ74vW6jiNvUS5/0we+AnJDB8QOOYlI5YNLnYM99Z3umPW32DZEjtBbfo8Tmlk3y3jM74TX1Y4C0aKKfRzhiA==
 
 object-assign@^4, object-assign@^4.0.1, object-assign@^4.1.1:
   version "4.1.1"
