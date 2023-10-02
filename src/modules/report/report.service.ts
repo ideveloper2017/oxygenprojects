@@ -92,9 +92,9 @@ export class ReportService {
         .getRawMany()
 
     res.forEach((data)=>{
-       const sum=data.map((data,total)=>{
-          this.payment_sum_in(data.id);
-        })
+     //  const sum=data.map((data,total)=>{
+      const sum=  this.payment_sum_in(data.id);
+     //   })
       data.summa=sum
     })
     return res;
