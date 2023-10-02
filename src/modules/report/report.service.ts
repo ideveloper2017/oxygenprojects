@@ -106,6 +106,6 @@ export class ReportService {
         .from(Payments,'payments')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
         .where('payments.id=:pay_id',{pay_id:id})
-        .getRawMany()
+        .getRawOne()
   }
 }
