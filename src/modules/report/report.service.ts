@@ -55,7 +55,7 @@ export class ReportService {
         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
        // .select(['towns.name','caishers.caisher_name','payments.payment_date','payments.amount','payments.amount_usd'])
         //.where('payments.caisher_type=:cash',{cash:Caishertype.IN})
-        // .groupBy('payments.id')
+        .groupBy('payments.id')
         // .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
