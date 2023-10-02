@@ -63,7 +63,7 @@ export class ReportService {
         .where('payments.caisher_type=:cash',{cash:Caishertype.IN})
         .groupBy('payments.payment_date')
         //.addGroupBy('towns.id')
-        .addGroupBy('caishers.id')
+        //.addGroupBy('caishers.id')
       //  .addGroupBy("payments.paymentmethods")
      //   .addGroupBy('payments.payment_date')
         .orderBy('payments.payment_date',"DESC")
