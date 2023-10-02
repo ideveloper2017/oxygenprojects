@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
 import { Between, getManager, Repository } from 'typeorm';
 import { OrderStatus } from '../../common/enums/order-status';
+import {Payments} from "../payments/entities/payment.entity";
+import {Caishertype} from "../../common/enums/caishertype";
 
 @Injectable()
 export class ReportService {
@@ -37,5 +39,30 @@ export class ReportService {
       relations: ['orderItems.apartments'],
     });
     return result;
+  }
+
+  async allPayment(){
+    let res;
+    res = await this.orderRepo.manager.getRepository(Payments).createQueryBuilder('payments')
+        .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+        .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
+        .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
+        .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+        .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+        .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+        .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+        .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+        .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+        .select(['towns.name','caishers.caisher_name','payments.payment_date','payments.amount','payments.amount_usd'])
+        .where('payments.caisher_type=:cash',{cash:Caishertype.IN})
+        .groupBy('payments.id')
+        .addGroupBy('caishers.id')
+          .addGroupBy("payments.paymentmethods")
+        .addGroupBy('towns.id')
+
+        .getMany();
+
+
+    return res;
   }
 }

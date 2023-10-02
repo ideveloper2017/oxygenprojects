@@ -28,4 +28,9 @@ export class ReportController {
   async listOrders() {
     return this.reportService.getListByApartment();
   }
+
+  @Get('/all-payment')
+  async listPayments(){
+    return this.reportService.allPayment();
+  }
 }

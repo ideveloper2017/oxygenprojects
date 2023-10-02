@@ -63,8 +63,6 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ) {
 
-    console.log(updateUserDto);
-
     return this.usersService
       .updateUser(id, updateUserDto)
       .then((data) => {
