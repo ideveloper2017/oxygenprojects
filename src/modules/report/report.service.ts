@@ -66,48 +66,59 @@ export class ReportService {
         .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
        .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-        .select('payments.id')
-        .addSelect('towns.name')
+
+        .select('towns.name')
+        .addSelect('towns.id')
+        .addSelect('caishers.id')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
         .addSelect('SUM(payments.amount)','total_sum_p')
         .addSelect('SUM(payments.amount_usd)','total_usd')
-        // .addSelect(subqueryOut.getQuery(),'total_sum')
-        // .addSelect((qb)=>{
-        //   const subQuery= qb.subQuery()
-        //       .select('SUM(payout.amount)','total_sum')
-        //       .from(Payments,'payout')
-        //       .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-        //
-        //
-        //   return subQuery
-        //
-        // },'totalAmount_sum')
+
         .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
        .addGroupBy("payments.paymentmethods")
-     //   .addGroupBy('payments.payment_date')
-     //   .orderBy('payments.payment_date',"DESC")
-        .getRawMany()
+       .getRawMany()
 
     res.forEach((data)=>{
       console.log(data.id)
-     //  const sum=data.map((data,total)=>{
-      const sum=  this.payment_sum_in(data.id);
-     //   })
+
+      const sum=  this.payment_sum_in(data.town.id,data.caisher.id,data.payments.paymentmethods);
+
       data.summa=sum
     })
     return res;
   }
 
-  async payment_sum_in(id:number){
-    return await  this.orderRepo.manager.getRepository(Payments).createQueryBuilder('payments')
-        .select('SUM(payments.amount)','total_sum')
-        .from(Payments,'payments')
-        .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-        .where('payments.id=:pay_id',{pay_id:id})
+  async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
+    return await  this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+        .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+        .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
+        .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
+        .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+        .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+        .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+        .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+        .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+        .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+
+        .select('towns.name')
+        .addSelect('payments.paymentmethods')
+        .addSelect('caishers.caisher_name')
+        .addSelect('SUM(payments.amount)','total_sum_p')
+        .addSelect('SUM(payments.amount_usd)','total_usd')
+
+        .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.OUT]})
+        .where('town.id=:town_id',{town_id:town_id})
+        .where('caishers.id=:caisher_id',{caisher_id:caisher_id})
+        .where('caishers.id=:paymentmethods', {paymentmethods:paymentmethods})
+        .groupBy('payments.paymentmethods')
+        .addGroupBy('towns.id')
+        .addGroupBy('caishers.id')
+        .addGroupBy("payments.paymentmethods")
         .getRawOne()
+
   }
 }
