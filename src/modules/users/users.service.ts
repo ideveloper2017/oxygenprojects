@@ -133,7 +133,7 @@ export class UsersService {
         password: await bcrypt.hash(updateUserDto.password, 10),
         is_active: updateUserDto.is_active,
         roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
-        town_access:updateUserDto.town_access.join(','),
+        town_access:updateUserDto.town_access?.join(','),
         user_is_deleted:false,
       },
     );

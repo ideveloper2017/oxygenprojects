@@ -66,7 +66,7 @@ export class ReportService {
         //.addGroupBy('caishers.id')
       //  .addGroupBy("payments.paymentmethods")
      //   .addGroupBy('payments.payment_date')
-        .orderBy('payments.payment_date',"DESC")
+       // .orderBy('payments.payment_date',"DESC")
         .getRawMany()
 
 
