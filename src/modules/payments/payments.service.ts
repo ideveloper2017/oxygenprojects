@@ -11,6 +11,7 @@ import { Users } from '../users/entities/user.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
 import { OrderStatus } from 'src/common/enums/order-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
+import { Caishertype } from 'src/common/enums/caishertype';
 
 @Injectable()
 export class PaymentsService {
@@ -19,122 +20,40 @@ export class PaymentsService {
     private readonly paymentRepo: Repository<Payments>,
   ) {}
 
+  // ========================== To'lov qabul qilish ==========================================
+
   async newPayment(newPaymentDto: NewPaymentDto) {
 
     const { paymentMethods } = await Orders.findOne({
       where: { id: newPaymentDto.order_id },
       relations: ['paymentMethods'],
     });
-
+    
     const usdRate = await ExchangRates.findOne({where: {is_default: true}})
     let newPay;
 
     if (
-      paymentMethods.name_alias.toLowerCase() == 'rassrochka' ||
       paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
       paymentMethods.name_alias.toLowerCase() == 'subsidia'
     ) {
-      let money = newPaymentDto.amount;
-      while (money > 0) {
-        const nextPaid = await CreditTable.findOne({
-          where: { order_id: newPaymentDto.order_id, status: 'waiting' },
-          order: { due_date: 'ASC' },
-        });
-
-        if (!nextPaid) {
-          break;
-        }
-        const amount_usd = nextPaid.due_amount / usdRate.rate_value
-
-        if (money >= nextPaid.due_amount) {
-          if (!nextPaid.left_amount) {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              { status: 'paid', left_amount: 0 },
-            );
-            money -= nextPaid.due_amount;
-          } else {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              { status: 'paid', left_amount: 0 },
-            );
-            money -= nextPaid.left_amount;
-          }
-        } else {
-          if (!nextPaid.left_amount) {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              { left_amount: +(nextPaid.due_amount - money).toFixed(2) },
-            );
-            break;
-          } else {
-            if (money >= nextPaid.left_amount) {
-              await CreditTable.update(
-                { id: nextPaid.id },
-                { status: 'paid', left_amount: 0 },
-              );
-              money -= nextPaid.left_amount;
-            } else {
-              await CreditTable.update(
-                { id: nextPaid.id },
-                { left_amount: +(nextPaid.left_amount - money).toFixed(2) },
-              );
-              break;
-            }
-          }
-        }
-      }
-
-      const payment = new Payments();
-      payment.orders = await Orders.findOne({
-        where: { id: +newPaymentDto.order_id },
-      });
-      payment.users = await Users.findOne({
-        where: { id: +newPaymentDto.user_id },
-      });
-      payment.amount = newPaymentDto.amount ? newPaymentDto.amount : (newPaymentDto.amount_usd * newPaymentDto.currency_value);
-      payment.amount_usd = newPaymentDto.amount_usd ? newPaymentDto.amount_usd : +(newPaymentDto.amount/newPaymentDto.currency_value).toFixed(2);
-      payment.currency_value = newPaymentDto.currency_value;
-      payment.payment_date = new Date();
-      payment.paymentmethods = newPaymentDto.paymentmethods;
-      payment.caishers = await Caisher.findOne({
-        where: { id: newPaymentDto.caisher_id },
-      });
-      payment.caisher_type = newPaymentDto.caishertype;
-      payment.pay_note = newPaymentDto.pay_note;
-      payment.payment_status = PaymentStatus.PAID;
-      newPay = await this.paymentRepo.save(payment);
-
-    } else {
+      newPay = await this.payForInstallment(newPaymentDto)
+    }
       
-      const payment = new Payments();
-      payment.orders = await Orders.findOne({
-        where: { id: newPaymentDto.order_id },
-      });
-      payment.users = await Users.findOne({
-        where: { id: +newPaymentDto.user_id },
-      });
-      payment.amount = newPaymentDto.amount;
-      payment.amount_usd = newPaymentDto.amount_usd;
-      payment.currency_value = newPaymentDto.currency_value;
-      payment.payment_date = new Date();
-      payment.paymentmethods = newPaymentDto.paymentmethods;
-      payment.caishers = await Caisher.findOne({
-        where: { id: newPaymentDto.caisher_id },
-      });
-      newPay = await this.paymentRepo.save(payment);
-      payment.caisher_type = newPaymentDto.caishertype;
-      payment.pay_note = newPaymentDto.pay_note;
-      payment.payment_status = PaymentStatus.PAID;
+    else {
+      newPay = await this.doPayment(newPaymentDto)
+    }
 
-      newPay = await this.paymentRepo.save(payment);
-    }
     
-    if(newPaymentDto.is_completed){
+    if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.IN){
       await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.COMPLETED})
+    }else {
+      await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.REFUNDED})
     }
+
     return newPay;
   }
+
+  // ========================== Barcha to'lovlar royxatini olish ==============================
 
   async getAllPayments(offset: number, limit: number, users:any) {
     const user=await Users.findOne({where:{id:users.userId},relations:['roles']})
@@ -196,10 +115,14 @@ export class PaymentsService {
     return orders_res;
   }
 
+  // ========================== To'lovni tahrirlash ===========================================
+
   async update(id: number, newPaymentDto: UpdatePaymentDto) {
     return await this.paymentRepo.update({ id: id }, newPaymentDto);
   }
 
+  // ========================== To'lovni ochirish =============================================
+  
   async deletePayment(arrayOfId: number[]) {
     let counter = 0;
     for (const i of arrayOfId) {
@@ -209,6 +132,9 @@ export class PaymentsService {
     return counter;
   }
 
+
+  // ========================== o'chirilgan To'lovni qayta tiklash ============================
+  
   async recoverPayment (arrayOfId: number[]) {
     let counter = 0 
     for(let i of arrayOfId) {
@@ -217,8 +143,112 @@ export class PaymentsService {
       return counter     
   }
 
+  // ========================== Bo'lib to'lash uchun to'lov qabul qilish ======================
 
-  public async checkOrderIsCompleted(order_id: number){
+  // quyidagi method  "async newPayment" metodi ichida ishlaydi yani o'sha yerda chaqirilgan 
+  // maqsad kod o'qilishini osonlashtirish, va tartibli bo'lishi uchun 
+
+  public async payForInstallment(installmentDto: NewPaymentDto){
+    let money = installmentDto.amount;
+    while (money > 0) {
       
+      const nextPaid = await CreditTable.findOne({
+        where: { order_id: installmentDto.order_id, status: 'waiting' },
+        order: { due_date: 'ASC' },
+      });
+
+      if (!nextPaid) {
+        break;
+      }
+      // const amount_usd = nextPaid.due_amount / usdRate.rate_value
+
+      if (money >= nextPaid.due_amount) {
+        if (!nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            { status: 'paid', left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              usd_due_amount: Math.floor(nextPaid.due_amount / installmentDto.currency_value)
+            },
+          );
+          money -= nextPaid.due_amount;
+        } else {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            { status: 'paid', left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              usd_due_amount: Math.floor(nextPaid.due_amount / installmentDto.currency_value)
+           },
+          );
+          money -= nextPaid.left_amount;
+        }
+      } else {
+        if (!nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            { left_amount: Math.floor(nextPaid.due_amount - money),
+              currency_value: installmentDto.currency_value,
+              usd_due_amount: Math.floor((nextPaid.due_amount - money)/ installmentDto.currency_value)
+            },
+            );
+            break;
+      } else {
+        if (money >= nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            { status: 'paid', left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              usd_due_amount: Math.floor(nextPaid.due_amount / installmentDto.currency_value)
+            },
+            );
+            money -= nextPaid.left_amount;
+      } else {
+        await CreditTable.update(
+          { id: nextPaid.id },
+          { left_amount: Math.floor(nextPaid.left_amount - money), 
+            currency_value: installmentDto.currency_value , 
+            usd_due_amount: Math.floor((nextPaid.left_amount - money)/ installmentDto.currency_value)
+          },
+        );
+            break;
+          }
+        }
+      }
+    }
+    return await this.doPayment(installmentDto)
+    
+
+    // const payment = new Payments();
+    // payment.orders = await Orders.findOne({where: { id: +installmentDto.order_id } });
+    // payment.users = await Users.findOne({where: { id: +installmentDto.user_id },});
+    // payment.amount = installmentDto.amount ? installmentDto.amount : (installmentDto.amount_usd * installmentDto.currency_value);
+    // payment.amount_usd = installmentDto.amount_usd ? installmentDto.amount_usd : +(installmentDto.amount/installmentDto.currency_value).toFixed(2);
+    // payment.currency_value = installmentDto.currency_value;
+    // payment.payment_date = new Date();
+    // payment.paymentmethods = installmentDto.paymentmethods;
+    // payment.caishers = await Caisher.findOne({where: { id: installmentDto.caisher_id },});
+    // payment.caisher_type = installmentDto.caishertype;
+    // payment.pay_note = installmentDto.pay_note;
+    // payment.payment_status = PaymentStatus.PAID;
+    
+
+  }
+
+  async doPayment(payDto: NewPaymentDto){
+    const payment = new Payments();
+    payment.orders = await Orders.findOne({where: { id: +payDto.order_id } });
+    payment.users = await Users.findOne({where: { id: +payDto.user_id },});
+    payment.amount = payDto.amount ? payDto.amount : (payDto.amount_usd * payDto.currency_value);
+    payment.amount_usd = payDto.amount_usd ? payDto.amount_usd : Math.floor(payDto.amount/payDto.currency_value);
+    payment.currency_value = payDto.currency_value;
+    payment.payment_date = new Date();
+    payment.paymentmethods = payDto.paymentmethods;
+    payment.caishers = await Caisher.findOne({where: { id: payDto.caisher_id },});
+    payment.caisher_type = payDto.caishertype;
+    payment.pay_note = payDto.pay_note;
+    payment.payment_status = PaymentStatus.PAID;
+    
+    return await this.paymentRepo.save(payment);
+
   }
 }

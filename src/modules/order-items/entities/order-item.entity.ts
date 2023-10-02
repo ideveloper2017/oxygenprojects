@@ -12,9 +12,15 @@ export class OrderItems extends Model {
   @JoinColumn({ name: 'order_id' })
   orders: Orders;
 
+  @Column()
+  order_id: number
+  
   @ManyToOne(() => Apartments, (apartment) => apartment.orderItems)
   @JoinColumn({ name: 'apartment_id' })
   apartments: Apartments;
+  
+  @Column()
+  apartment_id: number
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   final_price: number;

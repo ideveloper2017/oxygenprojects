@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { Orders } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentMethods } from '../payment-method/entities/payment-method.entity';
@@ -63,6 +63,16 @@ export class OrdersService {
       );
     }
 
+    let initial_pay,deal_price
+
+    if(payment_method.name_alias === 'dollar'){
+      deal_price = Math.floor(createOrderDto.price * usdRate.rate_value)
+      initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value)
+    }else{
+      deal_price = createOrderDto.price
+      initial_pay = createOrderDto.initial_pay
+    }
+
     const order = new Orders();
     order.clients = await Clients.findOne({
       where: { id: +createOrderDto.client_id },
@@ -70,7 +80,7 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = createOrderDto.initial_pay ? createOrderDto.initial_pay : +(createOrderDto.initial_pay_usd * usdRate.rate_value).toFixed(2) ;
+    order.initial_pay = initial_pay
     order.currency_value = usdRate.rate_value;
     order.users = users
     order.quantity = 1;
@@ -84,8 +94,8 @@ export class OrdersService {
 
     // binodagi barcha apartmentlarga tegishli narxini olish
 
-    const total = createOrderDto.price
-      ? createOrderDto.price * apartment.room_space
+    const total = deal_price
+      ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     let schedule;
@@ -109,10 +119,10 @@ export class OrdersService {
 
         const installment = new CreditTable();
         installment.orders = savedOrder;
-        installment.due_amount = +oneMonthDue.toFixed(2);
+        installment.due_amount = Math.floor(oneMonthDue)
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount = +(installment.due_amount / usdRate.rate_value).toFixed(2)
+        installment.usd_due_amount = Math.floor(installment.due_amount / usdRate.rate_value)
         installment.currency_value = usdRate.rate_value
         installment.status = 'waiting';
         creditSchedule.push(installment);
@@ -121,7 +131,7 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    const total_in_usd = +(total / usdRate.rate_value).toFixed(2);
+    const total_in_usd = Math.floor(total / usdRate.rate_value)
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
@@ -154,7 +164,7 @@ export class OrdersService {
     await OrderItems.save(orderItem);
 
     const payment = new Payments();
-    payment.orders = await Orders.findOne({ where: { id: +savedOrder.id } });
+    payment.order_id = +savedOrder.id
     payment.users = savedOrder.users;
     payment.amount = savedOrder.initial_pay;
     payment.payment_date = new Date();
@@ -162,9 +172,7 @@ export class OrdersService {
     payment.caishers = await Caisher.findOne({
       where: { is_active: true },
     });
-    payment.amount_usd = +(savedOrder.initial_pay / usdRate.rate_value).toFixed(
-      2,
-    );
+    payment.amount_usd = Math.floor(savedOrder.initial_pay / usdRate.rate_value)
     payment.currency_value = usdRate.rate_value;
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;
@@ -197,7 +205,7 @@ export class OrdersService {
           (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
+        orderItem.sumOfpayments = sumOfPayments ? Math.floor(sumOfPayments) : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
@@ -209,7 +217,7 @@ export class OrdersService {
         (accumulator, currentValue) => accumulator + (+currentValue.amount),
         0,
       );
-      order['sumOfpayments'] = sum ? +sum.toFixed(2) : 0;
+      order['sumOfpayments'] = sum ? Math.floor(sum) : 0;
     }
     return order;
   }
@@ -232,7 +240,7 @@ export class OrdersService {
         (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
         0,
       );
-      order['sumOfpayments'] = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
+      order['sumOfpayments'] = sumOfPayments ? Math.floor(sumOfPayments) : 0;
     }
     return order;
   }
@@ -310,15 +318,14 @@ export class OrdersService {
           { order_status: OrderStatus.INACTIVE },
         );
         order = await this.ordersRepository.findOne({ where: { id: val } });
-
-        orderItem = await OrderItems.findOne({ where: { orders: order } });
+        orderItem = await OrderItems.findOne({ where: { order_id: order.id } });
         counter += (
           await Apartments.update(
-            { id: orderItem },
+            { id: +orderItem.apartment_id},
             { status: ApartmentStatus.FREE },
-          )
-        ).affected;
-      }
+          )).affected;
+    }
+          
       if (counter === arrayOfId.length) {
         return { success: true, message: 'Orders cancelled  completely' };
       } else if (counter < arrayOfId.length) {
@@ -338,7 +345,7 @@ export class OrdersService {
 
     if (id > 0) {
       cancelledOrders = await this.ordersRepository.findOne({
-        where: { order_status: OrderStatus.INACTIVE, id: id },
+        where: { order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]), id: id },
         relations: [
           'clients',
           'payments',
@@ -349,7 +356,8 @@ export class OrdersService {
       });
     } else {
       cancelledOrders = await this.ordersRepository.find({
-        where: { order_status: OrderStatus.INACTIVE },
+        where: { order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]) },
+        order: {order_status: "ASC",updated_at: 'DESC' },
         relations: [
           'clients',
           'payments',
@@ -364,7 +372,7 @@ export class OrdersService {
           (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
           0,
         );
-        order.sumOfPayments = sumOfPayments ? +sumOfPayments.toFixed(2) : 0;
+        order.sumOfPayments = sumOfPayments ? Math.floor(sumOfPayments) : 0;
       });
     }
 

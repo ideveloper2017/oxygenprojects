@@ -18,6 +18,7 @@ export class TaskSchedulerService {
   @Cron('0 0 * * *') // Run every day at midnight
   async checkAndChangeApartmentStatus(): Promise<void> {
     this.logger.log('Running apartment status check...');
+    console.log('cron starting');
 
     // joriy vaqy ni olish
     const currentDate = new Date();

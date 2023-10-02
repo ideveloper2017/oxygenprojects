@@ -20,21 +20,15 @@ export class CreateOrderDto {
     description: 'kvartira kvadrat metr narxi',
   })
   @IsInt()
-  price: number;
+  price?: number;
 
   @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov somda' })
   @IsInt()
   initial_pay: number;
 
-  @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov dollarda' })
-  @IsInt()
-  initial_pay_usd: number;
-
-  // @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi' })
-  // total_amount: number;
-
-  // @ApiProperty({ example: 455_000_000, description: 'kvartira umumiy narxi $' })
-  // total_amount_usd: number;
+  // @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov dollarda' })
+  // @IsInt()
+  // initial_pay_usd?: number;
 
   @ApiProperty({ example: '2023-09-04' })
   order_date: Date;
