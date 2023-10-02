@@ -88,7 +88,7 @@ export class ReportService {
       const sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
           .then((data)=> {
             console.log(data)
-            return data.total_sum;
+            return data;
 
           });
       //console.log(sum)
