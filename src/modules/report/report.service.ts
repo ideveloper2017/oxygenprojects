@@ -86,8 +86,8 @@ export class ReportService {
     res.forEach((data)=>{
 
       const sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
-          .then((data)=> {data?.total_sum;}
-          );
+          // .then((data)=> { return data?.total_sum;}
+          // );
       console.log(sum)
     data.sum=sum;
     })
@@ -123,6 +123,6 @@ export class ReportService {
         .addGroupBy("payments.paymentmethods")
         .getRawOne();
 
-    return res;
+    return res?.total_sum;
   }
 }
