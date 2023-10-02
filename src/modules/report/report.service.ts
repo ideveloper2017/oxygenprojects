@@ -122,7 +122,7 @@ export class ReportService {
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
-        .addGroupBy("payments.paymentmethods")
+      //  .addGroupBy("payments.paymentmethods")
         .getRawOne();
 
     return res;
