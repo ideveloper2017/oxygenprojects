@@ -72,9 +72,9 @@ export class ReportService {
         .addSelect('caishers.caisher_name')
         .addSelect((subquery)=>{
           return subquery.subQuery()
-              .select('SUM(payments.amount)','total_sum')
+              .select('SUM(payout.amount)','total_sum')
               .from(Payments,'payout')
-              .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+              .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
               .where('payout.id=payments.id')
 
         },'totalAmount_sum')
