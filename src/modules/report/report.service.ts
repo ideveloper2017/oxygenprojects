@@ -80,7 +80,7 @@ export class ReportService {
         // },'totalAmount_sum')
          .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
-        // .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.IN,Caishertype.OUT]})
+        .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
@@ -88,9 +88,6 @@ export class ReportService {
      //   .addGroupBy('payments.payment_date')
      //   .orderBy('payments.payment_date',"DESC")
         .getRawMany()
-
-
-
     return res;
   }
 
