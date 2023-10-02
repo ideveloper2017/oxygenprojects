@@ -81,13 +81,21 @@ export class ReportService {
      //   .orderBy('payments.payment_date',"DESC")
         .getRawMany()
 
-       res.forEach((data)=>{
-        const sum= data.reduce((acc,acv)=>{
-             return acc+acv.amout;
-           })
-         res.amount=sum;
-       })
+      res.ammout_sum=this.payment_sum_in(
+          res.map(data=>{
+            return data.id
+          })
+      )
 
     return res;
+  }
+
+  async payment_sum_in(id:number){
+    return await  this.orderRepo.manager.getRepository(Payments).createQueryBuilder('payments')
+        .select('SUM(payments.amount)','total_sum')
+        .from(Payments,'payments')
+        .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+        .where('payments.id=:pay_id',{pay_id:id})
+        .getRawMany()
   }
 }
