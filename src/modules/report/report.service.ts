@@ -72,7 +72,7 @@ export class ReportService {
         .addSelect('caishers.id')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect('SUM(payments.amount)','total_sum_p')
+        .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
 
         .where('payments.caisher_type IN(:...cash)',{cash:[Caishertype.IN]})
@@ -100,7 +100,8 @@ export class ReportService {
   }
 
   public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
-    const res= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+    let res;
+     res= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
