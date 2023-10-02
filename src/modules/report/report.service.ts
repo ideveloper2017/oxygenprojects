@@ -91,9 +91,8 @@ export class ReportService {
     //     total_usd: '38391.62'
 
     res.forEach((data)=>{
-      console.log(data)
 
-      const sum=  this.payment_sum_in(data.towns_id,data.caishers_id,data.payments_paymentmethods);
+      const sum=  this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id);
 
       data.summa=sum
     })
