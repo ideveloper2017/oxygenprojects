@@ -60,9 +60,8 @@ export class ReportService {
         .addSelect('payments.payment_date')
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
-
         .where('payments.caisher_type=:cash',{cash:Caishertype.IN})
-        .groupBy('payments.id')
+        .groupBy('payments.payment_date')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
