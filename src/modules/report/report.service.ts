@@ -53,13 +53,16 @@ export class ReportService {
         .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-       // .select(['towns.name','caishers.caisher_name','payments.payment_date','payments.amount','payments.amount_usd'])
+        .select(['towns.name','caishers.caisher_name','payments.payment_date'])
+        .addSelect('SUM(payments.amount)','amount')
+        .addSelect('SUM(payments.amount_usd)','amount_usd')
+
         //.where('payments.caisher_type=:cash',{cash:Caishertype.IN})
-        .groupBy('payments.payment_date')
-        // .addGroupBy('towns.id')
+        .groupBy('payments.id')
+        .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
-       // .addGroupBy('payments.payment_date')
+       .addGroupBy('payments.payment_date')
         .getMany();
 
 
