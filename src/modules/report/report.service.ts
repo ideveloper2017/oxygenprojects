@@ -43,7 +43,9 @@ export class ReportService {
 
   async allPayment(){
     let res;
-    res = await this.orderRepo.manager.getRepository(Payments).createQueryBuilder('payments')
+    // ['towns.name','caishers.caisher_name','payments.payment_date']
+    res = await this.orderRepo.manager.getRepository(Payments)
+        .createQueryBuilder('payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
@@ -53,7 +55,8 @@ export class ReportService {
         .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-        .select(['towns.name','caishers.caisher_name','payments.payment_date'])
+        .select('towns.name')
+        // .addSelect('caishers.caisher_name')
         .addSelect('SUM(payments.amount)','amount')
         .addSelect('SUM(payments.amount_usd)','amount_usd')
 
@@ -62,8 +65,8 @@ export class ReportService {
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
         .addGroupBy("payments.paymentmethods")
-       .addGroupBy('payments.payment_date')
-        .getMany();
+        .addGroupBy('payments.payment_date')
+                .getMany()
 
 
     return res;
