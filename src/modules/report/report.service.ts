@@ -56,10 +56,10 @@ export class ReportService {
         .select(['towns.name','caishers.caisher_name','payments.payment_date','payments.amount','payments.amount_usd'])
         .where('payments.caisher_type=:cash',{cash:Caishertype.IN})
         .groupBy('payments.id')
-        .addGroupBy('caishers.id')
-          .addGroupBy("payments.paymentmethods")
         .addGroupBy('towns.id')
-
+        .addGroupBy('caishers.id')
+        .addGroupBy("payments.paymentmethods")
+        .addGroupBy('payments.payment_date')
         .getMany();
 
 
