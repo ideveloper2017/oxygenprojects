@@ -56,7 +56,7 @@ export class ReportService {
         // .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
      //   .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
      //   .select('towns.name')
-        .select('caishers.caisher_name')
+        //.select('caishers.caisher_name')
         .addSelect('payments.payment_date')
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
