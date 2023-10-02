@@ -70,16 +70,16 @@ export class ReportService {
        .select('towns.name')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect((subquery)=>{
-          return subquery.subQuery()
-              .select('SUM(payout.amount)','total_sum')
-              .from(Payments,'payout')
-              .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-              .where('payout.id=payments.id')
-
-        },'totalAmount_sum')
-         // .addSelect('SUM(payments.amount)','total_sum')
-        // .addSelect('SUM(payments.amount_usd)','total_usd')
+        // .addSelect((subquery)=>{
+        //   return subquery.subQuery()
+        //       .select('SUM(payout.amount)','total_sum')
+        //       .from(Payments,'payout')
+        //       .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+        //       .where('payout.id=payments.id')
+        //
+        // },'totalAmount_sum')
+         .addSelect('SUM(payments.amount)','total_sum')
+        .addSelect('SUM(payments.amount_usd)','total_usd')
         // .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.IN,Caishertype.OUT]})
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
