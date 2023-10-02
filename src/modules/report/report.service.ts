@@ -45,7 +45,8 @@ export class ReportService {
     let res;
     const paymentRepo=await this.orderRepo.manager.getRepository(Payments).createQueryBuilder('payments');
     let subqueryOut:SelectQueryBuilder<Payments>=paymentRepo;
-    subqueryOut.subQuery()
+        subqueryOut
+          .subQuery()
          .select('SUM(payments.amount)','total_sum')
          .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
@@ -68,7 +69,7 @@ export class ReportService {
        // .select('payments.paymentmethods')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect(subqueryOut,'totalAmount_out')
+        .addSelect(subqueryOut.subQuery,'totalAmount_out')
         // .addSelect('SUM(payments.amount)','total_sum')
         // .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type In(:...cash)',{cash:[Caishertype.IN,Caishertype.OUT]})
