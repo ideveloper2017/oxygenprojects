@@ -85,9 +85,9 @@ export class ReportService {
 
         const totalDebit = res.reduce((sum, amount) => {
             if (amount.caisher_type == Caishertype.IN) {
-                sum + amount.amount
+              res.amout_sum=sum + amount.amount
             }
-          res.amout_sum=totalDebit;
+
         });
         const totalKredit = res.reduce((sum, amount) => {
             sum + amount.amount
