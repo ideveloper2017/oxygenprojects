@@ -57,7 +57,7 @@ export class ReportService {
      //   .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
      //   .select('towns.name')
         //.select('caishers.caisher_name')
-        .select('payments.payment_date')
+        .select('payments.paymentmethods')
         .addSelect('SUM(payments.amount)','total_sum')
         .addSelect('SUM(payments.amount_usd)','total_usd')
         .where('payments.caisher_type=:cash',{cash:Caishertype.IN})
