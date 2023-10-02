@@ -69,7 +69,7 @@ export class ReportService {
        .select('towns.name')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
-        .addSelect('SUM(payments.amount)','total_sum')
+        .addSelect('SUM(payments.amount)','total_sum_p')
         .addSelect('SUM(payments.amount_usd)','total_usd')
         .addSelect(subqueryOut.getQuery(),'total_sum')
         // .addSelect((qb)=>{
