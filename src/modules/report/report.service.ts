@@ -82,18 +82,11 @@ export class ReportService {
        .addGroupBy("payments.paymentmethods")
        .getRawMany()
 
-    // payments_paymentmethods: 'card',
-    //     caishers_id: null,
-    //     caishers_caisher_name: null,
-    //     towns_id: 1,
-    //     towns_name: 'Oxygen',
-    //     total_sum_p: '468377771.00',
-    //     total_usd: '38391.62'
 
     res.forEach((data)=>{
 
-      const sum=  this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id);
-      console.log(sum)
+      const sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id).then((data)=>console.log(data));
+      //console.log(sum)
       data.summa=sum
     })
     return res;
