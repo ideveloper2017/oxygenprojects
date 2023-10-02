@@ -66,7 +66,8 @@ export class ReportService {
         .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
        .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-       .select('towns.name')
+        .select('payments.id')
+        .addSelect('towns.name')
         .addSelect('payments.paymentmethods')
         .addSelect('caishers.caisher_name')
         .addSelect('SUM(payments.amount)','total_sum_p')
@@ -92,6 +93,7 @@ export class ReportService {
         .getRawMany()
 
     res.forEach((data)=>{
+      log
      //  const sum=data.map((data,total)=>{
       const sum=  this.payment_sum_in(data.id);
      //   })
