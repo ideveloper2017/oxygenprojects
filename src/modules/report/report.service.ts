@@ -70,7 +70,7 @@ export class ReportService {
        .getRawMany()
 
     result.forEach((items)=>{
-      items.sum= this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+      const response= this.orderRepo.manager.createQueryBuilder(Payments,'payments')
           .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
           .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
           .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
@@ -98,7 +98,9 @@ export class ReportService {
           .addGroupBy('towns.id')
           .addGroupBy('caishers.id')
           .getRawMany().then((data)=>{return data})
+      items.sum=response;
     })
+
     return result;
   }
 
