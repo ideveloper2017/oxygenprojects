@@ -223,7 +223,7 @@ export class ReportService {
                .andWhere('towns.id= :town_id', {town_id: town_id})
                .andWhere('caishers.id= :caisher_id', {caisher_id: caisher_id})
                .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods: paymentmethods})
-               .andWhere('payments.payment_date>= >= :startDate', { startDate: startOfMonth })
+               .andWhere('payments.payment_date>= :startDate', { startDate: startOfMonth })
                .groupBy('payments.payment_date')
                .addGroupBy('payments.paymentmethods')
                .addGroupBy('towns.id')
