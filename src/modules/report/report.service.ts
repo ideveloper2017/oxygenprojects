@@ -97,7 +97,7 @@ export class ReportService {
           .groupBy('payments.paymentmethods')
           .addGroupBy('towns.id')
           .addGroupBy('caishers.id')
-          .getRawMany()
+          .getRawMany().then((data)=>{return data})
     })
     return result;
   }
