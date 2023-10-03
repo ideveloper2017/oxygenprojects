@@ -93,7 +93,7 @@ export class ReportService {
          return response;
        });
 
-      data['total_sum_out']=sum.total_sum_out;
+      data.total_sum_out=sum.total_sum_out;
 
     })
     return res;
