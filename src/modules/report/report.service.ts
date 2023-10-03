@@ -92,8 +92,8 @@ export class ReportService {
              // console.log(response)
          return response;
        });
-      console.log(summa_out)
-      data['total_sum_out']=summa_out;
+      //console.log(summa_out)
+      data.sum=summa_out;
 
     })
     return res;
