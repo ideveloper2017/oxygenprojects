@@ -42,8 +42,21 @@ export class ReportService {
   }
 
   async allPayment(){
-    let result;
-    result= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+    let res;
+    let subqueryOut:SelectQueryBuilder<Payments>;
+    const paymentRepo=await this.orderRepo.manager.getRepository(Payments);
+     subqueryOut=paymentRepo.createQueryBuilder();
+        subqueryOut
+            .subQuery()
+            .select('SUM(payout.amount)','total_sum')
+            .from(Payments,'payout')
+
+            .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
+            .where('payout.id=payments.id')
+        ;
+
+    // ['towns.name','caishers.caisher_name','payments.payment_date']
+    res = await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
@@ -69,41 +82,21 @@ export class ReportService {
        .addGroupBy("payments.paymentmethods")
        .getRawMany()
 
-    result.forEach((items)=>{
-      const response= this.orderRepo.manager.createQueryBuilder(Payments,'payments')
-          .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
-          .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
-          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
-          .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
-          .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
-          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+    let sum
 
-          .select([
-            'towns.name',
-            'payments.paymentmethods',
-            'caishers.caisher_name',
-            'SUM(payments.amount) AS total_sum',
-            'SUM(payments.amount_usd) AS total_usd'
-          ])
 
-          .where('payments.caisher_type= :cash',{cash:Caishertype.OUT})
-          .andWhere('towns.id= :town_id',{town_id:items.town_id})
-          .andWhere('caishers.id= :caisher_id',{caisher_id:items.caisher_id})
-          .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods:items.paymentmethods})
+    res.forEach((data)=>{
 
-          .groupBy('payments.paymentmethods')
-          .addGroupBy('towns.id')
-          .addGroupBy('caishers.id')
-          .getRawMany().then((data)=> data)
+      sum=this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
+           .then((response)=>{
+             console.log(response)
+         return response;
+       });
 
-      console.log(JSON.stringify(response));
-      items.sum=response;
+      data.sum=sum;
+
     })
-
-    return result;
+    return res;
   }
 
   // public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
@@ -172,12 +165,15 @@ export class ReportService {
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
-        .getRawMany();
+        .getRawOne().then((item)=>{
+          sumResults.total_sum_out += item.total_sum;
+          sumResults.total_usd_out += item.total_usd;
+        });
 
-    result.forEach((item)=>{
-      sumResults.total_sum_out += item.total_sum;
-      sumResults.total_usd_out += item.total_usd;
-    })
+    // result.forEach((item)=>{
+    //   sumResults.total_sum_out += item.total_sum;
+    //   sumResults.total_usd_out += item.total_usd;
+    // })
 
     return sumResults;
 
