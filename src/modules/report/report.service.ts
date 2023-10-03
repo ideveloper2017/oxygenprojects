@@ -211,7 +211,6 @@ export class ReportService {
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
                .select([
-                   'payments.payment_date',
                    'towns.name',
                    'payments.paymentmethods',
                    'caishers.caisher_name',
