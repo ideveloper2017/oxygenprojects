@@ -12,6 +12,7 @@ import { PaymentStatus } from '../../common/enums/payment-status';
 import { OrderStatus } from 'src/common/enums/order-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { Caishertype } from 'src/common/enums/caishertype';
+import { Paymentmethods } from 'src/common/enums/paymentmethod';
 
 @Injectable()
 export class PaymentsService {
@@ -164,7 +165,7 @@ export class PaymentsService {
       if (!nextPaid) {
         break;
       }
-      // const amount_usd = nextPaid.due_amount / usdRate.rate_value
+      const amount_usd = Math.floor(nextPaid.due_amount / installmentDto.currency_value)
 
       if (money >= nextPaid.due_amount) {
         if (!nextPaid.left_amount) {
@@ -172,7 +173,7 @@ export class PaymentsService {
             { id: nextPaid.id },
             { status: 'paid', left_amount: 0,
               currency_value: installmentDto.currency_value,
-              usd_due_amount: Math.floor(nextPaid.due_amount / installmentDto.currency_value)
+              usd_due_amount: amount_usd
             },
           );
           money -= nextPaid.due_amount;
@@ -181,7 +182,7 @@ export class PaymentsService {
             { id: nextPaid.id },
             { status: 'paid', left_amount: 0,
               currency_value: installmentDto.currency_value,
-              usd_due_amount: Math.floor(nextPaid.due_amount / installmentDto.currency_value)
+              usd_due_amount: amount_usd
            },
           );
           money -= nextPaid.left_amount;
@@ -202,7 +203,7 @@ export class PaymentsService {
             { id: nextPaid.id },
             { status: 'paid', left_amount: 0,
               currency_value: installmentDto.currency_value,
-              usd_due_amount: Math.floor(nextPaid.due_amount / installmentDto.currency_value)
+              usd_due_amount: amount_usd
             },
             );
             money -= nextPaid.left_amount;
@@ -220,30 +221,24 @@ export class PaymentsService {
       }
     }
     return await this.doPayment(installmentDto)
-    
-
-    // const payment = new Payments();
-    // payment.orders = await Orders.findOne({where: { id: +installmentDto.order_id } });
-    // payment.users = await Users.findOne({where: { id: +installmentDto.user_id },});
-    // payment.amount = installmentDto.amount ? installmentDto.amount : (installmentDto.amount_usd * installmentDto.currency_value);
-    // payment.amount_usd = installmentDto.amount_usd ? installmentDto.amount_usd : +(installmentDto.amount/installmentDto.currency_value).toFixed(2);
-    // payment.currency_value = installmentDto.currency_value;
-    // payment.payment_date = new Date();
-    // payment.paymentmethods = installmentDto.paymentmethods;
-    // payment.caishers = await Caisher.findOne({where: { id: installmentDto.caisher_id },});
-    // payment.caisher_type = installmentDto.caishertype;
-    // payment.pay_note = installmentDto.pay_note;
-    // payment.payment_status = PaymentStatus.PAID;
-    
-
   }
 
   async doPayment(payDto: NewPaymentDto){
+    let amountToUsd, amountToUzs
+    
+    if(payDto.paymentmethods === Paymentmethods.USD){
+      amountToUsd = payDto.amount
+      amountToUzs = Math.floor(payDto.amount * payDto.currency_value)
+    }else{
+      amountToUsd = Math.floor(payDto.amount / payDto.currency_value)
+      amountToUzs = payDto.amount 
+    }
+
     const payment = new Payments();
     payment.orders = await Orders.findOne({where: { id: +payDto.order_id } });
     payment.users = await Users.findOne({where: { id: +payDto.user_id },});
-    payment.amount = payDto.amount ? payDto.amount : (payDto.amount_usd * payDto.currency_value);
-    payment.amount_usd = payDto.amount_usd ? payDto.amount_usd : Math.floor(payDto.amount/payDto.currency_value);
+    payment.amount = amountToUzs
+    payment.amount_usd = amountToUsd
     payment.currency_value = payDto.currency_value;
     payment.payment_date = new Date();
     payment.paymentmethods = payDto.paymentmethods;
