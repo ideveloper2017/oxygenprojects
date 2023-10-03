@@ -167,7 +167,7 @@ export class ReportService {
 
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate', { startDate: startOfYear })
-              .groupBy('payments.payment_date')
+              .groupBy('year')
               .addGroupBy('payments.paymentmethods')
               .addGroupBy('towns.id')
               .addGroupBy('caishers.id')
@@ -298,6 +298,7 @@ export class ReportService {
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
                .select([
+                   'TO_CHAR(s.date, \'YYYY - MM\') as year ',
                    'towns.name',
                    'payments.paymentmethods',
                    'caishers.caisher_name',
@@ -310,7 +311,7 @@ export class ReportService {
                .andWhere('caishers.id= :caisher_id', {caisher_id: caisher_id})
                .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods: paymentmethods})
                .andWhere('payments.payment_date>= :startDate', { startDate: startOfYear })
-               .groupBy('payments.payment_date')
+               .groupBy('year')
                .addGroupBy('payments.paymentmethods')
                .addGroupBy('towns.id')
                .addGroupBy('caishers.id')
