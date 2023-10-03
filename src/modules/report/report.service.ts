@@ -97,7 +97,7 @@ export class ReportService {
           .groupBy('payments.paymentmethods')
           .addGroupBy('towns.id')
           .addGroupBy('caishers.id')
-          .getRawMany().then((data)=>{return data})
+          .getRawMany().then((data)=> data)
 
       console.log(response);
       items.sum=response;
