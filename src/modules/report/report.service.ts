@@ -93,7 +93,7 @@ export class ReportService {
          return response;
        });
 
-      data['total_sum_out']=sum;
+      data['total_sum_out']=sum.total_sum_out;
 
     })
     return res;
@@ -172,7 +172,7 @@ export class ReportService {
       sumResults.total_usd_out = item.total_usd;
     })
 
-    return sumResults.total_sum_out;
+    return sumResults;
 
   }
 }
