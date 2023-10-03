@@ -37,8 +37,6 @@ export class ReportController {
        } else  {
          return {status: 400,message:"not payment"}
        }
-     }).catch((error)=>{
-       return {status:error.code,message:error.message}
-     });
+     })
   }
 }
