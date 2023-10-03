@@ -165,17 +165,14 @@ export class ReportService {
         .groupBy('payments.paymentmethods')
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
-        .getRawOne().then((item)=>{
-          sumResults.total_sum_out += item?.total_sum;
-          sumResults.total_usd_out += item?.total_usd;
-        });
+        .getRawMany()
 
-    // result.forEach((item)=>{
-    //   sumResults.total_sum_out += item.total_sum;
-    //   sumResults.total_usd_out += item.total_usd;
-    // })
+    result.forEach((item)=>{
+      sumResults.total_sum_out = item.total_sum;
+      sumResults.total_usd_out = item.total_usd;
+    })
 
-    return sumResults;
+    return sumResults.total_sum_out;
 
   }
 }
