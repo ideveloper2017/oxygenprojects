@@ -4,7 +4,7 @@ import { Caishertype } from '../../../common/enums/caishertype';
 import { PaymentStatus } from '../../../common/enums/payment-status';
 
 export class NewPaymentDto {
-  @ApiProperty()
+  @ApiProperty({example: 1})
   user_id: number;
 
   @ApiProperty({ example: 1 })
@@ -13,29 +13,29 @@ export class NewPaymentDto {
   @ApiProperty({ example: '2023-12-06' })
   payment_date: Date;
 
-  @ApiProperty({ example: 5_000_000 })
+  @ApiProperty({ example: 15_000_000 })
   amount: number;
 
   @ApiProperty({ example: 12000 })
   currency_value: number;
 
  
-  @ApiProperty()
+  @ApiProperty({example: "cash"})
   paymentmethods: Paymentmethods;
 
-  @ApiProperty()
+  @ApiProperty({example: 1})
   caisher_id: number;
 
-  @ApiProperty()
+  @ApiProperty({example: "in"})
   caishertype: Caishertype;
 
-  @ApiProperty()
+  @ApiProperty({example: "paid"})
   payment_status: PaymentStatus;
 
-  @ApiProperty()
+  @ApiProperty({example: "to'lov"})
   pay_note: string;
 
-  @ApiProperty()
+  @ApiProperty({example: false})
   is_completed: boolean
 
 

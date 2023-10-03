@@ -5,14 +5,13 @@ import {
     Body,
     Patch,
     Param,
-    Delete,
     ParseIntPipe,
     Query, UseGuards,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import {ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags} from '@nestjs/swagger';
+import {ApiBearerAuth, ApiOperation, ApiTags} from '@nestjs/swagger';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
 import {AuthUser} from "../../common/decorators/auth-user.decorator";
 import {JwtAuthGuard} from "../auth/jwt-auth.guard";
@@ -33,9 +32,7 @@ export class PaymentsController {
       .getAllPayments(offset, limit,user)
       .then((data) => {
         if (data.length != 0) {
-          // data.map((data) => {
           return { success: true, data: data, message: 'success' };
-          // });
         } else {
           return { success: false, message: 'not found record!!!' };
         }
@@ -91,7 +88,7 @@ export class PaymentsController {
       return { success: false, message: "ID lar jo'natilmadi" };
     }
     return this.paymentsService
-      .deletePayment(id)
+      .recoverPayment(id)
       .then((data) => {
         if (data == id.length) {
           return { success: true, message: 'completely deteled' };
@@ -118,7 +115,6 @@ export class PaymentsController {
         }
       })
       .catch((error) => {
-        console.log(error);
         return { success: false, message: error.message };
       });
   }
