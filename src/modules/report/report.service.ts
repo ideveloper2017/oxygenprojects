@@ -297,7 +297,7 @@ export class ReportService {
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
                .select([
-                   'TO_CHAR(s.date, \'YYYY - MM\') as year ',
+                   'TO_CHAR(s.date, \'YYYY\') as year ',
                    'towns.name',
                    'payments.paymentmethods',
                    'caishers.caisher_name',
