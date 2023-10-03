@@ -42,8 +42,8 @@ export class ReportService {
   }
 
   async allPayment(){
-
-    return await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+    let result;
+    result= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
@@ -69,6 +69,37 @@ export class ReportService {
        .addGroupBy("payments.paymentmethods")
        .getRawMany()
 
+    result.forEach((items)=>{
+      items.sum= this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+          .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+          .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
+          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
+          .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+          .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+
+          .select([
+            'towns.name',
+            'payments.paymentmethods',
+            'caishers.caisher_name',
+            'SUM(payments.amount) AS total_sum',
+            'SUM(payments.amount_usd) AS total_usd'
+          ])
+
+          .where('payments.caisher_type= :cash',{cash:Caishertype.OUT})
+          .andWhere('towns.id= :town_id',{town_id:items.town_id})
+          .andWhere('caishers.id= :caisher_id',{caisher_id:items.caisher_id})
+          .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods:items.paymentmethods})
+
+          .groupBy('payments.paymentmethods')
+          .addGroupBy('towns.id')
+          .addGroupBy('caishers.id')
+          .getRawMany()
+    })
+    return result;
   }
 
   // public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){

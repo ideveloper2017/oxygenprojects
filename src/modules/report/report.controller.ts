@@ -37,20 +37,8 @@ export class ReportController {
 
     res=this.reportService.allPayment();
 
-    for(let ret of res){
-      console.log(ret)
-    }
-    // res.forEach((data)=>{
-    //
-    //   sum=this.reportService.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
-    //       .then((response)=>{
-    //         console.log(response)
-    //         return response;
-    //       });
-    //
-    //   data.sum=sum;
-    //
-    // })
+
+
     return res;
   }
 }
