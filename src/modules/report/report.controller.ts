@@ -35,7 +35,7 @@ export class ReportController {
 
     let sum
 
-    res=this.reportService.allPayment()
+    res=this.reportService.allPayment();
     res.forEach((data)=>{
 
       sum=this.reportService.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)

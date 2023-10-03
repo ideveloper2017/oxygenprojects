@@ -42,21 +42,8 @@ export class ReportService {
   }
 
   async allPayment(){
-    let res;
-    let subqueryOut:SelectQueryBuilder<Payments>;
-    const paymentRepo=await this.orderRepo.manager.getRepository(Payments);
-     subqueryOut=paymentRepo.createQueryBuilder();
-        subqueryOut
-            .subQuery()
-            .select('SUM(payout.amount)','total_sum')
-            .from(Payments,'payout')
 
-            .where('payout.caisher_type In(:...cash)',{cash:[Caishertype.OUT]})
-            .where('payout.id=payments.id')
-        ;
-
-    // ['towns.name','caishers.caisher_name','payments.payment_date']
-    res = await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
+    return await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
@@ -82,8 +69,6 @@ export class ReportService {
        .addGroupBy("payments.paymentmethods")
        .getRawMany()
 
-
-    return res;
   }
 
   // public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
