@@ -108,7 +108,7 @@ export class ReportService {
               .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
               .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
-              .select('DATE_FORMAT(payments.payment_date, "%m") AS month')
+              .select('payments.payment_date')
               .addSelect('towns.name')
               .addSelect('towns.id')
               .addSelect('caishers.id')
@@ -119,7 +119,7 @@ export class ReportService {
 
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate', { startDate: startOfMonth })
-              .groupBy('month')
+              .groupBy('payments.payment_date')
               .addGroupBy('payments.paymentmethods')
               .addGroupBy('towns.id')
               .addGroupBy('caishers.id')
@@ -211,7 +211,7 @@ export class ReportService {
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
                .select([
-                   'DATE_FORMAT(payments.payment_date, "%m") AS month',
+                   'payments.payment_date',
                    'towns.name',
                    'payments.paymentmethods',
                    'caishers.caisher_name',
@@ -224,7 +224,7 @@ export class ReportService {
                .andWhere('caishers.id= :caisher_id', {caisher_id: caisher_id})
                .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods: paymentmethods})
                .andWhere('payments.payment_date>= >= :startDate', { startDate: startOfMonth })
-               .groupBy('month')
+               .groupBy('payments.payment_date')
                .addGroupBy('payments.paymentmethods')
                .addGroupBy('towns.id')
                .addGroupBy('caishers.id')
