@@ -77,7 +77,7 @@ export class ReportService {
                   return response;
               });
           data['total_sum_out'] = summa_out.total_sum_out;
-          data['total_sum_out_usd'] = summa_out.total_sum_out_usd;
+          data['total_sum_out_usd'] = summa_out.total_usd_out;
           return data;
       }));
 
