@@ -41,103 +41,113 @@ export class ReportService {
     return result;
   }
 
-  async allPayment(){
+  async allPayment(dayType:string){
     let res;
-    res = await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
-        .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
-        .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
-        .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
-        .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
-        .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
-        .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-        .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-        .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+      let updatedRes;
+      if (dayType=='day') {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
 
-        .select('towns.name')
-        .addSelect('towns.id')
-        .addSelect('caishers.id')
-        .addSelect('payments.paymentmethods')
-        .addSelect('caishers.caisher_name')
-        .addSelect('SUM(payments.amount)','total_sum')
-        .addSelect('SUM(payments.amount_usd)','total_usd')
+          res = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
+              .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+              .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
+              .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
+              .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+              .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+              .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+              .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+              .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+              .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
-        .where('payments.caisher_type= :cash',{cash:Caishertype.IN})
-        .groupBy('payments.paymentmethods')
-        .addGroupBy('towns.id')
-        .addGroupBy('caishers.id')
-       .addGroupBy("payments.paymentmethods")
-       .getRawMany()
+              .select('towns.name')
+              .addSelect('towns.id')
+              .addSelect('caishers.id')
+              .addSelect('payments.paymentmethods')
+              .addSelect('caishers.caisher_name')
+              .addSelect('SUM(payments.amount)', 'total_sum')
+              .addSelect('SUM(payments.amount_usd)', 'total_usd')
+
+              .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
+              .andWhere('payments.payment_date>= :startDate AND payments.payment_date<= :endDate',{ startDate: today, endDate: tomorrow })
+              .groupBy('payments.paymentmethods')
+              .addGroupBy('towns.id')
+              .addGroupBy('caishers.id')
+              .addGroupBy("payments.paymentmethods")
+
+              .getRawMany()
 
 
-      const updatedRes = await Promise.all(res.map(async (data) => {
-          let summa_out;
-          summa_out = await this.payment_sum_in(data.towns_id, data.payments_paymentmethods, data.caishers_id)
-              .then((response) => {
-                  return response;
-              });
-          data['total_sum_out'] = Number(summa_out.total_sum_out);
-          data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-          data['grand_total_sum']=Number(data.total_sum-summa_out.total_sum_out)
-          data['grand_total_usd']=Number(data.total_usd-summa_out.total_usd_out)
-          return data;
-      }));
+           updatedRes = await Promise.all(res.map(async (data) => {
+              let summa_out;
+              summa_out = await this.payment_sum_in(data.towns_id, data.payments_paymentmethods, data.caishers_id,dayType)
+                  .then((response) => {
+                      return response;
+                  });
+              data['total_sum_out'] = Number(summa_out.total_sum_out);
+              data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
+              data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out)
+              data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out)
+              return data;
+          }));
+
+      }
 
       return updatedRes;
 
-    // res.forEach(async(data)=>{
-    //   let summa_out;
-    //    summa_out=await this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
-    //        .then((response)=>{
-    //      return response;
-    //    });
-    //   data['total_sum_out']=summa_out;
-    // })
-    //return res;
+
   }
 
 
 
 
-   async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
+   async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number,dayType:string){
     let sumResults = {
       total_sum_out: 0,
       total_usd_out: 0
     };
     let result;
-    result= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
-        .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
-        .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
-        .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
-        .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
-        .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
-        .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-        .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-        .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-        .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
-        .select([
-          'towns.name',
-          'payments.paymentmethods',
-          'caishers.caisher_name',
-          'SUM(payments.amount) AS total_sum',
-          'SUM(payments.amount_usd) AS total_usd'
-        ])
+       if (dayType=='day') {
+           const today = new Date();
+           today.setHours(0, 0, 0, 0);
+           const tomorrow = new Date(today);
+           tomorrow.setDate(tomorrow.getDate() + 1);
+           result = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
+               .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+               .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
+               .leftJoinAndSelect('orders.clients', 'clients', 'clients.id=orders.client_id')
+               .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+               .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+               .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+               .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+               .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+               .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
-        .where('payments.caisher_type= :cash',{cash:Caishertype.OUT})
-        .andWhere('towns.id= :town_id',{town_id:town_id})
-        .andWhere('caishers.id= :caisher_id',{caisher_id:caisher_id})
-        .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods:paymentmethods})
+               .select([
+                   'towns.name',
+                   'payments.paymentmethods',
+                   'caishers.caisher_name',
+                   'SUM(payments.amount) AS total_sum',
+                   'SUM(payments.amount_usd) AS total_usd'
+               ])
 
-        .groupBy('payments.paymentmethods')
-        .addGroupBy('towns.id')
-        .addGroupBy('caishers.id')
-        .getRawMany()
+               .where('payments.caisher_type= :cash', {cash: Caishertype.OUT})
+               .andWhere('towns.id= :town_id', {town_id: town_id})
+               .andWhere('caishers.id= :caisher_id', {caisher_id: caisher_id})
+               .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods: paymentmethods})
+               .andWhere('payments.payment_date>= :startDate AND payments.payment_date<= :endDate',{ startDate: today, endDate: tomorrow })
+               .groupBy('payments.paymentmethods')
+               .addGroupBy('towns.id')
+               .addGroupBy('caishers.id')
+               .getRawMany()
 
-    result.forEach((item)=>{
-      sumResults.total_sum_out = item.total_sum;
-      sumResults.total_usd_out = item.total_usd;
-    })
+           result.forEach((item) => {
+               sumResults.total_sum_out = item.total_sum;
+               sumResults.total_usd_out = item.total_usd;
+           })
+       }
 
     return sumResults;
 
