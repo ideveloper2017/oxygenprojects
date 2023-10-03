@@ -36,9 +36,10 @@ export class ReportController {
     let sum
 
     res=this.reportService.allPayment();
-    res.forEach((items)=>{
-      console.log(items);
-    })
+
+    for(let ret of res){
+      console.log(ret)
+    }
     // res.forEach((data)=>{
     //
     //   sum=this.reportService.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
