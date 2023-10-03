@@ -155,7 +155,7 @@ export class ReportService {
               .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
               .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
               .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-              .select('DATE_TRUNC(\'year\', payments.payment_date) as formattedDate')
+              .select('DATE_TRUNC(\'year\', payments.payment_date) as year')
               .addSelect('towns.name')
               .addSelect('towns.id')
               .addSelect('caishers.id')
