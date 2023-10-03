@@ -155,8 +155,7 @@ export class ReportService {
               .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
               .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
               .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-
-              .select('TO_CHAR(payments.payment_date, \'YYYY\') as year')
+              .select('TO_CHAR(payments.payment_date, \'YYYY\') as formattedDate')
               .addSelect('towns.name')
               .addSelect('towns.id')
               .addSelect('caishers.id')
@@ -167,7 +166,7 @@ export class ReportService {
 
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate', { startDate: startOfYear })
-              .groupBy('year')
+              .groupBy('formattedDate')
               .addGroupBy('payments.paymentmethods')
               .addGroupBy('towns.id')
               .addGroupBy('caishers.id')
