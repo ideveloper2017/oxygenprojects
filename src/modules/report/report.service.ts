@@ -82,12 +82,12 @@ export class ReportService {
        .addGroupBy("payments.paymentmethods")
        .getRawMany()
 
-    // let sum
+    let summa_out
 
 
     res.forEach(async (data)=>{
 
-      const summa_out=await this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
+       summa_out=await this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
            .then((response)=>{
              // console.log(response)
          return response;
