@@ -186,7 +186,8 @@ export class ReportService {
                .andWhere('caishers.id= :caisher_id', {caisher_id: caisher_id})
                .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods: paymentmethods})
                .andWhere('payments.payment_date>= :startDate AND payments.payment_date<= :endDate',{ startDate: today, endDate: tomorrow })
-               .groupBy('payments.paymentmethods')
+               .groupBy('month')
+               .addGroupBy('payments.paymentmethods')
                .addGroupBy('towns.id')
                .addGroupBy('caishers.id')
                .getRawMany()
@@ -211,6 +212,7 @@ export class ReportService {
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
 
                .select([
+                   'DATE_FORMAT(payments.payment_date, "%m") AS month',
                    'towns.name',
                    'payments.paymentmethods',
                    'caishers.caisher_name',
