@@ -98,6 +98,8 @@ export class ReportService {
           .addGroupBy('towns.id')
           .addGroupBy('caishers.id')
           .getRawMany().then((data)=>{return data})
+
+      console.log(response);
       items.sum=response;
     })
 
