@@ -228,6 +228,7 @@ export class ReportService {
                .addGroupBy('payments.paymentmethods')
                .addGroupBy('towns.id')
                .addGroupBy('caishers.id')
+               .orderBy('payments.payment_date',"DESC")
                .getRawMany()
 
            result.forEach((item) => {
