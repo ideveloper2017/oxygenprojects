@@ -24,33 +24,37 @@ export class PaymentsService {
 
   async newPayment(newPaymentDto: NewPaymentDto) {
 
-    const { paymentMethods } = await Orders.findOne({
-      where: { id: newPaymentDto.order_id },
-      relations: ['paymentMethods'],
-    });
-    
-    const usdRate = await ExchangRates.findOne({where: {is_default: true}})
-    let newPay;
-
-    if (
-      paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
-      paymentMethods.name_alias.toLowerCase() == 'subsidia'
-    ) {
-      newPay = await this.payForInstallment(newPaymentDto)
-    }
+    try {
+      const { paymentMethods } = await Orders.findOne({
+        where: { id: newPaymentDto.order_id },
+        relations: ['paymentMethods'],
+      });
       
-    else {
-      newPay = await this.doPayment(newPaymentDto)
+      const usdRate = await ExchangRates.findOne({where: {is_default: true}})
+      let newPay;
+  
+      if (
+        paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
+        paymentMethods.name_alias.toLowerCase() == 'subsidia'
+      ) {
+        newPay = await this.payForInstallment(newPaymentDto)
+      }
+        
+      else {
+        newPay = await this.doPayment(newPaymentDto)
+      }
+  
+      
+      if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.IN){
+        await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.COMPLETED})
+      }else if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.OUT){
+        await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.REFUNDED})
+      }
+  
+      return newPay;
+    } catch (error) {
+      return null
     }
-
-    
-    if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.IN){
-      await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.COMPLETED})
-    }else {
-      await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.REFUNDED})
-    }
-
-    return newPay;
   }
 
   // ========================== Barcha to'lovlar royxatini olish ==============================
