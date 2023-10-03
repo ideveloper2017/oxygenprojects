@@ -31,6 +31,22 @@ export class ReportController {
 
   @Get('/all-payment')
   async listPayments(){
-    return this.reportService.allPayment();
+    let res;
+
+    let sum
+
+    res=this.reportService.allPayment()
+    res.forEach((data)=>{
+
+      sum=this.reportService.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
+          .then((response)=>{
+            console.log(response)
+            return response;
+          });
+
+      data.sum=sum;
+
+    })
+    return res;
   }
 }
