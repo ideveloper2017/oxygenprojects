@@ -85,11 +85,11 @@ export class ReportService {
     // let sum
 
 
-    res.forEach((data)=>{
+    res.forEach(async (data)=>{
 
-      const summa_out=this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
+      const summa_out=await this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
            .then((response)=>{
-             console.log(response)
+             // console.log(response)
          return response;
        });
       console.log(summa_out)
@@ -132,7 +132,7 @@ export class ReportService {
   // }
 
 
-  public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
+   async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
     let sumResults = {
       total_sum_out: 0,
       total_usd_out: 0
