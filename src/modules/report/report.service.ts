@@ -76,7 +76,8 @@ export class ReportService {
               .then((response) => {
                   return response;
               });
-          data['total_sum_out'] = summa_out;
+          data['total_sum_out'] = summa_out.total_sum_out;
+          data['total_sum_out_usd'] = summa_out.total_sum_out_usd;
           return data;
       }));
 
