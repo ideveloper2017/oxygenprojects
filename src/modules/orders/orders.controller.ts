@@ -162,4 +162,10 @@ export class OrdersController {
   getCompletedOrders(@Param('orderId') orderId: number) {
     return this.orderService.findCompletedOrders(orderId);
   }
+
+  @ApiOperation({summary: "Haqi bor shartnomalarni olish"})
+  @Get('/refunding-orders')
+  getLeftAmountsOfReturningOrders() {
+    return this.orderService.findLeftAmountsOfReturningOrders();
+  }
 }

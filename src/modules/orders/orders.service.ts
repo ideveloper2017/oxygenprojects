@@ -254,8 +254,7 @@ export class OrdersService {
       .leftJoinAndSelect(
         'orders.clients',
         'clients',
-        'clients.id=orders.client_id',
-      )
+        'clients.id=orders.client_id')
       .leftJoinAndSelect(
         'orders.payments',
         'payments',
@@ -427,5 +426,48 @@ export class OrdersService {
     }
   }
 
+    async findLeftAmountsOfReturningOrders() {
+      const result = [];
+      const orders = await this.ordersRepository
+        .createQueryBuilder('orders')
+        .addSelect('orders.id')
+        .addSelect('orders.order_date')
+        .leftJoinAndSelect(
+          'orders.clients',
+          'clients',
+          'clients.id=orders.client_id')
+        .leftJoinAndSelect(
+          'orders.payments',
+          'payments',
+          'payments.order_id=orders.id',
+        )
+        .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
+        .getMany();
+  
+        orders.forEach((data) => {
+          const { incomingSum, outgoingSum } = data.payments.reduce(
+            (accumulator, currentValue) => {
+              // if (currentValue.caisher_type === 'in') {
+              //   accumulator.incomingSum += (+currentValue.amount);
+              // } else if (currentValue.caisher_type === 'out') {
+              //   accumulator.outgoingSum += (+currentValue.amount);
+              // }
+              currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
+              
+              return accumulator;
+            },
+            { incomingSum: 0, outgoingSum: 0 });
+            
+          result.push({
+            order_id: data.id,
+            order_date: data.order_date,
+            clients: data.clients.first_name + ' ' + data.clients.last_name,
+            left_amount: incomingSum - outgoingSum,
+          });
+        });
+        
+        
+      return result;
+    }
 
 }
