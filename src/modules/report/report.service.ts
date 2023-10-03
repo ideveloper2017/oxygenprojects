@@ -89,11 +89,9 @@ export class ReportService {
 
        summa_out=await this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
            .then((response)=>{
-
-
          return response;
        });
-      console.log(summa_out)
+   //   console.log(summa_out)
       console.log(data)
     })
     return res;
