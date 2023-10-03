@@ -132,8 +132,8 @@ export class ReportService {
 
   public async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number){
     let sumResults = {
-      total_sum: 0,
-      total_usd: 0
+      total_sum_out: 0,
+      total_usd_out: 0
     };
     let result;
     result= await this.orderRepo.manager.createQueryBuilder(Payments,'payments')
@@ -166,8 +166,8 @@ export class ReportService {
         .getRawMany();
 
     result.forEach((item)=>{
-      sumResults.total_sum += item.total_sum;
-      sumResults.total_usd += item.total_usd;
+      sumResults.total_sum_out += item.total_sum;
+      sumResults.total_usd_out += item.total_usd;
     })
 
     return result;
