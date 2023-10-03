@@ -20,6 +20,7 @@ import { ApartmentStatus } from '../../common/enums/apartment-status';
 import { OrderStatus } from '../../common/enums/order-status';
 import { PaymentStatus } from 'src/common/enums/payment-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
+import { RefundDto } from './dto/refund.dto';
 
 @Injectable()
 export class OrdersService {
@@ -245,7 +246,15 @@ export class OrdersService {
     return order;
   }
 
-  async getOrderListIsDue() {
+  async getOrderListIsDue(refundDto: RefundDto) {
+    let activeness
+    if(refundDto.is_refunding) {
+      console.log('if');
+      activeness = OrderStatus.INACTIVE      
+    }else {
+      console.log('else');
+      activeness = OrderStatus.ACTIVE      
+    }
     const result = [];
     const orders = await this.ordersRepository
       .createQueryBuilder('orders')
@@ -260,22 +269,35 @@ export class OrdersService {
         'payments',
         'payments.order_id=orders.id',
       )
-      .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
+      .where('orders.order_status =:logic', { logic: activeness})
       .getMany();
 
     orders.forEach((data) => {
-      const sum = data.payments.reduce((accumulator, currentValue) => {
-        return accumulator + (+currentValue.amount);
-      }, 0);
-
-      result.push({
-        order_id: data.id,
-        order_date: data.order_date,
-        clients: data.clients.first_name + ' ' + data.clients.last_name,
-        totalsum: data.total_amount - sum,
-      });
+      if(refundDto.is_refunding) {
+        const { incomingSum, outgoingSum } = data.payments.reduce((accumulator, currentValue) => {
+        currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
+        return accumulator;},
+        { incomingSum: 0, outgoingSum: 0 });
+        
+        result.push({
+          order_id: data.id,
+          order_date: data.order_date,
+          clients: data.clients.first_name + ' ' + data.clients.last_name,
+          left_amount:  incomingSum - outgoingSum 
+        });        
+      }else {
+        const sum = data.payments.reduce((accumulator, currentValue) => {
+          return accumulator + (+currentValue.amount);
+        }, 0);
+        
+        result.push({
+          order_id: data.id,
+          order_date: data.order_date,
+          clients: data.clients.first_name + ' ' + data.clients.last_name,
+          totalsum: data.total_amount - sum,
+        });
+      }
     });
-
     return result;
   }
 
@@ -426,48 +448,44 @@ export class OrdersService {
     }
   }
 
-    async findLeftAmountsOfReturningOrders() {
-      const result = [];
-      const orders = await this.ordersRepository
-        .createQueryBuilder('orders')
-        .addSelect('orders.id')
-        .addSelect('orders.order_date')
-        .leftJoinAndSelect(
-          'orders.clients',
-          'clients',
-          'clients.id=orders.client_id')
-        .leftJoinAndSelect(
-          'orders.payments',
-          'payments',
-          'payments.order_id=orders.id',
-        )
-        .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
-        .getMany();
+    // async findLeftAmountsOfReturningOrders() {
+    //   const result = [];
+    //   const orders = await this.ordersRepository
+    //     .createQueryBuilder('orders')
+    //     .addSelect('orders.id')
+    //     .addSelect('orders.order_date')
+    //     .leftJoinAndSelect(
+    //       'orders.clients',
+    //       'clients',
+    //       'clients.id=orders.client_id')
+    //     .leftJoinAndSelect(
+    //       'orders.payments',
+    //       'payments',
+    //       'payments.order_id=orders.id',
+    //     )
+    //     .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
+    //     .getMany();
   
-        orders.forEach((data) => {
-          const { incomingSum, outgoingSum } = data.payments.reduce(
-            (accumulator, currentValue) => {
-              // if (currentValue.caisher_type === 'in') {
-              //   accumulator.incomingSum += (+currentValue.amount);
-              // } else if (currentValue.caisher_type === 'out') {
-              //   accumulator.outgoingSum += (+currentValue.amount);
-              // }
-              currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
+    //     orders.forEach((data) => {
+    //       const { incomingSum, outgoingSum } = data.payments.reduce(
+    //         (accumulator, currentValue) => {
               
-              return accumulator;
-            },
-            { incomingSum: 0, outgoingSum: 0 });
+    //           currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
+              
+    //           return accumulator;
+    //         },
+    //         { incomingSum: 0, outgoingSum: 0 });
             
-          result.push({
-            order_id: data.id,
-            order_date: data.order_date,
-            clients: data.clients.first_name + ' ' + data.clients.last_name,
-            left_amount: incomingSum - outgoingSum,
-          });
-        });
+    //       result.push({
+    //         order_id: data.id,
+    //         order_date: data.order_date,
+    //         clients: data.clients.first_name + ' ' + data.clients.last_name,
+    //         left_amount: incomingSum - outgoingSum,
+    //       });
+    //     });
         
         
-      return result;
-    }
+    //   return result;
+    // }
 
 }

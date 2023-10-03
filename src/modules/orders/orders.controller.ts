@@ -20,6 +20,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Users } from '../users/entities/user.entity';
+import { RefundDto } from './dto/refund.dto';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -146,9 +147,9 @@ export class OrdersController {
   }
   
   @ApiOperation({summary: "Qarzi bor shartnomalarni olish"})
-  @Get('/listdue')
-  getOrderListDue() {
-    return this.orderService.getOrderListIsDue();
+  @Post('/listdue')
+  getOrderListDue(@Body() refundDto: RefundDto) {
+    return this.orderService.getOrderListIsDue(refundDto);
   }
 
   @ApiOperation({summary: "Get Canceled orders"})
@@ -163,9 +164,9 @@ export class OrdersController {
     return this.orderService.findCompletedOrders(orderId);
   }
 
-  @ApiOperation({summary: "Haqi bor shartnomalarni olish"})
-  @Get('/refunding-orders')
-  getLeftAmountsOfReturningOrders() {
-    return this.orderService.findLeftAmountsOfReturningOrders();
-  }
+  // @ApiOperation({summary: "Haqi bor shartnomalarni olish"})
+  // @Get('/refunding-orders')
+  // getLeftAmountsOfReturningOrders() {
+  //   return this.orderService.findLeftAmountsOfReturningOrders();
+  // }
 }
