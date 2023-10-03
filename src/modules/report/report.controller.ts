@@ -31,14 +31,12 @@ export class ReportController {
 
   @Get('/all-payment')
   async listPayments(){
-     return this.reportService.allPayment('month').then((data)=>{
+     return this.reportService.allPayment('year').then((data)=>{
        if (data){
          return {status:200,data:data,message:"All Payments!!!"}
        } else  {
          return {status: 400,message:"not payment"}
        }
-     }).catch((error)=>{
-       return {status:error.code,message:error.message}
-     });
+     })
   }
 }
