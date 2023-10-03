@@ -94,7 +94,7 @@ export class ReportService {
          return response;
        });
       console.log(summa_out)
-      data.push({sum:summa_out});
+      console.log(data)
     })
     return res;
   }
@@ -167,12 +167,12 @@ export class ReportService {
         .addGroupBy('caishers.id')
         .getRawMany()
 
-    result.forEach((item)=>{
-      sumResults.total_sum_out = item.total_sum;
-      sumResults.total_usd_out = item.total_usd;
-    })
+    // result.forEach((item)=>{
+    //   sumResults.total_sum_out = item.total_sum;
+    //   sumResults.total_usd_out = item.total_usd;
+    // })
 
-    return sumResults;
+    return result;
 
   }
 }
