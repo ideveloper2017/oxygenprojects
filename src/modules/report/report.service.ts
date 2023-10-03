@@ -311,6 +311,7 @@ export class ReportService {
                .andWhere('payments.paymentmethods= :paymentmethods', {paymentmethods: paymentmethods})
                .andWhere('payments.payment_date>= :startDate', { startDate: startOfYear })
                .groupBy('DATE_TRUNC(\'year\', payments.payment_date)')
+               .addGroupBy('payments.payment_date')
                .addGroupBy('payments.paymentmethods')
                .addGroupBy('towns.id')
                .addGroupBy('caishers.id')
