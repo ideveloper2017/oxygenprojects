@@ -119,7 +119,7 @@ export class ReportService {
 
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate', { startDate: startOfMonth })
-              .groupBy('month')
+              .groupBy('payments.payment_date')
               .addGroupBy('payments.paymentmethods')
               .addGroupBy('towns.id')
               .addGroupBy('caishers.id')
