@@ -31,6 +31,14 @@ export class ReportController {
 
   @Get('/all-payment')
   async listPayments(){
-    return this.reportService.allPayment();
+    let res;
+
+    let sum
+
+    res=this.reportService.allPayment();
+
+
+
+    return res;
   }
 }
