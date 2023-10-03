@@ -163,10 +163,10 @@ export class ReportService {
               .addSelect('caishers.caisher_name')
               .addSelect('SUM(payments.amount)', 'total_sum')
               .addSelect('SUM(payments.amount_usd)', 'total_usd')
-
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate', { startDate: startOfYear })
               .groupBy('DATE_TRUNC(\'year\', payments.payment_date)')
+              .addGroupBy('payments.payment_date')
               .addGroupBy('payments.paymentmethods')
               .addGroupBy('towns.id')
               .addGroupBy('caishers.id')
