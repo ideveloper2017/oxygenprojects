@@ -99,7 +99,7 @@ export class ReportService {
           .addGroupBy('caishers.id')
           .getRawMany().then((data)=> data)
 
-      console.log(response);
+      console.log(JSON.stringify(response));
       items.sum=response;
     })
 
