@@ -83,15 +83,20 @@ export class ReportService {
        .getRawMany()
 
     let sum
+    let sumResults = {
+      total_sum: 0,
+      total_usd: 0
+    };
+
     res.forEach((data)=>{
 
-       sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id)
-          .then((response)=> {
-            console.log(JSON.stringify(response))
-            return response;}
-          );
+       sum= this.payment_sum_in(data.towns_id,data.payments_paymentmethods,data.caishers_id);
+       sum.forEach((item)=>{
+         sumResults.total_sum += item.total_sum;
+         sumResults.total_usd += item.total_usd;
+       })
 
-    data.sum=sum;
+    data.sum=sumResults;
     })
     return res;
   }
