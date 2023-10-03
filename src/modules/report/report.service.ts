@@ -166,8 +166,8 @@ export class ReportService {
         .addGroupBy('towns.id')
         .addGroupBy('caishers.id')
         .getRawOne().then((item)=>{
-          sumResults.total_sum_out += item.total_sum;
-          sumResults.total_usd_out += item.total_usd;
+          sumResults.total_sum_out += item?.total_sum;
+          sumResults.total_usd_out += item?.total_usd;
         });
 
     // result.forEach((item)=>{
