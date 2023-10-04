@@ -101,7 +101,8 @@ export class ReportService {
     // if (dayType == 'day') {
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(to);
-    endDate.setDate(endDate.getDate() + 1);
+    endDate.setDate(endDate.getDate());
+
 
     console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
