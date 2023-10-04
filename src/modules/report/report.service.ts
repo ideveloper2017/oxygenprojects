@@ -62,7 +62,9 @@ export class ReportService {
       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
       .select('towns.name')
       .addSelect('buildings.name')
+      .addSelect('entrance.entrance_number')
       .addSelect('floor.floor_number')
+      .addSelect('apartments.room_space')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
       .andWhere(
@@ -71,7 +73,9 @@ export class ReportService {
       )
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
+      .addGroupBy('entrance.id')
       .addGroupBy('floor.id')
+      .addGroupBy('apartments.id')
       .getRawMany();
 
     resultRes = await Promise.all(
