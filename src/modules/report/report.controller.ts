@@ -1,7 +1,7 @@
-import {Controller, Get, Param} from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ApiTags } from '@nestjs/swagger';
-import {Apartments} from "../apartments/entities/apartment.entity";
+import { Apartments } from '../apartments/entities/apartment.entity';
 import * as moment from 'moment';
 
 @Controller('report')
@@ -27,29 +27,33 @@ export class ReportController {
 
   @Get('/order-apartments')
   async listOrders() {
-    return this.reportService.getListByApartment();
+    return this.reportService
+      .getListByApartment()
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'All Apartment' };
+        } else {
+          return { status: 400, message: 'Not all Apartment' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 
   @Get('/all-payment/:from/:to')
-  async listPayments(@Param('from') from:string, @Param('to') to:string){
-      let startDate:string;
-      let endDate:string;
-      // if (!from && !to){
-          const dateObjectFrom: moment.Moment = moment(from);
-          startDate= dateObjectFrom.format("YYYY-MM-DD");
-          const dateObjectTo: moment.Moment = moment(to);
-          endDate= dateObjectTo.format("YYYY-MM-DD");
-      // }
-
-
-     return this.reportService.allPayment('day',startDate,endDate).then((data)=>{
-       if (data){
-         return {status:200,data:data,message:"All Payments!!!"}
-       } else  {
-         return {status: 400,message:"not payment"}
-       }
-     }).catch((error)=>{
-       return {status:error.code,message:error.message}
-     });
+  async listPayments(@Param('from') from: string, @Param('to') to: string) {
+    return this.reportService
+      .allPayment('day', from, to)
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'All Payments!!!' };
+        } else {
+          return { status: 400, message: 'not payment' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 }
