@@ -251,7 +251,7 @@ export class OrdersService {
     if(refundDto.is_refunding) {
       console.log('if');
       activeness = OrderStatus.INACTIVE      
-    }else {
+    } else {
       console.log('else');
       activeness = OrderStatus.ACTIVE      
     }
