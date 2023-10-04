@@ -100,7 +100,7 @@ export class ReportService {
     const startDate = new Date(from);
     // if (dayType == 'day') {
     startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(startDate);
+    const endDate = new Date(to);
     endDate.setDate(endDate.getDate() + 1);
 
     console.log(`${startDate}` + ' ' + `${endDate}`);
