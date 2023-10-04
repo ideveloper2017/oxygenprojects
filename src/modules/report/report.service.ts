@@ -61,8 +61,8 @@ export class ReportService {
       )
       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
       .select('towns.name')
-      .addSelect('towns.id')
       .addSelect('buildings.name')
+      .addSelect('floor.name')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
       .andWhere(
@@ -71,12 +71,14 @@ export class ReportService {
       )
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
+      .addGroupBy('floor.id')
       .getRawMany();
 
     resultRes = await Promise.all(
       result.map(async (data) => {
-        data['town'] = data.town_name;
-        data['building'] = data.town_name;
+        data['town'] = data.towns_name;
+        data['building'] = data.buildings_name;
+        data['floor'] = data.town_name;
       }),
     );
     // where: {
@@ -86,7 +88,7 @@ export class ReportService {
     // },
     // relations: ['orderItems.apartments'],
     // });
-    return result;
+    return resultRes;
   }
 
   async allPayment(dayType: string, from: string, to: string) {
