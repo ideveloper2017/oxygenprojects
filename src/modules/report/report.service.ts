@@ -76,6 +76,7 @@ export class ReportService {
       .addGroupBy('entrance.id')
       .addGroupBy('floor.id')
       // .addGroupBy('apartments.id')
+        .orderBy('floor.id',"ASC")
       .getRawMany();
 
     resultRes = await Promise.all(
