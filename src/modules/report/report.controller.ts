@@ -29,7 +29,7 @@ export class ReportController {
     return this.reportService.getListByApartment();
   }
 
-  @Get('/all-payment')
+  @Get('/all-payment/:from/:to')
   async listPayments(@Param('from') from:string, @Param('to') to:string){
 
       const dateString: string = from;
