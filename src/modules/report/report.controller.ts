@@ -41,6 +41,7 @@ export class ReportController {
           endDate= dateObjectTo.format("YYYY-MM-DD");
       // }
 
+      console.log(startDate+' '+endDate);
 
      return this.reportService.allPayment('day',startDate,endDate).then((data)=>{
        if (data){
