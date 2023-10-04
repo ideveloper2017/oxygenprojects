@@ -62,6 +62,7 @@ export class ReportService {
       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
       .select('towns.name')
       .addSelect('towns.id')
+      .addSelect('buildings.name')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
       .andWhere(
@@ -69,11 +70,13 @@ export class ReportService {
         { startDate: startDate, endDate: endDate },
       )
       .groupBy('towns.id')
+      .addGroupBy('buildings.id')
       .getRawMany();
 
     resultRes = await Promise.all(
       result.map(async (data) => {
         data['town'] = data.town_name;
+        data['building'] = data.town_name;
       }),
     );
     // where: {
