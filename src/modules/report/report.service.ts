@@ -6,6 +6,7 @@ import {Between, getManager, getRepository, Repository, SelectQueryBuilder} from
 import { OrderStatus } from '../../common/enums/order-status';
 import {Payments} from "../payments/entities/payment.entity";
 import {Caishertype} from "../../common/enums/caishertype";
+import {OrderItems} from "../order-items/entities/order-item.entity";
 
 @Injectable()
 export class ReportService {
@@ -30,14 +31,24 @@ export class ReportService {
     const endDate = new Date(); // Set the desired end date
     endDate.setHours(23, 59, 59, 999);
 
-    const result = await Orders.find({
-      where: {
-        order_status: OrderStatus.ACTIVE,
-        is_deleted: false,
-        order_date: Between(startDate, endDate),
-      },
-      relations: ['orderItems.apartments'],
-    });
+    const result = await await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
+        .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+        .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+        .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+        .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+        .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+        .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+        .where('orders.orders_status= :status',{status:OrderStatus.ACTIVE})
+        .andWhere('orders.is_delete= :delete',{delete:false})
+        .andWhere('orders.order_date beetween :startDate and :endDate',{startDate:startDate,endDate:endDate})
+        .getRawMany()
+    //   where: {
+    //     order_status: OrderStatus.ACTIVE,
+    //     is_deleted: false,
+    //     order_date: Between(startDate, endDate),
+    //   },
+    //   relations: ['orderItems.apartments'],
+    // });
     return result;
   }
 
