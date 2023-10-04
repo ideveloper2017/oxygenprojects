@@ -13,6 +13,7 @@ import { OrderStatus } from '../../common/enums/order-status';
 import { Payments } from '../payments/entities/payment.entity';
 import { Caishertype } from '../../common/enums/caishertype';
 import { OrderItems } from '../order-items/entities/order-item.entity';
+import * as moment from 'moment/moment';
 
 @Injectable()
 export class ReportService {
@@ -82,6 +83,8 @@ export class ReportService {
   async allPayment(dayType: string, from: string, to: string) {
     let res;
     let updatedRes;
+    let startDate: string;
+    let endDate: string;
     // if (dayType=='day') {
 
     // const today = new Date();
@@ -90,6 +93,11 @@ export class ReportService {
     // tomorrow.setDate(tomorrow.getDate() + 1);
     // from?from:today;
     // to?to:to
+    const dateObjectFrom: moment.Moment = moment(from);
+    startDate = dateObjectFrom.format('YYYY-MM-DD');
+    const dateObjectTo: moment.Moment = moment(to);
+    endDate = dateObjectTo.format('YYYY-MM-DD');
+
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
@@ -127,7 +135,7 @@ export class ReportService {
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere(
         'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
-        { startDate: from, endDate: to },
+        { startDate: startDate, endDate: endDate },
       )
       .groupBy('payments.paymentmethods')
       .addGroupBy('towns.id')
@@ -259,241 +267,241 @@ export class ReportService {
     };
     let result;
     const today = new Date();
-    if (dayType == 'day') {
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      result = await this.orderRepo.manager
-        .createQueryBuilder(Payments, 'payments')
-        .leftJoinAndSelect(
-          'payments.caishers',
-          'caishers',
-          'caishers.id=payments.caisher_id',
-        )
-        .leftJoinAndSelect(
-          'payments.orders',
-          'orders',
-          'orders.id=payments.order_id',
-        )
-        .leftJoinAndSelect(
-          'orders.clients',
-          'clients',
-          'clients.id=orders.client_id',
-        )
-        .leftJoinAndSelect(
-          'orders.orderItems',
-          'orderitems',
-          'orderitems.order_id=orders.id',
-        )
-        .leftJoinAndSelect(
-          'orderitems.apartments',
-          'apartments',
-          'apartments.id=orderitems.apartment_id',
-        )
-        .leftJoinAndSelect(
-          'apartments.floor',
-          'floor',
-          'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-          'floor.entrance',
-          'entrance',
-          'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-          'entrance.buildings',
-          'buildings',
-          'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-          'buildings.towns',
-          'towns',
-          'towns.id=buildings.town_id',
-        )
-        .select([
-          'towns.name',
-          'payments.paymentmethods',
-          'caishers.caisher_name',
-          'SUM(payments.amount) AS total_sum',
-          'SUM(payments.amount_usd) AS total_usd',
-        ])
+    // if (dayType == 'day') {
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    result = await this.orderRepo.manager
+      .createQueryBuilder(Payments, 'payments')
+      .leftJoinAndSelect(
+        'payments.caishers',
+        'caishers',
+        'caishers.id=payments.caisher_id',
+      )
+      .leftJoinAndSelect(
+        'payments.orders',
+        'orders',
+        'orders.id=payments.order_id',
+      )
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .select([
+        'towns.name',
+        'payments.paymentmethods',
+        'caishers.caisher_name',
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
 
-        .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-        .andWhere('towns.id= :town_id', { town_id: town_id })
-        .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-        .andWhere('payments.paymentmethods= :paymentmethods', {
-          paymentmethods: paymentmethods,
-        })
-        .andWhere(
-          'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
-          { startDate: today, endDate: tomorrow },
-        )
-        .groupBy('payments.paymentmethods')
-        .addGroupBy('towns.id')
-        .addGroupBy('caishers.id')
-        .getRawMany();
+      .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      .andWhere('towns.id= :town_id', { town_id: town_id })
+      .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
+      .andWhere('payments.paymentmethods= :paymentmethods', {
+        paymentmethods: paymentmethods,
+      })
+      .andWhere(
+        'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
+        { startDate: today, endDate: tomorrow },
+      )
+      .groupBy('payments.paymentmethods')
+      .addGroupBy('towns.id')
+      .addGroupBy('caishers.id')
+      .getRawMany();
 
-      result.forEach((item) => {
-        sumResults.total_sum_out = item.total_sum;
-        sumResults.total_usd_out = item.total_usd;
-      });
-    } else if (dayType == 'month') {
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-      result = await this.orderRepo.manager
-        .createQueryBuilder(Payments, 'payments')
-        .leftJoinAndSelect(
-          'payments.caishers',
-          'caishers',
-          'caishers.id=payments.caisher_id',
-        )
-        .leftJoinAndSelect(
-          'payments.orders',
-          'orders',
-          'orders.id=payments.order_id',
-        )
-        .leftJoinAndSelect(
-          'orders.clients',
-          'clients',
-          'clients.id=orders.client_id',
-        )
-        .leftJoinAndSelect(
-          'orders.orderItems',
-          'orderitems',
-          'orderitems.order_id=orders.id',
-        )
-        .leftJoinAndSelect(
-          'orderitems.apartments',
-          'apartments',
-          'apartments.id=orderitems.apartment_id',
-        )
-        .leftJoinAndSelect(
-          'apartments.floor',
-          'floor',
-          'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-          'floor.entrance',
-          'entrance',
-          'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-          'entrance.buildings',
-          'buildings',
-          'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-          'buildings.towns',
-          'towns',
-          'towns.id=buildings.town_id',
-        )
-
-        .select([
-          'towns.name',
-          'payments.paymentmethods',
-          'caishers.caisher_name',
-          'SUM(payments.amount) AS total_sum',
-          'SUM(payments.amount_usd) AS total_usd',
-        ])
-
-        .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-        .andWhere('towns.id= :town_id', { town_id: town_id })
-        .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-        .andWhere('payments.paymentmethods= :paymentmethods', {
-          paymentmethods: paymentmethods,
-        })
-        .andWhere('payments.payment_date>= :startDate', {
-          startDate: startOfMonth,
-        })
-        .groupBy('payments.payment_date')
-        .addGroupBy('payments.paymentmethods')
-        .addGroupBy('towns.id')
-        .addGroupBy('caishers.id')
-        .orderBy('payments.payment_date', 'DESC')
-        .getRawMany();
-
-      result.forEach((item) => {
-        sumResults.total_sum_out = item.total_sum;
-        sumResults.total_usd_out = item.total_usd;
-      });
-    } else if (dayType == 'year') {
-      const startOfYear = new Date(today.getFullYear(), 0, 1);
-      result = await this.orderRepo.manager
-        .createQueryBuilder(Payments, 'payments')
-        .leftJoinAndSelect(
-          'payments.caishers',
-          'caishers',
-          'caishers.id=payments.caisher_id',
-        )
-        .leftJoinAndSelect(
-          'payments.orders',
-          'orders',
-          'orders.id=payments.order_id',
-        )
-        .leftJoinAndSelect(
-          'orders.clients',
-          'clients',
-          'clients.id=orders.client_id',
-        )
-        .leftJoinAndSelect(
-          'orders.orderItems',
-          'orderitems',
-          'orderitems.order_id=orders.id',
-        )
-        .leftJoinAndSelect(
-          'orderitems.apartments',
-          'apartments',
-          'apartments.id=orderitems.apartment_id',
-        )
-        .leftJoinAndSelect(
-          'apartments.floor',
-          'floor',
-          'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-          'floor.entrance',
-          'entrance',
-          'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-          'entrance.buildings',
-          'buildings',
-          'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-          'buildings.towns',
-          'towns',
-          'towns.id=buildings.town_id',
-        )
-        .select([
-          'towns.name',
-          'payments.paymentmethods',
-          'caishers.caisher_name',
-          'SUM(payments.amount) AS total_sum',
-          'SUM(payments.amount_usd) AS total_usd',
-        ])
-        .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-        .andWhere('towns.id= :town_id', { town_id: town_id })
-        .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-        .andWhere('payments.paymentmethods= :paymentmethods', {
-          paymentmethods: paymentmethods,
-        })
-        .andWhere('payments.payment_date>= :startDate', {
-          startDate: startOfYear,
-        })
-        .groupBy("DATE_TRUNC('year', payments.payment_date)")
-        .addGroupBy('payments.payment_date')
-        .addGroupBy('payments.paymentmethods')
-        .addGroupBy('towns.id')
-        .addGroupBy('caishers.id')
-        .orderBy('payments.payment_date', 'DESC')
-        .getRawMany();
-
-      result.forEach((item) => {
-        sumResults.total_sum_out = item.total_sum;
-        sumResults.total_usd_out = item.total_usd;
-      });
-    }
+    result.forEach((item) => {
+      sumResults.total_sum_out = item.total_sum;
+      sumResults.total_usd_out = item.total_usd;
+    });
+    // } else if (dayType == 'month') {
+    //   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    //
+    //   result = await this.orderRepo.manager
+    //     .createQueryBuilder(Payments, 'payments')
+    //     .leftJoinAndSelect(
+    //       'payments.caishers',
+    //       'caishers',
+    //       'caishers.id=payments.caisher_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'payments.orders',
+    //       'orders',
+    //       'orders.id=payments.order_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'orders.clients',
+    //       'clients',
+    //       'clients.id=orders.client_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'orders.orderItems',
+    //       'orderitems',
+    //       'orderitems.order_id=orders.id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'orderitems.apartments',
+    //       'apartments',
+    //       'apartments.id=orderitems.apartment_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'apartments.floor',
+    //       'floor',
+    //       'floor.id=apartments.floor_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'floor.entrance',
+    //       'entrance',
+    //       'entrance.id=floor.entrance_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'entrance.buildings',
+    //       'buildings',
+    //       'buildings.id=entrance.building_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'buildings.towns',
+    //       'towns',
+    //       'towns.id=buildings.town_id',
+    //     )
+    //
+    //     .select([
+    //       'towns.name',
+    //       'payments.paymentmethods',
+    //       'caishers.caisher_name',
+    //       'SUM(payments.amount) AS total_sum',
+    //       'SUM(payments.amount_usd) AS total_usd',
+    //     ])
+    //
+    //     .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+    //     .andWhere('towns.id= :town_id', { town_id: town_id })
+    //     .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
+    //     .andWhere('payments.paymentmethods= :paymentmethods', {
+    //       paymentmethods: paymentmethods,
+    //     })
+    //     .andWhere('payments.payment_date>= :startDate', {
+    //       startDate: startOfMonth,
+    //     })
+    //     .groupBy('payments.payment_date')
+    //     .addGroupBy('payments.paymentmethods')
+    //     .addGroupBy('towns.id')
+    //     .addGroupBy('caishers.id')
+    //     .orderBy('payments.payment_date', 'DESC')
+    //     .getRawMany();
+    //
+    //   result.forEach((item) => {
+    //     sumResults.total_sum_out = item.total_sum;
+    //     sumResults.total_usd_out = item.total_usd;
+    //   });
+    // } else if (dayType == 'year') {
+    //   const startOfYear = new Date(today.getFullYear(), 0, 1);
+    //   result = await this.orderRepo.manager
+    //     .createQueryBuilder(Payments, 'payments')
+    //     .leftJoinAndSelect(
+    //       'payments.caishers',
+    //       'caishers',
+    //       'caishers.id=payments.caisher_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'payments.orders',
+    //       'orders',
+    //       'orders.id=payments.order_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'orders.clients',
+    //       'clients',
+    //       'clients.id=orders.client_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'orders.orderItems',
+    //       'orderitems',
+    //       'orderitems.order_id=orders.id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'orderitems.apartments',
+    //       'apartments',
+    //       'apartments.id=orderitems.apartment_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'apartments.floor',
+    //       'floor',
+    //       'floor.id=apartments.floor_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'floor.entrance',
+    //       'entrance',
+    //       'entrance.id=floor.entrance_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'entrance.buildings',
+    //       'buildings',
+    //       'buildings.id=entrance.building_id',
+    //     )
+    //     .leftJoinAndSelect(
+    //       'buildings.towns',
+    //       'towns',
+    //       'towns.id=buildings.town_id',
+    //     )
+    //     .select([
+    //       'towns.name',
+    //       'payments.paymentmethods',
+    //       'caishers.caisher_name',
+    //       'SUM(payments.amount) AS total_sum',
+    //       'SUM(payments.amount_usd) AS total_usd',
+    //     ])
+    //     .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+    //     .andWhere('towns.id= :town_id', { town_id: town_id })
+    //     .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
+    //     .andWhere('payments.paymentmethods= :paymentmethods', {
+    //       paymentmethods: paymentmethods,
+    //     })
+    //     .andWhere('payments.payment_date>= :startDate', {
+    //       startDate: startOfYear,
+    //     })
+    //     .groupBy("DATE_TRUNC('year', payments.payment_date)")
+    //     .addGroupBy('payments.payment_date')
+    //     .addGroupBy('payments.paymentmethods')
+    //     .addGroupBy('towns.id')
+    //     .addGroupBy('caishers.id')
+    //     .orderBy('payments.payment_date', 'DESC')
+    //     .getRawMany();
+    //
+    //   result.forEach((item) => {
+    //     sumResults.total_sum_out = item.total_sum;
+    //     sumResults.total_usd_out = item.total_usd;
+    //   });
+    // }
     return sumResults;
   }
 }

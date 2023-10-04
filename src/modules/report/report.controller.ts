@@ -1,7 +1,7 @@
-import {Controller, Get, Param} from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ApiTags } from '@nestjs/swagger';
-import {Apartments} from "../apartments/entities/apartment.entity";
+import { Apartments } from '../apartments/entities/apartment.entity';
 import * as moment from 'moment';
 
 @Controller('report')
@@ -31,26 +31,23 @@ export class ReportController {
   }
 
   @Get('/all-payment/:from/:to')
-  async listPayments(@Param('from') from:string, @Param('to') to:string){
-      let startDate:string;
-      let endDate:string;
-      // if (!from && !to){
-          const dateObjectFrom: moment.Moment = moment(from);
-          startDate= dateObjectFrom.format("YYYY-MM-DD");
-          const dateObjectTo: moment.Moment = moment(to);
-          endDate= dateObjectTo.format("YYYY-MM-DD");
-      // }
+  async listPayments(@Param('from') from: string, @Param('to') to: string) {
 
-      console.log(startDate+' '+endDate);
 
-     return this.reportService.allPayment('day',startDate,endDate).then((data)=>{
-       if (data){
-         return {status:200,data:data,message:"All Payments!!!"}
-       } else  {
-         return {status: 400,message:"not payment"}
-       }
-     }).catch((error)=>{
-       return {status:error.code,message:error.message}
-     });
+
+
+
+    return this.reportService
+      .allPayment('day', from, to)
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'All Payments!!!' };
+        } else {
+          return { status: 400, message: 'not payment' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 }
