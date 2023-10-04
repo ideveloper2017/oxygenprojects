@@ -78,7 +78,7 @@ export class ReportService {
       result.map(async (data) => {
         data['town'] = data.towns_name;
         data['building'] = data.buildings_name;
-        data['floor'] = data.town_name;
+        data['floor'] = data.floor_number;
       }),
     );
     // where: {
