@@ -27,7 +27,18 @@ export class ReportController {
 
   @Get('/order-apartments')
   async listOrders() {
-    return this.reportService.getListByApartment();
+    return this.reportService
+      .getListByApartment()
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'All Apartment' };
+        } else {
+          return { status: 400, message: 'Not all Apartment' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 
   @Get('/all-payment/:from/:to')
