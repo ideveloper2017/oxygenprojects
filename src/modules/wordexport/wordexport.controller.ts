@@ -31,6 +31,10 @@ export class WordexportController {
     let apartment=order?.orderItems?.map((data)=>{
       return {order_number: order?.id,
               client_name: order?.clients?.first_name + ' ' + order?.clients?.last_name,
+              contact_number: order?.clients?.contact_number,
+              passport_seria: order?.clients?.passport_seria,
+              given_date: order?.clients?.given_date,
+              given_from: order?.clients?.given_from,
               address: data?.apartments?.floor?.entrance?.buildings?.towns?.address,
               floor_number:data?.apartments?.floor?.floor_number,
               room_space:data?.apartments?.room_space,
