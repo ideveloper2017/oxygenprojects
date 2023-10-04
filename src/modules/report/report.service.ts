@@ -83,8 +83,7 @@ export class ReportService {
   async allPayment(dayType: string, from: string, to: string) {
     let res;
     let updatedRes;
-    let startDate: string;
-    let endDate: string;
+
     // if (dayType=='day') {
 
     // const today = new Date();
@@ -93,10 +92,10 @@ export class ReportService {
     // tomorrow.setDate(tomorrow.getDate() + 1);
     // from?from:today;
     // to?to:to
-    const dateObjectFrom: moment.Moment = moment(from);
-    startDate = new Date(from);
-    const dateObjectTo: moment.Moment = moment(to);
-    endDate = new Date(to);
+    // const dateObjectFrom: moment.Moment = moment(from);
+    const startDate = new Date(from);
+    // const dateObjectTo: moment.Moment = moment(to);
+    const endDate = new Date(to);
 
     console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
