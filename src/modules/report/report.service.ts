@@ -64,7 +64,7 @@ export class ReportService {
       .select('towns.name')
       .addSelect('buildings.name')
       // .addSelect('entrance.entrance_number')
-      // .addSelect('floor.floor_number')
+      .addSelect('floor.floor_number')
       .addSelect('SUM(apartments.room_space) as all_room_space')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
@@ -76,9 +76,9 @@ export class ReportService {
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       // .addGroupBy('entrance.id')
-      // .addGroupBy('floor.id')
+      .addGroupBy('floor.id')
       // .addGroupBy('apartments.id')
-      // .orderBy('floor.id', 'ASC')
+      .orderBy('floor.id', 'ASC')
       .getRawMany();
 
     resultRes = await Promise.all(
