@@ -389,11 +389,16 @@ export class OrdersService {
       });
 
       cancelledOrders.forEach((order) => {
-        const sumOfPayments = order.payments.reduce(
-          (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
-          0,
-        );
-        order.sumOfPayments = sumOfPayments ? Math.floor(sumOfPayments) : 0;
+        const { incomingSum, outgoingSum } = order.payments.reduce((accumulator, currentValue) => {
+          currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
+          return accumulator;},
+          { incomingSum: 0, outgoingSum: 0 });
+          
+        //   const sumOfPayments = order.payments.reduce(
+      //     (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
+      //     0,
+      //   );
+        order.left_amount = incomingSum > outgoingSum ? incomingSum - outgoingSum :0
       });
     }
 
