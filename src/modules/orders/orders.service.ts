@@ -151,16 +151,11 @@ export class OrdersService {
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
     );
-
-    let apr;
-    apr = await Apartments.findOne({
-      where: { id: createOrderDto.apartment_id },
-    });
-    const inBooking = await Booking.findOne({ where: { apartments: apr } });
+    
+    const inBooking = await Booking.findOne({ where: { apartment_id: createOrderDto.apartment_id } });
 
     if (inBooking) {
-      inBooking.bron_is_active = false;
-      await Booking.save(inBooking);
+      await Booking.update({id: inBooking.id}, {bron_is_active :false});
     }
 
     await OrderItems.save(orderItem);

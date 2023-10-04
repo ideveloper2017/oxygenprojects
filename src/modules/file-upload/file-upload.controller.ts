@@ -84,6 +84,7 @@ export class FileUploadController {
       image_id: body.image_id,
 
     }).then(data => {
+      console.log(data);
       if(data){
         return {success: true, data, message: "Rasm joylandi!!"}
       }

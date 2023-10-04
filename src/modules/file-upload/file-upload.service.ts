@@ -128,9 +128,10 @@ export class FileUploadService {
         entityToUpdate = Towns
       }
 
+        console.log(file.path);
 
       if(existsSync(file.path)){
-
+        console.log(file.path);
         unlinkSync(file.path)
       }else {
         return null
