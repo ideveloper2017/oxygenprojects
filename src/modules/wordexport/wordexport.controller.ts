@@ -35,6 +35,7 @@ export class WordexportController {
               passport_seria: order?.clients?.passport_seria,
               given_date: order?.clients?.given_date,
               given_from: order?.clients?.given_from,
+              client_address: order?.clients?.address,
               address: data?.apartments?.floor?.entrance?.buildings?.towns?.address,
               floor_number:data?.apartments?.floor?.floor_number,
               room_space:data?.apartments?.room_space,
