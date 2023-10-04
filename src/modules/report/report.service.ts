@@ -57,7 +57,7 @@ export class ReportService {
     return resultRes;
   }
 
-  async allPayment(dayType:string){
+  async allPayment(dayType:string,from:string,to:string){
     let res;
       let updatedRes;
       const today = new Date();
@@ -100,7 +100,6 @@ export class ReportService {
               data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
               data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out)
               data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out)
-               console.log(data);
               return data;
           }));
       } else if (dayType=='month')  {

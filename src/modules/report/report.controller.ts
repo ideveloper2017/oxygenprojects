@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import {Controller, Get, Param} from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ApiTags } from '@nestjs/swagger';
 import {Apartments} from "../apartments/entities/apartment.entity";
@@ -30,8 +30,8 @@ export class ReportController {
   }
 
   @Get('/all-payment')
-  async listPayments(){
-     return this.reportService.allPayment('day').then((data)=>{
+  async listPayments(@Param('from') from:string,@Param('to') to:string){
+     return this.reportService.allPayment('day',).then((data)=>{
        if (data){
          return {status:200,data:data,message:"All Payments!!!"}
        } else  {
