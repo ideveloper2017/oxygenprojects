@@ -34,7 +34,7 @@ export class ReportController {
 
       const dateString: string = from;
       const dateObject: Date = new Date(dateString);
-      console.log(dateObject+' '+from);
+      console.log(from);
 
      return this.reportService.allPayment('day',from,to).then((data)=>{
        if (data){
