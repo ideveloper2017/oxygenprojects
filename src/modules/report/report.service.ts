@@ -82,13 +82,13 @@ export class ReportService {
       .orderBy('floor.id', 'ASC')
       .getRawMany();
 
-    resultRes = await Promise.all(
-      result.map(async (data) => {
-        data['town'] = data.towns_name;
-        data['building'] = data.buildings_name;
-        data['floor'] = data.floor_number;
-      }),
-    );
+    // resultRes = await Promise.all(
+    //   result.map(async (data) => {
+    //     data['town'] = data.towns_name;
+    //     data['building'] = data.buildings_name;
+    //     data['floor'] = data.floor_number;
+    //   }),
+    // );
     // where: {
     //   order_status: OrderStatus.ACTIVE,
     //   is_deleted: false,
