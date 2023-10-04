@@ -64,7 +64,7 @@ export class ReportService {
       .addSelect('buildings.name')
       .addSelect('entrance.entrance_number')
       .addSelect('floor.floor_number')
-      .addSelect('apartments.room_space')
+      .addSelect('SUM(apartments.room_space) as all_room_space')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
       .andWhere(
@@ -75,7 +75,7 @@ export class ReportService {
       .addGroupBy('buildings.id')
       .addGroupBy('entrance.id')
       .addGroupBy('floor.id')
-      .addGroupBy('apartments.id')
+      // .addGroupBy('apartments.id')
       .getRawMany();
 
     resultRes = await Promise.all(
