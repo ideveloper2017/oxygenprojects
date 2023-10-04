@@ -65,7 +65,6 @@ export class FileUploadService {
     .where(`file.${fileDto.entity} = :res_id`, { res_id})
     .getMany();
 
-    console.log(file);
 
     if (!file) {
       throw new NotFoundException();

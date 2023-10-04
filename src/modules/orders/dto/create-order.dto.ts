@@ -10,6 +10,10 @@ export class CreateOrderDto {
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
   @IsInt()
   apartment_id: number;
+  
+  @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
+  @IsInt()
+  caisher_id: number;
 
   @ApiProperty({ example: 1, description: "to'lov turi tanlanadi" })
   @IsInt()
@@ -25,10 +29,6 @@ export class CreateOrderDto {
   @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov somda' })
   @IsInt()
   initial_pay: number;
-
-  // @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov dollarda' })
-  // @IsInt()
-  // initial_pay_usd?: number;
 
   @ApiProperty({ example: '2023-09-04' })
   order_date: Date;
