@@ -35,7 +35,7 @@ export class WordexportController {
 
     const apartment = order?.orderItems?.map((data) => {
       return {
-        order_date: order?.order_date.getDate()+'.'+order?.order_date.getMonth()+'.'+order?.order_date.getFullYear(),
+        order_date: String(order?.order_date.getDate()).padStart(2,'0')+'.'+String(order?.order_date.getMonth()).padStart(2,'0')+'.'+order?.order_date.getFullYear(),
         order_number: order?.id,
         client_name:
           order?.clients?.first_name + ' ' + order?.clients?.last_name,
