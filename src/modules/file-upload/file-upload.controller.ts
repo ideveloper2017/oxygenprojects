@@ -73,9 +73,9 @@ export class FileUploadController {
   })
   )
   
-  async uploadFile(@Body() body: FileDto, @UploadedFile() file: Express.Multer.File) {
+   uploadFile(@Body() body: FileDto, @UploadedFile() file: Express.Multer.File) {
 
-    return await this.fileService.saveLocalFileData({
+    return  this.fileService.saveLocalFileData({
       entity: body.entity,
       record_id: body.record_id,
       path: file.path,

@@ -44,6 +44,7 @@ export class OrdersService {
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
 
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
+    
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
 
     const payment_method = await PaymentMethods.findOne({
@@ -171,8 +172,7 @@ export class OrdersService {
     payment.payment_date = new Date();
     payment.paymentmethods = Paymentmethods.CARD;
     payment.caishers = await Caisher.findOne({
-      where: { is_active: true },
-    });
+      where: { id: createOrderDto.caisher_id, is_active: true },});
     payment.amount_usd = Math.floor(savedOrder.initial_pay / usdRate.rate_value)
     payment.currency_value = usdRate.rate_value;
     payment.caisher_type = Caishertype.IN;
