@@ -24,41 +24,20 @@ export class WordexportController {
     const filename = 'data/contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
-    const order = await this.orderRepo.manager
-      .createQueryBuilder(Orders, 'orders')
-      .leftJoin(
-        'orders.orderItems',
-        'orderitems',
-        'orderitems.order_id=orders.id',
-      )
-      .leftJoin(
-        'orderitems.apartments',
-        'apartments',
-        'apartments.id=orderitems.apartment_id',
-      )
-      .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-      .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-      .leftJoin(
-        'entrance.buildings',
-        'buildings',
-        'buildings.id=entrance.building_id',
-      )
-      .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-      .where('orders.id= :id', { id: client_id })
-      .getRawOne();
+    const order = await this.orderRepo.findOne({
+      where: { id: client_id },
+      relations: [
+        'clients',
+        'orderItems.apartments.floor.entrance.buildings.towns',
+      ],
+    });
 
-    // relations: [
-    //   'clients',
-    //   'orderItems.apartments.floor.entrance.buildings.towns',
-    // ],
-    // });
-
+    console.log(order);
     const apartment = order?.orderItems?.map((data) => {
       return {
         order_date: order.order_date,
         order_number: order?.id,
-        client_name:
-          order?.clients?.first_name + ' ' + order?.clients?.last_name,
+        client_name: order?.clients?.first_name + ' ' + order?.clients?.last_name,
         contact_number: order?.clients?.contact_number,
         passport_seria: order?.clients?.passport_seria,
         given_date: order?.clients?.given_date,
