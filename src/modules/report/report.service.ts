@@ -46,11 +46,9 @@ export class ReportService {
       let updatedRes;
       const today = new Date();
       if (dayType=='day') {
-
           today.setHours(0, 0, 0, 0);
           const tomorrow = new Date(today);
           tomorrow.setDate(tomorrow.getDate() + 1);
-
           res = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
               .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
               .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
@@ -61,7 +59,6 @@ export class ReportService {
               .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
               .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
               .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-
               .select('towns.name')
               .addSelect('towns.id')
               .addSelect('caishers.id')
@@ -69,16 +66,13 @@ export class ReportService {
               .addSelect('caishers.caisher_name')
               .addSelect('SUM(payments.amount)', 'total_sum')
               .addSelect('SUM(payments.amount_usd)', 'total_usd')
-
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate AND payments.payment_date<= :endDate',{ startDate: today, endDate: tomorrow })
               .groupBy('payments.paymentmethods')
               .addGroupBy('towns.id')
               .addGroupBy('caishers.id')
               .addGroupBy("payments.paymentmethods")
-
               .getRawMany()
-
 
            updatedRes = await Promise.all(res.map(async (data) => {
               let summa_out;
@@ -90,13 +84,11 @@ export class ReportService {
               data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
               data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out)
               data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out)
+               console.log(data);
               return data;
           }));
-
       } else if (dayType=='month')  {
-
           const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
           res = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
               .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
               .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
@@ -107,7 +99,6 @@ export class ReportService {
               .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
               .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
               .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-
               .select('TO_CHAR(payments.payment_date, \'YYYY-MONTH\') as month')
               .addSelect('towns.name')
               .addSelect('towns.id')
@@ -116,7 +107,6 @@ export class ReportService {
               .addSelect('caishers.caisher_name')
               .addSelect('SUM(payments.amount)', 'total_sum')
               .addSelect('SUM(payments.amount_usd)', 'total_usd')
-
               .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
               .andWhere('payments.payment_date>= :startDate', { startDate: startOfMonth })
               .groupBy('payments.payment_date')
@@ -126,8 +116,6 @@ export class ReportService {
               .addGroupBy("payments.paymentmethods")
               .orderBy('payments.payment_date',"DESC")
               .getRawMany()
-
-
           updatedRes = await Promise.all(res.map(async (data) => {
               let summa_out;
               summa_out = await this.payment_sum_in(data.towns_id, data.payments_paymentmethods, data.caishers_id,dayType)
@@ -141,10 +129,7 @@ export class ReportService {
               return data;
           }));
       } else if (dayType=='year')  {
-
-          const startOfYear = new Date(today.getFullYear(), 0, 1);
-
-
+           const startOfYear = new Date(today.getFullYear(), 0, 1);
           res = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
               .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
               .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
@@ -194,9 +179,6 @@ export class ReportService {
 
   }
 
-
-
-
    async payment_sum_in(town_id:number,paymentmethods:string,caisher_id:number,dayType:string){
     let sumResults = {
       total_sum_out: 0,
@@ -219,7 +201,6 @@ export class ReportService {
                .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
                .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-
                .select([
                    'towns.name',
                    'payments.paymentmethods',
@@ -283,8 +264,6 @@ export class ReportService {
            })
        } else  if (dayType=='year') {
            const startOfYear = new Date(today.getFullYear(), 0, 1);
-
-
            result = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
                .leftJoinAndSelect('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
                .leftJoinAndSelect('payments.orders', 'orders', 'orders.id=payments.order_id')
@@ -295,16 +274,13 @@ export class ReportService {
                .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
                .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
                .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-
                .select([
-
                    'towns.name',
                    'payments.paymentmethods',
                    'caishers.caisher_name',
                    'SUM(payments.amount) AS total_sum',
                    'SUM(payments.amount_usd) AS total_usd'
                ])
-
                .where('payments.caisher_type= :cash', {cash: Caishertype.OUT})
                .andWhere('towns.id= :town_id', {town_id: town_id})
                .andWhere('caishers.id= :caisher_id', {caisher_id: caisher_id})
