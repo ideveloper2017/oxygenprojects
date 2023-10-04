@@ -98,7 +98,7 @@ export class ReportService {
     const dateObjectTo: moment.Moment = moment(to);
     endDate = dateObjectTo.format('YYYY-MM-DD');
 
-    console.log(startDate+' '+endDate);
+    console.log(`${startDate}`+' '+ `${endDate}`);
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
