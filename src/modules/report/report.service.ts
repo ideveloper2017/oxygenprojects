@@ -25,6 +25,7 @@ export class ReportService {
   }
 
   public async getListByApartment() {
+     let resultRes;
     const startDate = new Date(); // Set the desired start date
     startDate.setHours(0, 0, 0, 0);
 
@@ -42,6 +43,10 @@ export class ReportService {
         .andWhere('orders.is_deleted= :delete',{delete:false})
         .andWhere('orders.order_date>= :startDate and orders.order_date<= :endDate',{startDate:startDate,endDate:endDate})
         .getRawMany()
+
+      resultRes = await Promise.all(result.map(async (data) => {
+            //data['town']=
+      });
     //   where: {
     //     order_status: OrderStatus.ACTIVE,
     //     is_deleted: false,
@@ -49,7 +54,7 @@ export class ReportService {
     //   },
     //   relations: ['orderItems.apartments'],
     // });
-    return result;
+    return resultRes;
   }
 
   async allPayment(dayType:string){
