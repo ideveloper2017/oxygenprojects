@@ -93,9 +93,15 @@ export class ReportService {
     // from?from:today;
     // to?to:to
     // const dateObjectFrom: moment.Moment = moment(from);
-    const startDate = new Date(from);
+    // const startDate = new Date(from);
     // const dateObjectTo: moment.Moment = moment(to);
-    const endDate = new Date(to);
+    //  const endDate = new Date(to);
+
+    const startDate = new Date(from);
+    // if (dayType == 'day') {
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
 
     console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
