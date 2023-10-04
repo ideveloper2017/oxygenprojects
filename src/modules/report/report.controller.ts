@@ -32,10 +32,16 @@ export class ReportController {
 
   @Get('/all-payment/:from/:to')
   async listPayments(@Param('from') from:string, @Param('to') to:string){
-      const dateObjectFrom: moment.Moment = moment(from);
-      const startDate: string = dateObjectFrom.format("YYYY-MM-DD");
-      const dateObjectTo: moment.Moment = moment(to);
-      const endDate: string = dateObjectTo.format("YYYY-MM-DD");
+      let startDate:string;
+      let endDate:string;
+      if (!from && !to){
+          const dateObjectFrom: moment.Moment = moment(from);
+          startDate= dateObjectFrom.format("YYYY-MM-DD");
+          const dateObjectTo: moment.Moment = moment(to);
+          endDate= dateObjectTo.format("YYYY-MM-DD");
+      }
+
+
      return this.reportService.allPayment('day',startDate,endDate).then((data)=>{
        if (data){
          return {status:200,data:data,message:"All Payments!!!"}
