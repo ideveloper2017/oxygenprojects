@@ -32,11 +32,6 @@ export class ReportController {
 
   @Get('/all-payment/:from/:to')
   async listPayments(@Param('from') from: string, @Param('to') to: string) {
-
-
-
-
-
     return this.reportService
       .allPayment('day', from, to)
       .then((data) => {

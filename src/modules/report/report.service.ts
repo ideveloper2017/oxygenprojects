@@ -67,15 +67,17 @@ export class ReportService {
       )
       .getRawMany();
 
-    // resultRes = await Promise.all(result.map(async (data) => {
-    //       //data['town']=
-    // }));
-    //   where: {
-    //     order_status: OrderStatus.ACTIVE,
-    //     is_deleted: false,
-    //     order_date: Between(startDate, endDate),
-    //   },
-    //   relations: ['orderItems.apartments'],
+    resultRes = await Promise.all(
+      result.map(async (data) => {
+        data['town']=data.towns_name;
+      }),
+    );
+    // where: {
+    //   order_status: OrderStatus.ACTIVE,
+    //   is_deleted: false,
+    //   order_date: Between(startDate, endDate),
+    // },
+    // relations: ['orderItems.apartments'],
     // });
     return resultRes;
   }
@@ -102,7 +104,6 @@ export class ReportService {
     startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(to);
     endDate.setDate(endDate.getDate());
-
 
     console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
