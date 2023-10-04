@@ -136,7 +136,7 @@ export class ReportService {
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere(
         'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
-        { startDate: startDate, endDate: endDate },
+        { startDate: `${startDate}`, endDate: `${endDate}` },
       )
       .groupBy('payments.payment_date')
       .addGroupBy('payments.paymentmethods')
