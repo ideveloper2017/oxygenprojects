@@ -24,6 +24,7 @@ export class WordexportController {
     const filename = 'data/contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
+    // client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
     const order = await this.orderRepo.findOne({
       where: { id: client_id },
       relations: [
@@ -32,7 +33,6 @@ export class WordexportController {
       ],
     });
 
-    console.log(order);
     const apartment = order?.orderItems?.map((data) => {
       return {
         order_date: order.order_date,
