@@ -2,6 +2,7 @@ import {Controller, Get, Param} from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ApiTags } from '@nestjs/swagger';
 import {Apartments} from "../apartments/entities/apartment.entity";
+import moment from "moment";
 
 @Controller('report')
 @ApiTags('Reports')
@@ -32,9 +33,12 @@ export class ReportController {
   @Get('/all-payment/:from/:to')
   async listPayments(@Param('from') from:string, @Param('to') to:string){
 
+
       const dateString: string = from;
-      const dateObject: Date = new Date(dateString);
-      console.log(dateObject);
+      const dateObject: moment.Moment = moment(dateString);
+
+      const formattedDate: string = dateObject.format("YYYY-MM-DD");
+      console.log(formattedDate);
 
      return this.reportService.allPayment('day',from,to).then((data)=>{
        if (data){
