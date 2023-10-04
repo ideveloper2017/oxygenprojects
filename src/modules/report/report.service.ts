@@ -135,9 +135,10 @@ export class ReportService {
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere(
-        'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
+        'payments.payment_date>=`2023-10-04` AND payments.payment_date<=`2023-10-04`',
         { startDate: `${startDate}`, endDate: `${endDate}` },
       )
+    // 2023-10-04 2023-10-04
       .groupBy('payments.payment_date')
       .addGroupBy('payments.paymentmethods')
       .addGroupBy('towns.id')
