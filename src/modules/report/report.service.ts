@@ -72,7 +72,7 @@ export class ReportService {
         'orders.order_date>= :startDate and orders.order_date<= :endDate',
         { startDate: startDate, endDate: endDate },
       )
-      .andWhere('apartments.status=:status', { status: ApartmentStatus.SOLD })
+      .andWhere('apartments.status=:aprstatus', { aprstatus: ApartmentStatus.SOLD })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .addGroupBy('entrance.id')
