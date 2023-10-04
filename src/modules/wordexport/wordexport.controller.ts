@@ -35,12 +35,14 @@ export class WordexportController {
 
     const apartment = order?.orderItems?.map((data) => {
       return {
+        order_data: order?.order_date.toDateString(),
         order_number: order?.id,
         client_name:
           order?.clients?.first_name + ' ' + order?.clients?.last_name,
         contact_number: order?.clients?.contact_number,
         passport_seria: order?.clients?.passport_seria,
         given_from: order?.clients?.given_from,
+        client_address: order?.clients?.address,
         address: data?.apartments?.floor?.entrance?.buildings?.towns?.address,
         floor_number: data?.apartments?.floor?.floor_number,
         room_space: data?.apartments?.room_space,
