@@ -14,6 +14,7 @@ import { Payments } from '../payments/entities/payment.entity';
 import { Caishertype } from '../../common/enums/caishertype';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import * as moment from 'moment/moment';
+import {groupBy} from "rxjs";
 
 @Injectable()
 export class ReportService {
@@ -67,6 +68,7 @@ export class ReportService {
         'orders.order_date>= :startDate and orders.order_date<= :endDate',
         { startDate: startDate, endDate: endDate },
       )
+       .groupBy('towns_name')
       .getRawMany();
 
     resultRes = await Promise.all(
