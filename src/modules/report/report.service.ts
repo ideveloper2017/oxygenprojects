@@ -44,9 +44,9 @@ export class ReportService {
         .andWhere('orders.order_date>= :startDate and orders.order_date<= :endDate',{startDate:startDate,endDate:endDate})
         .getRawMany()
 
-      resultRes = await Promise.all(result.map(async (data) => {
-            //data['town']=
-      });
+      // resultRes = await Promise.all(result.map(async (data) => {
+      //       //data['town']=
+      // }));
     //   where: {
     //     order_status: OrderStatus.ACTIVE,
     //     is_deleted: false,
