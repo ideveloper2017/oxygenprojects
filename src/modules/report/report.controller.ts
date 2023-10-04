@@ -2,7 +2,7 @@ import {Controller, Get, Param} from '@nestjs/common';
 import { ReportService } from './report.service';
 import { ApiTags } from '@nestjs/swagger';
 import {Apartments} from "../apartments/entities/apartment.entity";
-import moment from "moment";
+import * as moment from 'moment';
 
 @Controller('report')
 @ApiTags('Reports')
