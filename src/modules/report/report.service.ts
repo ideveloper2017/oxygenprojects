@@ -94,11 +94,11 @@ export class ReportService {
     // from?from:today;
     // to?to:to
     const dateObjectFrom: moment.Moment = moment(from);
-    startDate = dateObjectFrom.format('YYYY-MM-DD');
+    startDate = new Date(from);
     const dateObjectTo: moment.Moment = moment(to);
-    endDate = dateObjectTo.format('YYYY-MM-DD');
+    endDate = new Date(to);
 
-    console.log(`${startDate}`+' '+ `${endDate}`);
+    console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
@@ -134,10 +134,10 @@ export class ReportService {
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .andWhere(
-        'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
-        { startDate: from, endDate: to },
-      )
+      .andWhere('payments.payment_date BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
 
       .groupBy('payments.payment_date')
       .addGroupBy('payments.paymentmethods')
