@@ -30,7 +30,7 @@ export class ReportController {
   }
 
   @Get('/all-payment')
-  async listPayments(@Param('from') from:string,@Param('to') to:string){
+  async listPayments(@Param('from') from:string, @Param('to') to:string){
      return this.reportService.allPayment('day',).then((data)=>{
        if (data){
          return {status:200,data:data,message:"All Payments!!!"}
