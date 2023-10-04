@@ -154,7 +154,8 @@ export class PaymentsService {
   // maqsad kod o'qilishini osonlashtirish, va tartibli bo'lishi uchun 
 
   public async payForInstallment(installmentDto: NewPaymentDto){
-    let money = installmentDto.amount;
+
+    let money = installmentDto.paymentmethods === Paymentmethods.USD ? Math.floor(installmentDto.amount * installmentDto.currency_value) : installmentDto.amount;
     while (money > 0) {
       
       const nextPaid = await CreditTable.findOne({
