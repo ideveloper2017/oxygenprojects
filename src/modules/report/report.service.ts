@@ -15,6 +15,7 @@ import { Caishertype } from '../../common/enums/caishertype';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import * as moment from 'moment/moment';
 import { groupBy } from 'rxjs';
+import { ApartmentStatus } from '../../common/enums/apartment-status';
 
 @Injectable()
 export class ReportService {
@@ -71,12 +72,13 @@ export class ReportService {
         'orders.order_date>= :startDate and orders.order_date<= :endDate',
         { startDate: startDate, endDate: endDate },
       )
+      .andWhere('apartments.status=:status', { status: ApartmentStatus.SOLD })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .addGroupBy('entrance.id')
       .addGroupBy('floor.id')
       // .addGroupBy('apartments.id')
-        .orderBy('floor.id',"ASC")
+      .orderBy('floor.id', 'ASC')
       .getRawMany();
 
     resultRes = await Promise.all(
