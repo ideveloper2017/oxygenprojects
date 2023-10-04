@@ -26,7 +26,7 @@ export class Payments extends Model {
   @JoinColumn({ name: 'caisher_id' })
   caishers: Caisher;
 
-  @Column({ type: 'date' })
+  @Column()
   payment_date: Date;
 
   @Column({ type: 'decimal', precision: 20, scale: 2, default: 0 })
