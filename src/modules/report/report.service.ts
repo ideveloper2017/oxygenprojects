@@ -69,7 +69,7 @@ export class ReportService {
 
     resultRes = await Promise.all(
       result.map(async (data) => {
-        data['town']=data.towns_name;
+        data['town']=data.town_name;
       }),
     );
     // where: {
