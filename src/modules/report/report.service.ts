@@ -61,9 +61,6 @@ export class ReportService {
       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
       .select('towns.name')
       .addSelect('towns.id')
-      .addSelect('caishers.id')
-      .addSelect('payments.paymentmethods')
-      .addSelect('caishers.caisher_name')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
       .andWhere(
