@@ -88,7 +88,7 @@ export class ReportService {
     // },
     // relations: ['orderItems.apartments'],
     // });
-    return resultRes;
+    return result;
   }
 
   async allPayment(dayType: string, from: string, to: string) {
