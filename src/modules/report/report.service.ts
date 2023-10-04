@@ -98,7 +98,7 @@ export class ReportService {
     const dateObjectTo: moment.Moment = moment(to);
     endDate = dateObjectTo.format('YYYY-MM-DD');
 
-    console.log(`${startDate}`+' '+ `${endDate}`);
+    console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
@@ -135,10 +135,10 @@ export class ReportService {
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere(
-        '(payments.payment_date>=`2023-10-04`) AND (payments.payment_date<=`2023-10-04`)',
+        "payments.payment_date>='2023-10-04' AND payments.payment_date<='2023-10-04'",
         { startDate: `${startDate}`, endDate: `${endDate}` },
       )
-    // 2023-10-04 2023-10-04
+      // 2023-10-04 2023-10-04
       .groupBy('payments.payment_date')
       .addGroupBy('payments.paymentmethods')
       .addGroupBy('towns.id')
