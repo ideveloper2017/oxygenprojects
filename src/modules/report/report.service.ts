@@ -40,7 +40,7 @@ export class ReportService {
         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
         .where('orders.orders_status= :status',{status:OrderStatus.ACTIVE})
         .andWhere('orders.is_delete= :delete',{delete:false})
-        .andWhere('orders.order_date beetween :startDate and :endDate',{startDate:startDate,endDate:endDate})
+        .andWhere('orders.order_date>= :startDate and orders.order_date<= :endDate',{startDate:startDate,endDate:endDate})
         .getRawMany()
     //   where: {
     //     order_status: OrderStatus.ACTIVE,
