@@ -34,12 +34,12 @@ export class ReportController {
   async listPayments(@Param('from') from:string, @Param('to') to:string){
       let startDate:string;
       let endDate:string;
-      if (!from && !to){
+      // if (!from && !to){
           const dateObjectFrom: moment.Moment = moment(from);
           startDate= dateObjectFrom.format("YYYY-MM-DD");
           const dateObjectTo: moment.Moment = moment(to);
           endDate= dateObjectTo.format("YYYY-MM-DD");
-      }
+      // }
 
 
      return this.reportService.allPayment('day',startDate,endDate).then((data)=>{

@@ -84,13 +84,12 @@ export class ReportService {
     let updatedRes;
     // if (dayType=='day') {
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    from ? from : today;
-    to ? to : tomorrow;
-
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
+    // const tomorrow = new Date(today);
+    // tomorrow.setDate(tomorrow.getDate() + 1);
+    // from?from:today;
+    // to?to:to
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
