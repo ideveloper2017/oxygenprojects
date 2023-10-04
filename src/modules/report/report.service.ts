@@ -137,7 +137,8 @@ export class ReportService {
         'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
         { startDate: startDate, endDate: endDate },
       )
-      .groupBy('payments.paymentmethods')
+      .groupBy('payments.payment_date')
+      .addGroupBy('payments.paymentmethods')
       .addGroupBy('towns.id')
       .addGroupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
