@@ -42,6 +42,7 @@ export class ClientsService {
       newClient.legal_address = createClientDto.legal_address;
       newClient.registered_address = createClientDto.registered_address;
       newClient.description = createClientDto.description;
+      newClient.tin=createClientDto.tin;
       newClient = await this.clientRepo.save(newClient);
 
       return {
