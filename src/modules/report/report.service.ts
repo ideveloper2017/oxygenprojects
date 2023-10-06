@@ -505,15 +505,11 @@ export class ReportService {
         'clients.last_name',
         'clients.middle_name',
         'orders.total_amount',
-        'SUM(payments.amount) as amount',
-        'SUM(payments.amount_usd) as amount_usd',
         'apartments.cells',
         'apartments.room_number',
         'apartments.room_space',
         'buildings.mk_price',
       ])
-      .groupBy('orders.id')
-      .addGroupBy('clients.id')
       .getRawMany();
   }
 }
