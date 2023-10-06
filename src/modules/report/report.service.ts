@@ -583,8 +583,7 @@ export class ReportService {
         summa_out = await this.allCaisher_Out(
           data.payments_paymentmethods,
           data.caishers_id,
-          dayType,
-        ).then((response) => {
+          ).then((response) => {
           return response;
         });
         data['total_sum_out'] = Number(summa_out.total_sum_out);
@@ -605,7 +604,7 @@ export class ReportService {
   async allCaisher_Out(
     paymentmethods: string,
     caisher_id: number,
-    dayType: string,
+
   ) {
     const sumResults = {
       total_sum_out: 0,
