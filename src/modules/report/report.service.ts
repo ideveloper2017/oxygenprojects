@@ -516,7 +516,7 @@ export class ReportService {
       .getRawMany();
 
     updatedRes = await Promise.all(
-      result.mamap(async (data) => {
+      result.map(async (data) => {
         const payment = await this.clientPayment(data.order_id).then(
           (response) => {
             return response;
