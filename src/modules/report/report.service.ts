@@ -508,15 +508,16 @@ export class ReportService {
         'clients.last_name',
         'clients.middle_name',
         'orders.total_amount',
+        'orders.total_amount_usd',
         'apartments.cells',
         'apartments.room_number',
         'apartments.room_space',
         'buildings.mk_price',
       ])
-      .where('orders.order_status= :orderStatus', {
-        orderStatus: OrderStatus.ACTIVE,
-      })
-      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      // .where('orders.order_status= :orderStatus', {
+      //   orderStatus: OrderStatus.ACTIVE,
+      // })
+      // .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
 
     console.log(JSON.stringify(res));
