@@ -568,7 +568,6 @@ export class ReportService {
       .select('caishers.caisher_name')
       .addSelect('caishers.id')
       .addSelect('payments.paymentmethods')
-      .addSelect('caishers.caisher_name')
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
@@ -664,7 +663,6 @@ export class ReportService {
         'towns.id=buildings.town_id',
       )
       .select([
-        'towns.name',
         'payments.paymentmethods',
         'caishers.caisher_name',
         'SUM(payments.amount) AS total_sum',
