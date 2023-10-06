@@ -592,7 +592,7 @@ export class ReportService {
         data['grand_total_usd'] = Number(
           data.total_usd - summa_out.total_usd_out,
         );
-        console.log(summa_out);
+
         return data;
       }),
     );
