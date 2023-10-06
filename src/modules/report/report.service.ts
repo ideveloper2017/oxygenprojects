@@ -519,22 +519,16 @@ export class ReportService {
       .andWhere('orders.is_delete= :isDelete', { isDelete: false })
       .getRawMany();
 
-
-
     updatedRes = await Promise.all(
-      res.map(async (data) => {
+      res.forEach(async (data) => {
         let summa_out;
         summa_out = await this.clientPayment(data.order_id).then((response) => {
           return response;
         });
         data['total_sum_out'] = Number(summa_out.total_sum_out);
         data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-        data['grand_total_sum'] = Number(
-          data.total_sum - summa_out.total_sum_out,
-        );
-        data['grand_total_usd'] = Number(
-          data.total_usd - summa_out.total_usd_out,
-        );
+        data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out);
+        data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out);
         return data;
       }),
     );
