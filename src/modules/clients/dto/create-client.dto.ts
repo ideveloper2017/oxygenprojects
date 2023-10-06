@@ -19,6 +19,11 @@ export class CreateClientDto {
   @IsString()
   middle_name: string;
 
+  @ApiProperty({ example: '123456789', description: 'JShShIR' })
+  @IsNotEmpty()
+  @IsString()
+  tin: string;
+
   @IsEnum(Gender, {message: "Invalid gender entered"})
   @ApiProperty({ example: 'male', description: 'gender of client' })
   gender: string = 'male' || 'female';

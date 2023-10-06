@@ -14,6 +14,9 @@ export class Clients extends Model {
   @Column()
   middle_name: string;
 
+  @Column()
+  tin:string;
+
   @Column({ enum: ['male', 'female'] })
   gender: string;
 
