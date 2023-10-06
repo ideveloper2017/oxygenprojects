@@ -509,7 +509,7 @@ export class ReportService {
         'apartments.room_space',
         'buildings.mk_price',
       ])
-      .groupBy('clients.id')
+
       .getRawMany();
   }
 }
