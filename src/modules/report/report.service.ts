@@ -675,6 +675,6 @@ export class ReportService {
       sumResults.total_usd_out = item.total_usd;
     });
 
-    return result;
+    return sumResults;
   }
 }
