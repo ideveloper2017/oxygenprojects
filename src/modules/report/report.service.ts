@@ -654,8 +654,8 @@ export class ReportService {
       //   'towns.id=buildings.town_id',
       // )
       .select([
-        'payments.paymentmethods',
         'caishers.caisher_name',
+        'payments.paymentmethods',
         'SUM(payments.amount) AS total_sum',
         'SUM(payments.amount_usd) AS total_usd',
       ])
