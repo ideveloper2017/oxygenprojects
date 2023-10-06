@@ -520,7 +520,7 @@ export class ReportService {
       .getRawMany();
 
     updatedRes = await Promise.all(
-      res.map(async (data) => {
+      res.forEach(async (data) => {
         let summa_out;
         summa_out = await this.clientPayment(data.order_id).then((response) => {
           return response;
