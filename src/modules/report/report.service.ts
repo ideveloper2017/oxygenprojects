@@ -515,24 +515,24 @@ export class ReportService {
       ])
       .getRawMany();
 
-    // updatedRes = await Promise.all(
-    //   result.mamap(async (data) => {
-    //     const payment = await this.clientPayment(data.order_id).then(
-    //       (response) => {
-    //         return response;
-    //       },
-    //     );
-    //
-    //     data['total_sum_out'] = Number(payment.total_sum_out);
-    //     data['total_sum_out_usd'] = Number(payment.total_usd_out);
-    //     data['grand_total_sum'] = Number(
-    //       data.total_sum - payment.total_sum_out,
-    //     );
-    //     data['grand_total_usd'] = Number(
-    //       data.total_usd - payment.total_usd_out,
-    //     );
-    //   }),
-    // );
+    updatedRes = await Promise.all(
+      result.mamap(async (data) => {
+        const payment = await this.clientPayment(data.order_id).then(
+          (response) => {
+            return response;
+          },
+        );
+
+        data['total_sum_out'] = Number(payment.total_sum_out);
+        data['total_sum_out_usd'] = Number(payment.total_usd_out);
+        data['grand_total_sum'] = Number(
+          data.total_sum - payment.total_sum_out,
+        );
+        data['grand_total_usd'] = Number(
+          data.total_usd - payment.total_usd_out,
+        );
+      }),
+    );
 
     return result;
   }
