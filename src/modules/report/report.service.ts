@@ -591,7 +591,7 @@ export class ReportService {
         data['grand_total_usd'] = Number(
           data.total_usd - summa_out.total_usd_out,
         );
-
+        console.log(data);
         return data;
       }),
     );
@@ -662,16 +662,18 @@ export class ReportService {
 
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-      .andWhere('payments.paymentmethods= :paymentmethods', { paymentmethods: paymentmethods})
+      .andWhere('payments.paymentmethods= :paymentmethods', {
+        paymentmethods: paymentmethods,
+      })
       .groupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
       .getRawMany();
-
+    console.log(result);
     result.forEach((item) => {
       sumResults.total_sum_out = item.total_sum;
       sumResults.total_usd_out = item.total_usd;
     });
-    console.log(result);
+
     return result;
   }
 }
