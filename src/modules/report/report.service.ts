@@ -498,7 +498,7 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-        .select(['clients.first_name','clients.last_name','clients.middle_name','apartments.cells','apartments.room_number','apartments.room_space','towns.mk_price'])
+        .select(['clients.first_name','clients.last_name','clients.middle_name','apartments.cells','apartments.room_number','buildings.room_space','towns.mk_price'])
       .getRawMany();
   }
 }
