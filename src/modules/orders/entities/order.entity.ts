@@ -22,7 +22,7 @@ export class Orders extends Model {
   @Column()
   quantity: number;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   initial_pay: number;
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
