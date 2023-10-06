@@ -36,7 +36,7 @@ export class Towns extends Model {
   @OneToMany((type) => Buildings, (building) => building.towns)
   buildings: Buildings[];
 
-  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.town)
+  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.town, {onDelete: "SET NULL", onUpdate: "CASCADE"})
   @JoinColumn({ name: 'file_id' })
   file: FileUpload;
 

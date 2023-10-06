@@ -5,14 +5,9 @@ import {
   BadRequestException,
   Body,
   Controller,
-  FileTypeValidator,
   Get,
   Header,
-  HttpException,
-  HttpStatus,
-  MaxFileSizeValidator,
   Param,
-  ParseFilePipe,
   ParseIntPipe,
   Post,
   Res,
@@ -22,13 +17,11 @@ import {
 } from '@nestjs/common';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { createReadStream } from 'fs';
-import { join } from 'path';
+import { createReadStream, existsSync } from 'fs';
+import { extname, join } from 'path';
 import { FileUploadService } from './file-upload.service';
 import { FileUploadInterceptor } from './file-upload.interceptor';
 import { FileDto } from './dto/create-file-upload.dto';
-import {stat } from 'fs';
-import { FindFile } from './dto/find-files.dto';
 
 @ApiTags('FileUpload')
 @Controller('file-upload')
@@ -59,16 +52,15 @@ export class FileUploadController {
       path: '/images',
       
       fileFilter: (request, file, callback) => {
-      
+        
         if (!file.mimetype.includes('image')) {
-         
           return callback(new BadRequestException('Provide a valid image'), false);
         }
         callback(null, true);
       },
 
       limits: {
-        fileSize: 5*(Math.pow(1024, 2)), // 5MB},
+        fileSize: 3 * (Math.pow(1024, 2)), // 3MB},
     }
   })
   )
@@ -81,10 +73,8 @@ export class FileUploadController {
       path: file.path,
       filename: file.originalname,
       mimetype: file.mimetype,
-      image_id: body.image_id,
 
     }).then(data => {
-      console.log(data);
       if(data){
         return {success: true, data, message: "Rasm joylandi!!"}
       }
@@ -105,58 +95,21 @@ export class FileUploadController {
   ) {      
       const file = await this.fileService.getFileById(id)
 
+      if(existsSync(file.path)){
+
         const stream = createReadStream(join(process.cwd(), file.path));
-    
+        
         response.set({
           'Content-Disposition': `inline; filename="${file.filename}"`,
           'Content-Type': file.mimetype,
         });
         return new StreamableFile(stream);
+      } else {
+        return {success: false , message: "image not found or may be deleted"}
+      } 
 
     }
     
-// ================================== to get many files  =================================
-// @Post('/files')
-// async getDatabaseFilesByIds(
-//   @Body() fileDto: FindFile,
-//   @Res({ passthrough: true }) response: Response,
-// ) {
-//   const files = await this.fileService.getFiles(fileDto)
-
-//   const filePromises = files.map(file => {
-//     const filePath = join(process.cwd(), file.path);
-
-//     return new Promise((resolve, reject) => {
-//       stat(filePath, (err, stats) => {
-//         if (err || !stats.isFile()) {
-//           if (err && err.message.includes('no such file or directory')) {
-//             reject(new Error(`File not found: ${file.id}`));
-//           } else {
-//             reject(err);
-//           }
-//         } else {
-//           const stream = createReadStream(filePath);
-  
-//           response.set({
-//             'Content-Disposition': `inline; filename="${file.filename}"`,
-//             'Content-Type': file.mimetype,
-//           });
-//           resolve(new StreamableFile(stream));
-//         }
-//       });
-//     });
-//   });
-
-//   try {
-//     const streamableFiles = await Promise.all(filePromises);
-//     return streamableFiles;
-//   } catch (error) {
-//     console.error('Error occurred while retrieving files:', error);
-//     throw error;
-//   }
-// }
-
-
   @Get()
   @Header('Content-Type', 'application/json')
   @Header('Content-Disposition', 'attachment; filename="package.json"')

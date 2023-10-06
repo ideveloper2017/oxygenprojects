@@ -42,7 +42,7 @@ export class Apartments extends Model {
   @OneToMany(() => OrderItems, (orderItems) => orderItems.apartments)
   orderItems: OrderItems[];
 
-  @OneToOne(() => FileUpload, (files) => files.apartment)
+  @OneToOne(() => FileUpload, (files) => files.apartment, {onDelete: "SET NULL", onUpdate: "CASCADE"})
   @JoinColumn({ name: 'file_id' })
   file: FileUpload;
 

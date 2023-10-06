@@ -42,9 +42,8 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================
 
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
-
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
-    
+
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
 
     const payment_method = await PaymentMethods.findOne({
@@ -65,14 +64,14 @@ export class OrdersService {
       );
     }
 
-    let initial_pay,deal_price
+    let initial_pay, deal_price;
 
-    if(payment_method.name_alias === 'dollar'){
-      deal_price = Math.floor(createOrderDto.price * usdRate.rate_value)
-      initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value)
-    }else{
-      deal_price = createOrderDto.price
-      initial_pay = createOrderDto.initial_pay
+    if (payment_method.name_alias === 'dollar') {
+      deal_price = Math.floor(createOrderDto.price * usdRate.rate_value);
+      initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value);
+    } else {
+      deal_price = createOrderDto.price;
+      initial_pay = createOrderDto.initial_pay;
     }
 
     const order = new Orders();
@@ -82,9 +81,9 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = initial_pay
+    order.initial_pay = initial_pay;
     order.currency_value = usdRate.rate_value;
-    order.users = users
+    order.users = users;
     order.quantity = 1;
 
     const savedOrder = await this.ordersRepository.save(order);
@@ -121,11 +120,13 @@ export class OrdersService {
 
         const installment = new CreditTable();
         installment.orders = savedOrder;
-        installment.due_amount = Math.floor(oneMonthDue)
+        installment.due_amount = Math.floor(oneMonthDue);
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount = Math.floor(installment.due_amount / usdRate.rate_value)
-        installment.currency_value = usdRate.rate_value
+        installment.usd_due_amount = Math.floor(
+          installment.due_amount / usdRate.rate_value,
+        );
+        installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
       }
@@ -133,11 +134,16 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    const total_in_usd = Math.floor(total / usdRate.rate_value)
+    const total_in_usd = Math.floor(total / usdRate.rate_value);
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
-      { total_amount: total, total_amount_usd: total_in_usd },
+      {
+        total_amount: total,
+        total_amount_usd: total_in_usd,
+        order_status:
+          total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
+      },
     );
 
     const orderItem = new OrderItems();
@@ -151,24 +157,29 @@ export class OrdersService {
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
     );
-    
-    const inBooking = await Booking.findOne({ where: { apartment_id: createOrderDto.apartment_id } });
+
+    const inBooking = await Booking.findOne({
+      where: { apartment_id: createOrderDto.apartment_id },
+    });
 
     if (inBooking) {
-      await Booking.update({id: inBooking.id}, {bron_is_active :false});
+      await Booking.update({ id: inBooking.id }, { bron_is_active: false });
     }
 
     await OrderItems.save(orderItem);
 
     const payment = new Payments();
-    payment.order_id = +savedOrder.id
+    payment.order_id = +savedOrder.id;
     payment.users = savedOrder.users;
     payment.amount = savedOrder.initial_pay;
     payment.payment_date = new Date();
     payment.paymentmethods = Paymentmethods.CARD;
     payment.caishers = await Caisher.findOne({
-      where: { id: createOrderDto.caisher_id, is_active: true },});
-    payment.amount_usd = Math.floor(savedOrder.initial_pay / usdRate.rate_value)
+      where: { id: createOrderDto.caisher_id, is_active: true },
+    });
+    payment.amount_usd = Math.floor(
+      savedOrder.initial_pay / usdRate.rate_value,
+    );
     payment.currency_value = usdRate.rate_value;
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;
@@ -198,7 +209,7 @@ export class OrdersService {
       order.forEach((orderItem) => {
         orderItem.total_amount = +orderItem.total_amount;
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
+          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? Math.floor(sumOfPayments) : 0;
@@ -210,7 +221,7 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + (+currentValue.amount),
+        (accumulator, currentValue) => accumulator + +currentValue.amount,
         0,
       );
       order['sumOfpayments'] = sum ? Math.floor(sum) : 0;
@@ -233,7 +244,7 @@ export class OrdersService {
 
     if (order) {
       const sumOfPayments = order.payments.reduce(
-        (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
+        (accumulator, currentPayment) => accumulator + +currentPayment.amount,
         0,
       );
       order['sumOfpayments'] = sumOfPayments ? Math.floor(sumOfPayments) : 0;
@@ -242,13 +253,13 @@ export class OrdersService {
   }
 
   async getOrderListIsDue(refundDto: RefundDto) {
-    let activeness
-    if(refundDto.is_refunding) {
+    let activeness;
+    if (refundDto.is_refunding) {
       console.log('if');
-      activeness = OrderStatus.INACTIVE      
+      activeness = OrderStatus.INACTIVE;
     } else {
       console.log('else');
-      activeness = OrderStatus.ACTIVE      
+      activeness = OrderStatus.ACTIVE;
     }
     const result = [];
     const orders = await this.ordersRepository
@@ -258,33 +269,39 @@ export class OrdersService {
       .leftJoinAndSelect(
         'orders.clients',
         'clients',
-        'clients.id=orders.client_id')
+        'clients.id=orders.client_id',
+      )
       .leftJoinAndSelect(
         'orders.payments',
         'payments',
         'payments.order_id=orders.id',
       )
-      .where('orders.order_status =:logic', { logic: activeness})
+      .where('orders.order_status =:logic', { logic: activeness })
       .getMany();
 
     orders.forEach((data) => {
-      if(refundDto.is_refunding) {
-        const { incomingSum, outgoingSum } = data.payments.reduce((accumulator, currentValue) => {
-        currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
-        return accumulator;},
-        { incomingSum: 0, outgoingSum: 0 });
-        
+      if (refundDto.is_refunding) {
+        const { incomingSum, outgoingSum } = data.payments.reduce(
+          (accumulator, currentValue) => {
+            currentValue.caisher_type === 'in'
+              ? (accumulator.incomingSum += +currentValue.amount)
+              : (accumulator.outgoingSum += +currentValue.amount);
+            return accumulator;
+          },
+          { incomingSum: 0, outgoingSum: 0 },
+        );
+
         result.push({
           order_id: data.id,
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
-          left_amount:  incomingSum - outgoingSum 
-        });        
-      }else {
+          left_amount: incomingSum - outgoingSum,
+        });
+      } else {
         const sum = data.payments.reduce((accumulator, currentValue) => {
-          return accumulator + (+currentValue.amount);
+          return accumulator + +currentValue.amount;
         }, 0);
-        
+
         result.push({
           order_id: data.id,
           order_date: data.order_date,
@@ -337,11 +354,12 @@ export class OrdersService {
         orderItem = await OrderItems.findOne({ where: { order_id: order.id } });
         counter += (
           await Apartments.update(
-            { id: +orderItem.apartment_id},
+            { id: +orderItem.apartment_id },
             { status: ApartmentStatus.FREE },
-          )).affected;
-    }
-          
+          )
+        ).affected;
+      }
+
       if (counter === arrayOfId.length) {
         return { success: true, message: 'Orders cancelled  completely' };
       } else if (counter < arrayOfId.length) {
@@ -361,7 +379,10 @@ export class OrdersService {
 
     if (id > 0) {
       cancelledOrders = await this.ordersRepository.findOne({
-        where: { order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]), id: id },
+        where: {
+          order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]),
+          id: id,
+        },
         relations: [
           'clients',
           'payments',
@@ -372,8 +393,10 @@ export class OrdersService {
       });
     } else {
       cancelledOrders = await this.ordersRepository.find({
-        where: { order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]) },
-        order: {order_status: "ASC",updated_at: 'DESC' },
+        where: {
+          order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]),
+        },
+        order: { order_status: 'ASC', updated_at: 'DESC' },
         relations: [
           'clients',
           'payments',
@@ -384,16 +407,22 @@ export class OrdersService {
       });
 
       cancelledOrders.forEach((order) => {
-        const { incomingSum, outgoingSum } = order.payments.reduce((accumulator, currentValue) => {
-          currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
-          return accumulator;},
-          { incomingSum: 0, outgoingSum: 0 });
-          
+        const { incomingSum, outgoingSum } = order.payments.reduce(
+          (accumulator, currentValue) => {
+            currentValue.caisher_type === 'in'
+              ? (accumulator.incomingSum += +currentValue.amount)
+              : (accumulator.outgoingSum += +currentValue.amount);
+            return accumulator;
+          },
+          { incomingSum: 0, outgoingSum: 0 },
+        );
+
         //   const sumOfPayments = order.payments.reduce(
-      //     (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
-      //     0,
-      //   );
-        order.left_amount = incomingSum > outgoingSum ? incomingSum - outgoingSum :0
+        //     (accumulator, currentPayment) => accumulator + (+currentPayment.amount),
+        //     0,
+        //   );
+        order.left_amount =
+          incomingSum > outgoingSum ? incomingSum - outgoingSum : 0;
       });
     }
 
@@ -413,79 +442,78 @@ export class OrdersService {
   //============================ jami summasi to'langan shartnomalar ro'yxatini olish ===============================
 
   async findCompletedOrders(id: number) {
-    let result
-    
-    if(id != 0){
+    let result;
+
+    if (id != 0) {
       result = await this.ordersRepository
-      .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.clients', 'client')
-      .leftJoinAndSelect('orders.users', 'user')
-      .leftJoinAndSelect('orders.paymentMethods', 'paymentMethod')
-      .leftJoinAndSelect('orders.payments', 'payment')
-      .where('orders.order_status = :status', {status: OrderStatus.COMPLETED})
-      .andWhere('orders.id = :id', {id})
-      .getOne()
-
-    }else {
-
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.clients', 'client')
+        .leftJoinAndSelect('orders.users', 'user')
+        .leftJoinAndSelect('orders.paymentMethods', 'paymentMethod')
+        .leftJoinAndSelect('orders.payments', 'payment')
+        .where('orders.order_status = :status', {
+          status: OrderStatus.COMPLETED,
+        })
+        .andWhere('orders.id = :id', { id })
+        .getOne();
+    } else {
       result = await this.ordersRepository
-      .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.clients', 'client')
-      .leftJoinAndSelect('orders.users', 'user')
-      .leftJoinAndSelect('orders.paymentMethods', 'paymentMethod')
-      .leftJoinAndSelect('orders.payments', 'payment')
-      .where('orders.order_status = :status', {status: OrderStatus.COMPLETED})
-      .getMany()
-  }
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.clients', 'client')
+        .leftJoinAndSelect('orders.users', 'user')
+        .leftJoinAndSelect('orders.paymentMethods', 'paymentMethod')
+        .leftJoinAndSelect('orders.payments', 'payment')
+        .where('orders.order_status = :status', {
+          status: OrderStatus.COMPLETED,
+        })
+        .getMany();
+    }
 
-    if(result && result.length > 0) {
-      return {success: true, data: result, message: "all completed orders"}
-    }else if(result){
-      return {success: true, data: result, message: "completed order"}
-    }else{
-      return {success: false, message: "completed order not found"}
-      
+    if (result && result.length > 0) {
+      return { success: true, data: result, message: 'all completed orders' };
+    } else if (result) {
+      return { success: true, data: result, message: 'completed order' };
+    } else {
+      return { success: false, message: 'completed order not found' };
     }
   }
 
-    // async findLeftAmountsOfReturningOrders() {
-    //   const result = [];
-    //   const orders = await this.ordersRepository
-    //     .createQueryBuilder('orders')
-    //     .addSelect('orders.id')
-    //     .addSelect('orders.order_date')
-    //     .leftJoinAndSelect(
-    //       'orders.clients',
-    //       'clients',
-    //       'clients.id=orders.client_id')
-    //     .leftJoinAndSelect(
-    //       'orders.payments',
-    //       'payments',
-    //       'payments.order_id=orders.id',
-    //     )
-    //     .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
-    //     .getMany();
-  
-    //     orders.forEach((data) => {
-    //       const { incomingSum, outgoingSum } = data.payments.reduce(
-    //         (accumulator, currentValue) => {
-              
-    //           currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
-              
-    //           return accumulator;
-    //         },
-    //         { incomingSum: 0, outgoingSum: 0 });
-            
-    //       result.push({
-    //         order_id: data.id,
-    //         order_date: data.order_date,
-    //         clients: data.clients.first_name + ' ' + data.clients.last_name,
-    //         left_amount: incomingSum - outgoingSum,
-    //       });
-    //     });
-        
-        
-    //   return result;
-    // }
+  // async findLeftAmountsOfReturningOrders() {
+  //   const result = [];
+  //   const orders = await this.ordersRepository
+  //     .createQueryBuilder('orders')
+  //     .addSelect('orders.id')
+  //     .addSelect('orders.order_date')
+  //     .leftJoinAndSelect(
+  //       'orders.clients',
+  //       'clients',
+  //       'clients.id=orders.client_id')
+  //     .leftJoinAndSelect(
+  //       'orders.payments',
+  //       'payments',
+  //       'payments.order_id=orders.id',
+  //     )
+  //     .where('orders.order_status =:logic', { logic: OrderStatus.INACTIVE })
+  //     .getMany();
 
+  //     orders.forEach((data) => {
+  //       const { incomingSum, outgoingSum } = data.payments.reduce(
+  //         (accumulator, currentValue) => {
+
+  //           currentValue.caisher_type === 'in' ? accumulator.incomingSum += +currentValue.amount : accumulator.outgoingSum += +currentValue.amount
+
+  //           return accumulator;
+  //         },
+  //         { incomingSum: 0, outgoingSum: 0 });
+
+  //       result.push({
+  //         order_id: data.id,
+  //         order_date: data.order_date,
+  //         clients: data.clients.first_name + ' ' + data.clients.last_name,
+  //         left_amount: incomingSum - outgoingSum,
+  //       });
+  //     });
+
+  //   return result;
+  // }
 }
