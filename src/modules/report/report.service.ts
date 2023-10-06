@@ -516,11 +516,11 @@ export class ReportService {
       .where('orders.order_status= :orderStatus', {
         orderStatus: OrderStatus.ACTIVE,
       })
-      .andWhere('orders.is_delete= :isDelete', { isDelete: false })
+      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
 
     updatedRes = await Promise.all(
-      res.forEach(async (data) => {
+      res.map(async (data) => {
         let summa_out;
         summa_out = await this.clientPayment(data.order_id).then((response) => {
           return response;
