@@ -534,7 +534,7 @@ export class ReportService {
       }),
     );
 
-    return result;
+    return updatedRes;
   }
 
   async clientPayment(order_id: number) {
