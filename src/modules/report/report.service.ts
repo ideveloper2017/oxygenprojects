@@ -462,9 +462,9 @@ export class ReportService {
   }
 
   public async getClientByApartment() {
-    let result;
+    let res;
     let updatedRes;
-    result = this.orderRepo.manager
+    res = this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
         'orders.clients',
@@ -516,21 +516,20 @@ export class ReportService {
       .getRawMany();
 
     updatedRes = await Promise.all(
-      result.map(async (data) => {
-        const payment = await this.clientPayment(data.order_id).then(
-          (response) => {
-            return response;
-          },
-        );
-
-        data['total_sum_out'] = Number(payment.total_sum_out);
-        data['total_sum_out_usd'] = Number(payment.total_usd_out);
+      res.map(async (data) => {
+        let summa_out;
+        summa_out = await this.clientPayment(data.order_id).then((response) => {
+          return response;
+        });
+        data['total_sum_out'] = Number(summa_out.total_sum_out);
+        data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
         data['grand_total_sum'] = Number(
-          data.total_sum - payment.total_sum_out,
+          data.total_sum - summa_out.total_sum_out,
         );
         data['grand_total_usd'] = Number(
-          data.total_usd - payment.total_usd_out,
+          data.total_usd - summa_out.total_usd_out,
         );
+        return data;
       }),
     );
 
