@@ -464,7 +464,7 @@ export class ReportService {
   public async getClientByApartment() {
     let res;
     let updatedRes;
-    res = this.orderRepo.manager
+    res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
         'orders.clients',
@@ -514,10 +514,10 @@ export class ReportService {
         'apartments.room_space',
         'buildings.mk_price',
       ])
-      // .where('orders.order_status= :orderStatus', {
-      //   orderStatus: OrderStatus.ACTIVE,
-      // })
-      // .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      .where('orders.order_status= :orderStatus', {
+        orderStatus: OrderStatus.ACTIVE,
+      })
+      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
 
     console.log(JSON.stringify(res));
