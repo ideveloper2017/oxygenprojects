@@ -500,6 +500,7 @@ export class ReportService {
         'towns.id=buildings.town_id',
       )
       .select([
+        'clients.id',
         'clients.first_name',
         'clients.last_name',
         'clients.middle_name',
@@ -511,7 +512,8 @@ export class ReportService {
         'apartments.room_space',
         'buildings.mk_price',
       ])
-      .groupBy('clients.id')
+      .groupBy('orders.id')
+      .addGroupBy('clients.id')
       .getRawMany();
   }
 }
