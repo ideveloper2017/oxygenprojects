@@ -528,8 +528,8 @@ export class ReportService {
         });
         data['total_sum_out'] = Number(summa_out.total_sum_out);
         data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-        data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out);
-        data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out);
+        data['due_total_sum'] = Number(data.total_amount - summa_out.total_sum_out);
+        data['due_total_usd'] = Number(data.total_amount_usd - summa_out.total_usd_out);
         return data;
       }),
     );
