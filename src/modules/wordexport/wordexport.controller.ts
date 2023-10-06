@@ -30,15 +30,22 @@ export class WordexportController {
       relations: [
         'clients',
         'orderItems.apartments.floor.entrance.buildings.towns',
+        'creditTables',
       ],
     });
 
     const apartment = order?.orderItems?.map((data) => {
       return {
-        order_date: String(order?.order_date.getDate()).padStart(2,'0')+'.'+String(order?.order_date.getMonth()).padStart(2,'0')+'.'+order?.order_date.getFullYear(),
+        order_date:
+          String(order?.order_date.getDate()).padStart(2, '0') +
+          '.' +
+          String(order?.order_date.getMonth()).padStart(2, '0') +
+          '.' +
+          order?.order_date.getFullYear(),
         order_number: order?.id,
         client_name:
           order?.clients?.first_name + ' ' + order?.clients?.last_name,
+        tin: order?.clients?.tin,
         contact_number: order?.clients?.contact_number,
         passport_seria: order?.clients?.passport_seria,
         given_from: order?.clients?.given_from,
