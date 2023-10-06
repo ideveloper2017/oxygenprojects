@@ -24,7 +24,8 @@ export class PaymentsService {
   // ========================== To'lov qabul qilish ==========================================
 
   async newPayment(newPaymentDto: NewPaymentDto) {
-
+    const queryRunner = this.paymentRepo.manager.connection.createQueryRunner(); 
+    queryRunner.startTransaction()
     try {
       const { paymentMethods } = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
@@ -51,10 +52,19 @@ export class PaymentsService {
       }else if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.OUT){
         await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.REFUNDED})
       }
-  
-      return newPay;
+
+      await queryRunner.commitTransaction()
+
+      return {success: true, message: "Transaction committed / payment completed"};
+
     } catch (error) {
-      return null
+      console.log(error);
+      await queryRunner.rollbackTransaction()
+      return {message: `Transaction failed: ${error}`}
+   
+    }finally{
+      await queryRunner.release()
+
     }
   }
 
@@ -225,16 +235,30 @@ export class PaymentsService {
   }
 
   async doPayment(payDto: NewPaymentDto){
+    // const payments = await this.paymentRepo.createQueryBuilder('payments')
+    // .leftJoin('payments.orders', 'order')
+    // .addSelect('SUM(payments.amount)', 'sumPayment')
+    // .addSelect('order.total_amount', 'total_amount')
+    // .where('order.id = :id', {id: payDto.order_id})
+    // .groupBy('payments.id')
+    // .getRawMany()
+
+    // console.log(payments[0].sumPayment,payments[0].total_amount );
+
+    const queryRunner = this.paymentRepo.manager.connection.createQueryRunner(); 
+    queryRunner.startTransaction()
     let amountToUsd, amountToUzs
     
-    if(payDto.paymentmethods === Paymentmethods.USD){
-      amountToUsd = payDto.amount
-      amountToUzs = Math.floor(payDto.amount * payDto.currency_value)
-    }else{
-      amountToUsd = Math.floor(payDto.amount / payDto.currency_value)
+    try {
+      
+      if(payDto.paymentmethods === Paymentmethods.USD){
+        amountToUsd = payDto.amount
+        amountToUzs = Math.floor(payDto.amount * payDto.currency_value)
+      }else{
+        amountToUsd = Math.floor(payDto.amount / payDto.currency_value)
       amountToUzs = payDto.amount 
     }
-
+    
     const payment = new Payments();
     payment.orders = await Orders.findOne({where: { id: +payDto.order_id } });
     payment.users = await Users.findOne({where: { id: +payDto.user_id },});
@@ -248,7 +272,18 @@ export class PaymentsService {
     payment.pay_note = payDto.pay_note;
     payment.payment_status = PaymentStatus.PAID;
     
+    await queryRunner.commitTransaction()
     return await this.paymentRepo.save(payment);
-
+    
+    
+  } catch (error) {
+    await queryRunner.rollbackTransaction()
+    console.log(error.message);
+    
+  }finally{
+    await queryRunner.release()
+    
   }
+  
+}
 }

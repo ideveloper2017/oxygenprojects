@@ -31,7 +31,7 @@ export class Buildings extends Model {
   @Column()
   mk_price: number;
   
-  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building)
+  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building, {onDelete: 'SET NULL', onUpdate: "CASCADE"})
   @JoinColumn({name: "file_id",})
   file: FileUpload
 

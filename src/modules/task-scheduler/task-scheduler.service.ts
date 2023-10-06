@@ -18,10 +18,10 @@ export class TaskSchedulerService {
   @Cron('0 0 * * *') // Run every day at midnight
   async checkAndChangeApartmentStatus(): Promise<void> {
     this.logger.log('Running apartment status check...');
-    console.log('cron starting');
 
-    // joriy vaqy ni olish
+    // joriy vaqtni olish
     const currentDate = new Date();
+
 
     //bron qilingan xonadonlarni topish qaysiyki bron muddati bugungi kundan kichik bolganlarini
     const bookings = await Booking.find({
@@ -38,7 +38,7 @@ export class TaskSchedulerService {
 
       // bron qilingan xonadon ni topishva va statusini free ga almashtirish
       const apartment = await this.apartmentRepository.findOne({
-        where: { id: booking.apartments.id },
+        where: { id: booking.apartment_id},
       });
 
       if (apartment) {
