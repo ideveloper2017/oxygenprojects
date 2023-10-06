@@ -15,14 +15,14 @@ export class CreateClientDto {
   @IsString()
   last_name: string;
 
+  @ApiProperty({ example: 'Abdurahim ugli', description: 'clients middlename' })
+  @IsString()
+  middle_name: string;
+
   @ApiProperty({ example: '123456789', description: 'JShShIR' })
   @IsNotEmpty()
   @IsString()
   tin: string;
-
-  @ApiProperty({ example: 'Abdurahim ugli', description: 'clients middlename' })
-  @IsString()
-  middle_name: string;
 
   @IsEnum(Gender, {message: "Invalid gender entered"})
   @ApiProperty({ example: 'male', description: 'gender of client' })
