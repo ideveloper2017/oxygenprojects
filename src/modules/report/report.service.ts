@@ -16,6 +16,7 @@ import { OrderItems } from '../order-items/entities/order-item.entity';
 import * as moment from 'moment/moment';
 import { groupBy } from 'rxjs';
 import { ApartmentStatus } from '../../common/enums/apartment-status';
+import { response } from 'express';
 
 @Injectable()
 export class ReportService {
@@ -461,7 +462,9 @@ export class ReportService {
   }
 
   public async getClientByApartment() {
-    return this.orderRepo.manager
+    let result;
+    let updatedRes;
+    result = this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
         'orders.clients',
@@ -499,6 +502,7 @@ export class ReportService {
         'towns.id=buildings.town_id',
       )
       .select([
+        'orders.id as order_id',
         'clients.id',
         'clients.first_name',
         'clients.last_name',
@@ -509,7 +513,51 @@ export class ReportService {
         'apartments.room_space',
         'buildings.mk_price',
       ])
-
       .getRawMany();
+
+    updatedRes = await Promise.all(
+      result.map(async (data) => {
+        const payment = await this.clientPayment(data.order_id).then(
+          (response) => {
+            return response;
+          },
+        );
+
+        data['total_sum_out'] = Number(payment.total_sum_out);
+        data['total_sum_out_usd'] = Number(payment.total_usd_out);
+        data['grand_total_sum'] = Number(
+          data.total_sum - payment.total_sum_out,
+        );
+        data['grand_total_usd'] = Number(
+          data.total_usd - payment.total_usd_out,
+        );
+      }),
+    );
+
+    return updatedRes;
+  }
+
+  async clientPayment(order_id: number) {
+    const sumResults = {
+      total_sum_out: 0,
+      total_usd_out: 0,
+    };
+    let result;
+
+    result = await this.orderRepo.manager
+      .createQueryBuilder(Payments, 'payments')
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+      .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .where('payments.order_id= :order_id', { order_id })
+      .getRawMany();
+
+    result.forEach((item) => {
+      sumResults.total_sum_out = item.total_sum;
+      sumResults.total_usd_out = item.total_usd;
+    });
+    return sumResults;
   }
 }
