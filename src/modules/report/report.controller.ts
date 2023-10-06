@@ -56,4 +56,9 @@ export class ReportController {
         return { status: error.code, message: error.message };
       });
   }
+
+  @Get('/caisher-report')
+  public async allCaisherReport(){
+      return this.reportService
+  }
 }

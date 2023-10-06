@@ -73,7 +73,9 @@ export class ReportService {
         'orders.order_date>= :startDate and orders.order_date<= :endDate',
         { startDate: startDate, endDate: endDate },
       )
-      .andWhere('apartments.status=:aprstatus', { aprstatus: ApartmentStatus.SOLD })
+      .andWhere('apartments.status=:aprstatus', {
+        aprstatus: ApartmentStatus.SOLD,
+      })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       // .addGroupBy('entrance.id')
@@ -530,5 +532,74 @@ export class ReportService {
     //   });
     // }
     return sumResults;
+  }
+
+  async allCaisher(dayType: string, from: string, to: string) {
+    let res;
+    let updatedRes;
+
+    res = await this.orderRepo.manager
+      .createQueryBuilder(Payments, 'payments')
+      .leftJoin(
+        'payments.caishers',
+        'caishers',
+        'caishers.id=payments.caisher_id',
+      )
+      .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
+      .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
+      .leftJoin(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoin(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+      .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+      .leftJoin(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+      .select('caishers.caisher_name')
+      .addSelect('caishers.id')
+      .addSelect('payments.paymentmethods')
+      .addSelect('caishers.caisher_name')
+      .addSelect('SUM(payments.amount)', 'total_sum')
+      .addSelect('SUM(payments.amount_usd)', 'total_usd')
+      .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .groupBy('caishers.id')
+      .groupBy('payments.payment_date')
+      .addGroupBy('payments.paymentmethods')
+      .getRawMany();
+
+    updatedRes = await Promise.all(
+      res.map(async (data) => {
+        let summa_out;
+        summa_out = await this.payment_sum_in(
+          data.towns_id,
+          data.payments_paymentmethods,
+          data.caishers_id,
+          dayType,
+        ).then((response) => {
+          return response;
+        });
+        data['total_sum_out'] = Number(summa_out.total_sum_out);
+        data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
+        data['grand_total_sum'] = Number(
+          data.total_sum - summa_out.total_sum_out,
+        );
+        data['grand_total_usd'] = Number(
+          data.total_usd - summa_out.total_usd_out,
+        );
+        return data;
+      }),
+    );
+
+    return updatedRes;
   }
 }
