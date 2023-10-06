@@ -582,7 +582,7 @@ export class ReportService {
         summa_out = await this.allCaisher_Out(
           data.payments_paymentmethods,
           data.caishers_id,
-          ).then((response) => {
+        ).then((response) => {
           return response;
         });
         data['total_sum_out'] = Number(summa_out.total_sum_out);
@@ -600,21 +600,13 @@ export class ReportService {
     return updatedRes;
   }
 
-  async allCaisher_Out(
-    paymentmethods: string,
-    caisher_id: number,
-
-  ) {
+  async allCaisher_Out(paymentmethods: string, caisher_id: number) {
     const sumResults = {
       total_sum_out: 0,
       total_usd_out: 0,
     };
     let result;
-    const today = new Date();
-    // if (dayType == 'day') {
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoinAndSelect(
@@ -674,12 +666,8 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymentmethods', {
         paymentmethods: paymentmethods,
       })
-      .andWhere(
-        'payments.payment_date>= :startDate AND payments.payment_date<= :endDate',
-        { startDate: today, endDate: tomorrow },
-      )
-      .groupBy('payments.paymentmethods')
-      .addGroupBy('caishers.id')
+      .groupBy('caishers.id')
+      .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
     result.forEach((item) => {
