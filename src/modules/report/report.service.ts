@@ -681,7 +681,6 @@ export class ReportService {
         { startDate: today, endDate: tomorrow },
       )
       .groupBy('payments.paymentmethods')
-      .addGroupBy('towns.id')
       .addGroupBy('caishers.id')
       .getRawMany();
 

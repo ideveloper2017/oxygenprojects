@@ -59,6 +59,17 @@ export class ReportController {
 
   @Get('/caisher-report')
   public async allCaisherReport() {
-    return this.reportService.allCaisher();
+    return this.reportService
+      .allCaisher()
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'All Payments' };
+        } else {
+          return { status: 400, message: 'not all payments' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 }
