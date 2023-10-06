@@ -374,163 +374,7 @@ export class ReportService {
       sumResults.total_sum_out = item.total_sum;
       sumResults.total_usd_out = item.total_usd;
     });
-    // } else if (dayType == 'month') {
-    //   const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    //
-    //   result = await this.orderRepo.manager
-    //     .createQueryBuilder(Payments, 'payments')
-    //     .leftJoinAndSelect(
-    //       'payments.caishers',
-    //       'caishers',
-    //       'caishers.id=payments.caisher_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'payments.orders',
-    //       'orders',
-    //       'orders.id=payments.order_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'orders.clients',
-    //       'clients',
-    //       'clients.id=orders.client_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'orders.orderItems',
-    //       'orderitems',
-    //       'orderitems.order_id=orders.id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'orderitems.apartments',
-    //       'apartments',
-    //       'apartments.id=orderitems.apartment_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'apartments.floor',
-    //       'floor',
-    //       'floor.id=apartments.floor_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'floor.entrance',
-    //       'entrance',
-    //       'entrance.id=floor.entrance_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'entrance.buildings',
-    //       'buildings',
-    //       'buildings.id=entrance.building_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'buildings.towns',
-    //       'towns',
-    //       'towns.id=buildings.town_id',
-    //     )
-    //
-    //     .select([
-    //       'towns.name',
-    //       'payments.paymentmethods',
-    //       'caishers.caisher_name',
-    //       'SUM(payments.amount) AS total_sum',
-    //       'SUM(payments.amount_usd) AS total_usd',
-    //     ])
-    //
-    //     .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-    //     .andWhere('towns.id= :town_id', { town_id: town_id })
-    //     .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-    //     .andWhere('payments.paymentmethods= :paymentmethods', {
-    //       paymentmethods: paymentmethods,
-    //     })
-    //     .andWhere('payments.payment_date>= :startDate', {
-    //       startDate: startOfMonth,
-    //     })
-    //     .groupBy('payments.payment_date')
-    //     .addGroupBy('payments.paymentmethods')
-    //     .addGroupBy('towns.id')
-    //     .addGroupBy('caishers.id')
-    //     .orderBy('payments.payment_date', 'DESC')
-    //     .getRawMany();
-    //
-    //   result.forEach((item) => {
-    //     sumResults.total_sum_out = item.total_sum;
-    //     sumResults.total_usd_out = item.total_usd;
-    //   });
-    // } else if (dayType == 'year') {
-    //   const startOfYear = new Date(today.getFullYear(), 0, 1);
-    //   result = await this.orderRepo.manager
-    //     .createQueryBuilder(Payments, 'payments')
-    //     .leftJoinAndSelect(
-    //       'payments.caishers',
-    //       'caishers',
-    //       'caishers.id=payments.caisher_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'payments.orders',
-    //       'orders',
-    //       'orders.id=payments.order_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'orders.clients',
-    //       'clients',
-    //       'clients.id=orders.client_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'orders.orderItems',
-    //       'orderitems',
-    //       'orderitems.order_id=orders.id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'orderitems.apartments',
-    //       'apartments',
-    //       'apartments.id=orderitems.apartment_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'apartments.floor',
-    //       'floor',
-    //       'floor.id=apartments.floor_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'floor.entrance',
-    //       'entrance',
-    //       'entrance.id=floor.entrance_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'entrance.buildings',
-    //       'buildings',
-    //       'buildings.id=entrance.building_id',
-    //     )
-    //     .leftJoinAndSelect(
-    //       'buildings.towns',
-    //       'towns',
-    //       'towns.id=buildings.town_id',
-    //     )
-    //     .select([
-    //       'towns.name',
-    //       'payments.paymentmethods',
-    //       'caishers.caisher_name',
-    //       'SUM(payments.amount) AS total_sum',
-    //       'SUM(payments.amount_usd) AS total_usd',
-    //     ])
-    //     .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-    //     .andWhere('towns.id= :town_id', { town_id: town_id })
-    //     .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-    //     .andWhere('payments.paymentmethods= :paymentmethods', {
-    //       paymentmethods: paymentmethods,
-    //     })
-    //     .andWhere('payments.payment_date>= :startDate', {
-    //       startDate: startOfYear,
-    //     })
-    //     .groupBy("DATE_TRUNC('year', payments.payment_date)")
-    //     .addGroupBy('payments.payment_date')
-    //     .addGroupBy('payments.paymentmethods')
-    //     .addGroupBy('towns.id')
-    //     .addGroupBy('caishers.id')
-    //     .orderBy('payments.payment_date', 'DESC')
-    //     .getRawMany();
-    //
-    //   result.forEach((item) => {
-    //     sumResults.total_sum_out = item.total_sum;
-    //     sumResults.total_usd_out = item.total_usd;
-    //   });
-    // }
+
     return sumResults;
   }
 
@@ -545,26 +389,6 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
-      // .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
-      // .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
-      // .leftJoin(
-      //   'orders.orderItems',
-      //   'orderitems',
-      //   'orderitems.order_id=orders.id',
-      // )
-      // .leftJoin(
-      //   'orderitems.apartments',
-      //   'apartments',
-      //   'apartments.id=orderitems.apartment_id',
-      // )
-      // .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-      // .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-      // .leftJoin(
-      //   'entrance.buildings',
-      //   'buildings',
-      //   'buildings.id=entrance.building_id',
-      // )
-      // .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
       .select('caishers.caisher_name')
       .addSelect('caishers.id')
       .addSelect('payments.paymentmethods')
@@ -592,7 +416,6 @@ export class ReportService {
         data['grand_total_usd'] = Number(
           data.total_usd - summa_out.total_usd_out,
         );
-        console.log(summa_out);
         return data;
       }),
     );
@@ -614,46 +437,6 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
-      // .leftJoinAndSelect(
-      //   'payments.orders',
-      //   'orders',
-      //   'orders.id=payments.order_id',
-      // )
-      // .leftJoinAndSelect(
-      //   'orders.clients',
-      //   'clients',
-      //   'clients.id=orders.client_id',
-      // )
-      // .leftJoinAndSelect(
-      //   'orders.orderItems',
-      //   'orderitems',
-      //   'orderitems.order_id=orders.id',
-      // )
-      // .leftJoinAndSelect(
-      //   'orderitems.apartments',
-      //   'apartments',
-      //   'apartments.id=orderitems.apartment_id',
-      // )
-      // .leftJoinAndSelect(
-      //   'apartments.floor',
-      //   'floor',
-      //   'floor.id=apartments.floor_id',
-      // )
-      // .leftJoinAndSelect(
-      //   'floor.entrance',
-      //   'entrance',
-      //   'entrance.id=floor.entrance_id',
-      // )
-      // .leftJoinAndSelect(
-      //   'entrance.buildings',
-      //   'buildings',
-      //   'buildings.id=entrance.building_id',
-      // )
-      // .leftJoinAndSelect(
-      //   'buildings.towns',
-      //   'towns',
-      //   'towns.id=buildings.town_id',
-      // )
       .select([
         'caishers.caisher_name',
         'payments.paymentmethods',
@@ -674,7 +457,54 @@ export class ReportService {
       sumResults.total_sum_out = item.total_sum;
       sumResults.total_usd_out = item.total_usd;
     });
-
     return sumResults;
+  }
+
+  public async getClientByApartment() {
+    return this.orderRepo.manager
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .select([
+        'towns.name',
+        'payments.paymentmethods',
+        'caishers.caisher_name',
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+      .getRawMany();
   }
 }

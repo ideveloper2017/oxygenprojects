@@ -72,4 +72,9 @@ export class ReportController {
         return { status: error.code, message: error.message };
       });
   }
+
+  @Get('/client-apartment')
+  public async getAllClientApartment(){
+      return this.reportService.getClientByApartment();
+  }
 }
