@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
 // import fs from "fs";
-import { TemplateHandler } from 'easy-template-x';
+  import {createDefaultPlugins, LOOP_CONTENT_TYPE, TemplateHandler, TEXT_CONTENT_TYPE} from 'easy-template-x';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
@@ -10,7 +10,8 @@ import { numberToWords } from '../../common/utils/numbertowords';
 const fs = require('fs');
 import numberToWordsRu, {
   convert as convertNumberToWordsRu,
-} from 'number-to-words-ru'; // ES6
+} from 'number-to-words-ru';
+import {CreditTable} from "../credit-table/entities/credit-table.entity"; // ES6
 
 @Controller('wordexport')
 export class WordexportController {
@@ -20,7 +21,7 @@ export class WordexportController {
   ) {}
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id: number, @Res() res) {
-    let client;
+    let client,credits, creditsTotalSum;
     const filename = 'data/contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
@@ -30,11 +31,20 @@ export class WordexportController {
       relations: [
         'clients',
         'orderItems.apartments.floor.entrance.buildings.towns',
-        'creditTables',
-      ],
+       ],
     });
+    credits= await this.orderRepo.manager.createQueryBuilder(CreditTable,'credits')
+        .where('order_id= :order_id',{order_id:client_id})
+        .select(['TO_CHAR(due_date,\'DD.MM.YYYY\') as due_date','due_amount'])
+        .getRawMany();
 
-    const apartment = order?.orderItems?.map((data) => {
+      const summa=await this.orderRepo.manager.createQueryBuilder(CreditTable,'credits')
+        .select("SUM(due_amount) as summa")
+        .where('order_id= :order_id',{order_id:client_id})
+          .groupBy('order_id')
+        .getRawOne();
+
+    const apartment =order?.orderItems?.map((data) => {
       return {
         order_date:
           String(order?.order_date.getDate()).padStart(2, '0') +
@@ -54,10 +64,11 @@ export class WordexportController {
         floor_number: data?.apartments?.floor?.floor_number,
         room_space: data?.apartments?.room_space,
         room_number: data?.apartments?.room_number,
-        total_sum:
-          data?.apartments?.floor?.entrance?.buildings?.mk_price *
-          data?.apartments?.room_space,
-        // number_to_words:Number(data?.apartments?.floor?.entrance?.buildings?.mk_price*data?.apartments?.room_space)
+        total_sum:order.total_amount,
+        total_sum_usd:order.total_amount_usd,
+        credits:credits,
+        totalsum:Number(summa?summa.summa:0+order?.initial_pay),
+        initalpay:order.initial_pay,
         number_to_words: numberToWordsRu.convert(
           Number(
             data?.apartments?.floor?.entrance?.buildings?.mk_price *
@@ -72,10 +83,30 @@ export class WordexportController {
       };
     });
     const data = {
-      apartment,
+      apartment
     };
+    console.log(data)
+    const handler = new TemplateHandler({
 
-    const handler = new TemplateHandler();
+      plugins: createDefaultPlugins(), // TemplatePlugin[]
+      defaultContentType: TEXT_CONTENT_TYPE, // string
+      containerContentType: LOOP_CONTENT_TYPE, // string
+      delimiters: {
+        tagStart: "{",
+        tagEnd: "}",
+        containerTagOpen: "#",
+        containerTagClose: "/"
+      },
+
+      maxXmlDepth: 20,
+
+      extensions: { // ExtensionOptions
+        beforeCompilation: undefined, // TemplateExtension[]
+        afterCompilation: undefined // TemplateExtension[]
+      },
+
+      scopeDataResolver: undefined // ScopeDataResolver
+    });
     const doc = await handler.process(templateFile, data);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', 'application/octet-stream'); // You can set the appropriate MIME type
@@ -83,4 +114,5 @@ export class WordexportController {
     const fileStream = fs.createReadStream(filename);
     fileStream.pipe(res);
   }
+
 }
