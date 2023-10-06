@@ -498,13 +498,6 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .select([
-        'towns.name',
-        'payments.paymentmethods',
-        'caishers.caisher_name',
-        'SUM(payments.amount) AS total_sum',
-        'SUM(payments.amount_usd) AS total_usd',
-      ])
       .getRawMany();
   }
 }
