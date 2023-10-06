@@ -519,6 +519,8 @@ export class ReportService {
       .andWhere('orders.is_delete= :isDelete', { isDelete: false })
       .getRawMany();
 
+
+
     updatedRes = await Promise.all(
       res.map(async (data) => {
         let summa_out;

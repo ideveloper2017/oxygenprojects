@@ -75,6 +75,6 @@ export class ReportController {
 
   @Get('/client-apartment')
   public async getAllClientApartment(){
-      return this.reportService.getClientByApartment();
+      return this.reportService.getClientByApartment().catch((error)=>console.log(error));
   }
 }
