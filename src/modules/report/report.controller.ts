@@ -58,7 +58,7 @@ export class ReportController {
   }
 
   @Get('/caisher-report')
-  public async allCaisherReport(){
-      return this.reportService
+  public async allCaisherReport() {
+    return this.reportService.allCaisher();
   }
 }

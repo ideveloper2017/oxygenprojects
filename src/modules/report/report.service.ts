@@ -534,7 +534,7 @@ export class ReportService {
     return sumResults;
   }
 
-  async allCaisher(dayType: string, from: string, to: string) {
+  async allCaisher() {
     let res;
     let updatedRes;
 
