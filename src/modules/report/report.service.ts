@@ -513,6 +513,10 @@ export class ReportService {
         'apartments.room_space',
         'buildings.mk_price',
       ])
+      .where('orders.order_status= :orderStatus', {
+        orderStatus: OrderStatus.ACTIVE,
+      })
+      .andWhere('orders.is_delete= :isDelete', { isDelete: false })
       .getRawMany();
 
     updatedRes = await Promise.all(
