@@ -468,6 +468,7 @@ export class ReportService {
         'clients',
         'clients.id=orders.client_id',
       )
+      .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
       .leftJoinAndSelect(
         'orders.orderItems',
         'orderitems',
@@ -498,7 +499,18 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-        .select(['clients.first_name','clients.last_name','clients.middle_name','apartments.cells','apartments.room_number','apartments.room_space','buildings.mk_price'])
+      .select([
+        'clients.first_name',
+        'clients.last_name',
+        'clients.middle_name',
+        'orders.total_amount',
+        'SUM(payments.amount) as amount',
+        'SUM(payments.amount_usd) as amount_usd',
+        'apartments.cells',
+        'apartments.room_number',
+        'apartments.room_space',
+        'buildings.mk_price',
+      ])
       .getRawMany();
   }
 }
