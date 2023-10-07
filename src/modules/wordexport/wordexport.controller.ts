@@ -54,7 +54,8 @@ export class WordexportController {
         floor_number: data?.apartments?.floor?.floor_number,
         room_space: data?.apartments?.room_space,
         room_number: data?.apartments?.room_number,
-        total_sum:data?.orders.total_amount,
+        total_sum:data?.orders?.total_amount,
+        total_sum_usd:data?.orders?.total_amount_usd,
 
         number_to_words: numberToWordsRu.convert(
           Number(
