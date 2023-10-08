@@ -1017,6 +1017,11 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
+"@types/file-saver@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.npmjs.org/@types/file-saver/-/file-saver-2.0.5.tgz"
+  integrity sha512-zv9kNf3keYegP5oThGLaPk8E081DFDuwfqjtiTzm6PoxChdJ1raSuADf2YGCVIyrSynLrgc8JWv296s7Q7pQSQ==
+
 "@types/graceful-fs@^4.1.3":
   version "4.1.6"
   resolved "https://registry.npmjs.org/@types/graceful-fs/-/graceful-fs-4.1.6.tgz"
@@ -2341,10 +2346,10 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-docxtemplater@^3.39.1:
-  version "3.39.1"
-  resolved "https://registry.npmjs.org/docxtemplater/-/docxtemplater-3.39.1.tgz"
-  integrity sha512-w7Sqq+HaLrVoLZnjHYo57VqoMn8SV/hnFc5IZ3IKPD3/eDnZLB9pav71lb2yP8SIZIPwJBH/HzE7rxorJn4ynQ==
+docxtemplater@^3.40.0:
+  version "3.40.0"
+  resolved "https://registry.npmjs.org/docxtemplater/-/docxtemplater-3.40.0.tgz"
+  integrity sha512-tBe8tVNj1vpo4B8ScAdj66tIy4oJtikcpR+g1j5UoMrh7w2H0GbZpL0isea1yhhdzA+2QcJUzs5DhvsFcrSUKg==
   dependencies:
     "@xmldom/xmldom" "^0.8.10"
 
@@ -2772,6 +2777,11 @@ file-entry-cache@^6.0.1:
   dependencies:
     flat-cache "^3.0.4"
 
+file-saver@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.npmjs.org/file-saver/-/file-saver-2.0.5.tgz"
+  integrity sha512-P9bmyZ3h/PRG+Nzga+rbdI4OEpNDzAVyy74uVO9ATgzLK6VtAsYybF/+TOCvrc0MO793d6+42lLyZTw7/ArVzA==
+
 fill-range@^7.0.1:
   version "7.0.1"
   resolved "https://registry.npmjs.org/fill-range/-/fill-range-7.0.1.tgz"
@@ -3128,6 +3138,11 @@ html-escaper@^2.0.0:
   version "2.0.2"
   resolved "https://registry.npmjs.org/html-escaper/-/html-escaper-2.0.2.tgz"
   integrity sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==
+
+html-to-pdfmake@^2.4.25:
+  version "2.4.25"
+  resolved "https://registry.npmjs.org/html-to-pdfmake/-/html-to-pdfmake-2.4.25.tgz"
+  integrity sha512-aE2bkfncAQAS6ruZkOXuT7FpLBAICWpGF7tbqBYD7E/kwketOkeAGVNLJAlEJoa+YNwzVMKUNQJO67QHoXyg3A==
 
 http-errors@2.0.0:
   version "2.0.0"
