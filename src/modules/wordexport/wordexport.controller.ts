@@ -67,7 +67,7 @@ export class WordexportController {
         total_sum:order.total_amount,
         total_sum_usd:order.total_amount_usd,
         credits:credits,
-        totalsum:Number(summa.summa+order.initial_pay),
+        totalsum:Number(summa?.summa+order?.initial_pay),
         initalpay:order.initial_pay,
         number_to_words: numberToWordsRu.convert(
           Number(
