@@ -74,7 +74,18 @@ export class ReportController {
   }
 
   @Get('/client-apartment')
-  public async getAllClientApartment(){
-      return this.reportService.getClientByApartment();
+  public async getAllClientApartment() {
+    return this.reportService
+      .getClientByApartment()
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'full' };
+        } else {
+          return { status: 400, message: 'Not found!!!' };
+        }
+      })
+      .catch((error) => {
+        return error;
+      });
   }
 }

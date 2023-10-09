@@ -16,6 +16,7 @@ import { OrderItems } from '../order-items/entities/order-item.entity';
 import * as moment from 'moment/moment';
 import { groupBy } from 'rxjs';
 import { ApartmentStatus } from '../../common/enums/apartment-status';
+import { response } from 'express';
 
 @Injectable()
 export class ReportService {
@@ -461,7 +462,9 @@ export class ReportService {
   }
 
   public async getClientByApartment() {
-    return this.orderRepo.manager
+    let res;
+    let updatedRes;
+    res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
         'orders.clients',
@@ -498,6 +501,68 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
+      .select([
+        'orders.id as order_id',
+        'clients.id',
+        'clients.first_name',
+        'clients.last_name',
+        'clients.middle_name',
+        'orders.total_amount as total_amount',
+        'orders.total_amount_usd as total_amount_usd',
+        'apartments.cells',
+        'apartments.room_number',
+        'apartments.room_space',
+        'buildings.mk_price',
+      ])
+      .where('orders.order_status= :orderStatus', {
+        orderStatus: OrderStatus.ACTIVE,
+      })
+      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
+
+    updatedRes = await Promise.all(
+      res.map(async (data) => {
+        let summa_out;
+        summa_out = await this.clientPayment(data.order_id).then((response) => {
+          return response;
+        });
+        data['total_sum_out'] = Number(summa_out.total_sum_out);
+        data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
+        data['due_total_sum'] = Number(
+          data.total_amount - summa_out.total_sum_out,
+        );
+        data['due_total_usd'] = Number(
+          data.total_amount_usd - summa_out.total_usd_out,
+        );
+        console.log(data);
+        return data;
+      }),
+    );
+
+    return updatedRes;
+  }
+
+  async clientPayment(order_id: number) {
+    const sumResults = {
+      total_sum_out: 0,
+      total_usd_out: 0,
+    };
+    let result;
+
+    result = await this.orderRepo.manager
+      .createQueryBuilder(Payments, 'payments')
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+      .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .where('payments.order_id= :order_id', { order_id })
+      .getRawMany();
+
+    result.forEach((item) => {
+      sumResults.total_sum_out = item.total_sum;
+      sumResults.total_usd_out = item.total_usd;
+    });
+    return sumResults;
   }
 }
