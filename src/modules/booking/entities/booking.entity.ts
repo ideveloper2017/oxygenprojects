@@ -27,7 +27,7 @@ export class Booking extends Model {
   @Column()
   bron_date: Date;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, type: "decimal", precision: 20, scale :2 })
   bron_amount: number;
 
   @Column({ nullable: true })
