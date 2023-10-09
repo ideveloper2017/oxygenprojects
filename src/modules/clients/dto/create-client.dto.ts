@@ -22,6 +22,7 @@ export class CreateClientDto {
   @ApiProperty({ example: '123456789', description: 'JShShIR' })
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[0-9]{16}$/, { message: 'The tin must be a 16-digit numeric value' })
   tin: string;
 
   @IsEnum(Gender, {message: "Invalid gender entered"})

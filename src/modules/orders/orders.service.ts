@@ -42,6 +42,7 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================
 
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
+    
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
@@ -173,7 +174,7 @@ export class OrdersService {
     payment.users = savedOrder.users;
     payment.amount = savedOrder.initial_pay;
     payment.payment_date = new Date();
-    payment.paymentmethods = Paymentmethods.CARD;
+    payment.paymentmethods = Paymentmethods.CASH;
     payment.caishers = await Caisher.findOne({
       where: { id: createOrderDto.caisher_id, is_active: true },
     });
@@ -255,10 +256,8 @@ export class OrdersService {
   async getOrderListIsDue(refundDto: RefundDto) {
     let activeness;
     if (refundDto.is_refunding) {
-      console.log('if');
       activeness = OrderStatus.INACTIVE;
     } else {
-      console.log('else');
       activeness = OrderStatus.ACTIVE;
     }
     const result = [];
