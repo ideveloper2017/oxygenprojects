@@ -103,7 +103,7 @@ export class BookingService {
         return booking.apartments.id
     })
 
-    if(bookings?.length){
+    if(!bookings?.length){
       return {success: false, message: "bookings not found"}
     }
 
