@@ -52,4 +52,11 @@ export class BookingController {
   remove(@Param('id') id: string) {
     return this.bookingService.remove(+id);
   }
+
+  @ApiOperation({summary: "Bronni bekor qilish"})
+  @Post('/cancel')
+  cencelBooking(@Body() bronIDs: number[]){
+    return this.bookingService.cancelBooking(bronIDs)
+  }
+
 }
