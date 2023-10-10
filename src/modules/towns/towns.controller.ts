@@ -110,17 +110,17 @@ export class TownController {
     return this.townService.homePageDatas();
   }
 
-  @ApiOperation({
-    summary: `EHTIYOT BO'LAMIZ ⛔⛔⛔ BU REQUEST BAZANI TOZALAB YUBORADI `,
-  })
-  @Delete('/clear-database')
-  truncateDatabase() {
-    return this.townService.clearDatabase().then((data) => {
-      if (data) {
-        return { success: true, message: 'Database tozalandi ✅' };
-      } else {
-        return { success: false, message: 'Database tozalashda xatolik ❌' };
-      }
-    });
-  }
+  // @ApiOperation({
+  //   summary: `EHTIYOT BO'LAMIZ ⛔⛔⛔ BU REQUEST BAZANI TOZALAB YUBORADI `,
+  // })
+  // @Delete('/clear-database')
+  // truncateDatabase() {
+  //   return this.townService.clearDatabase().then((data) => {
+  //     if (data) {
+  //       return { success: true, message: 'Database tozalandi ✅' };
+  //     } else {
+  //       return { success: false, message: 'Database tozalashda xatolik ❌' };
+  //     }
+  //   });
+  // }
 }
