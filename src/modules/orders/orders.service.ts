@@ -84,7 +84,7 @@ export class OrdersService {
     order.order_date = new Date();
     order.initial_pay = initial_pay;
     order.currency_value = usdRate.rate_value;
-    order.users = users;
+    order.users = await Users.findOne({where:{id:users.userId}});
     order.quantity = 1;
 
     const savedOrder = await this.ordersRepository.save(order);
