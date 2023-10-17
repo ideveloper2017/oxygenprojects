@@ -82,7 +82,7 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = initial_pay;
+    order.initial_pay = Math.floor(initial_pay / 1000 ) *1000;
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({where:{id:users.userId}});
     order.quantity = 1;
@@ -139,7 +139,7 @@ export class OrdersService {
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {
-        total_amount: total,
+        total_amount: Math.floor(total / 1000) * 1000,
         total_amount_usd: total_in_usd,
         order_status:
           total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
