@@ -66,7 +66,7 @@ export class ReportService {
       .addSelect('buildings.name')
       // .addSelect('entrance.entrance_number')
       .addSelect('floor.floor_number')
-      .addSelect('TO_CHAR(SUM(apartments.room_space),\'FM99\') as all_room_space')
+      .addSelect('cast(SUM(apartments.room_space) as money) as all_room_space')
       // .addSelect('apartments.cells')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
