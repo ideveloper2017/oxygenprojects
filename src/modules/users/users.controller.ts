@@ -33,7 +33,7 @@ export class UsersController {
     private readonly usersService: UsersService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   //@Roles('admin', 'manager')
   // @ApiBearerAuth()
 
