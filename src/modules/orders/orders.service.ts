@@ -294,6 +294,7 @@ export class OrdersService {
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           left_amount: incomingSum - outgoingSum,
+          order_status:data.order_status,
         });
       } else {
         const sum = data.payments.reduce((accumulator, currentValue) => {
@@ -305,6 +306,7 @@ export class OrdersService {
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           totalsum: data.total_amount - sum,
+          order_status:data.order_status,
         });
       }
     });
