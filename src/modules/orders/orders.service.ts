@@ -135,7 +135,14 @@ export class OrdersService {
 
     const total_in_usd = Math.floor(total / usdRate.rate_value);
 
-
+    const updatedOrder = await this.ordersRepository.update(
+      { id: savedOrder.id },
+      {
+        total_amount: Math.floor(total),
+        total_amount_usd: total_in_usd,
+        order_status: total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
+      },
+    );
 
     const orderItem = new OrderItems();
     orderItem.orders = savedOrder;
@@ -177,15 +184,6 @@ export class OrdersService {
     payment.pay_note = "Boshlangich to'lov";
 
     await Payments.save(payment);
-
-    const updatedOrder = await this.ordersRepository.update(
-        { id: savedOrder.id },
-        {
-          total_amount: Math.floor(total),
-          total_amount_usd: total_in_usd,
-          order_status: total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
-        },
-    );
 
     return updatedOrder;
   }
