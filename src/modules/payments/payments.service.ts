@@ -141,7 +141,8 @@ export class PaymentsService {
   async deletePayment(arrayOfId: number[]) {
     let counter = 0;
     for (const i of arrayOfId) {
-      counter += (await this.paymentRepo.update({ id: i },{ is_deleted: true })).affected
+      counter += (await this.paymentRepo.delete({ id: i })).affected
+      // counter += (await this.paymentRepo.update({ id: i },{ is_deleted: true })).affected
     }
 
     return counter;
