@@ -82,7 +82,7 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = Math.floor(initial_pay / 1000 ) *1000;
+    order.initial_pay = Math.floor(initial_pay);
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({where:{id:users.userId}});
     order.quantity = 1;
@@ -96,8 +96,7 @@ export class OrdersService {
 
     // binodagi barcha apartmentlarga tegishli narxini olish
 
-    const total = deal_price
-      ? deal_price * apartment.room_space
+    const total = deal_price ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     let schedule;
@@ -139,7 +138,7 @@ export class OrdersService {
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {
-        total_amount: Math.floor(total / 1000) * 1000,
+        total_amount: Math.floor(total),
         total_amount_usd: total_in_usd,
         order_status:
           total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
