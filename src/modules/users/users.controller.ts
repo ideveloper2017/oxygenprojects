@@ -36,6 +36,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   //@Roles('admin', 'manager')
   // @ApiBearerAuth()
+
   @ApiOkResponse({ type: CreateUserDto, isArray: true }) // @ApiBearerAuth()
   @Get('/list/:id')
   findAll(@Param('id') id: number) {
