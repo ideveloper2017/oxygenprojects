@@ -68,8 +68,8 @@ export class OrdersService {
     let initial_pay, deal_price;
 
     if (payment_method.name_alias === 'dollar') {
-      deal_price = Math.floor(createOrderDto.price * usdRate.rate_value);
-      initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value);
+      deal_price = (createOrderDto.price * usdRate.rate_value);
+      initial_pay = (createOrderDto.initial_pay * usdRate.rate_value);
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
@@ -135,15 +135,7 @@ export class OrdersService {
 
     const total_in_usd = Math.floor(total / usdRate.rate_value);
 
-    const updatedOrder = await this.ordersRepository.update(
-      { id: savedOrder.id },
-      {
-        total_amount: Math.floor(total),
-        total_amount_usd: total_in_usd,
-        order_status:
-          total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
-      },
-    );
+
 
     const orderItem = new OrderItems();
     orderItem.orders = savedOrder;
@@ -185,6 +177,15 @@ export class OrdersService {
     payment.pay_note = "Boshlangich to'lov";
 
     await Payments.save(payment);
+
+    const updatedOrder = await this.ordersRepository.update(
+        { id: savedOrder.id },
+        {
+          total_amount: Math.floor(total),
+          total_amount_usd: total_in_usd,
+          order_status: total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
+        },
+    );
 
     return updatedOrder;
   }
