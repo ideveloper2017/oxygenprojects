@@ -30,7 +30,7 @@ export class OrdersService {
     private readonly paymentService: PaymentsService,
   ) {}
 
-  //==================== yangi qo'shiladigan shartnima raqani ===========================
+  //==================== yangi qo'shiladigan shartnima raqami ===========================
 
   async getLastID() {
     return await this.ordersRepository
@@ -108,9 +108,8 @@ export class OrdersService {
     ) {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
 
-      const oneMonthDue = createOrderDto.initial_pay
-        ? (total - createOrderDto.initial_pay) /
-          createOrderDto.installment_month
+      const oneMonthDue = createOrderDto.initial_pay ? 
+      (total - createOrderDto.initial_pay) / createOrderDto.installment_month
         : total / createOrderDto.installment_month;
 
       const creditSchedule = [];

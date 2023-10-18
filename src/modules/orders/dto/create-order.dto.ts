@@ -27,7 +27,6 @@ export class CreateOrderDto {
   price?: number;
 
   @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov somda' })
-  @IsInt()
   initial_pay: number;
 
   @ApiProperty({ example: '2023-09-04' })
