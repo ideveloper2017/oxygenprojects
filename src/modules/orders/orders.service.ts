@@ -323,7 +323,7 @@ export class OrdersService {
           order_id: data.id,
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
-          totalsum: data.total_amount - sum,
+          totalsum: Math.floor(data.total_amount - sum),
           order_status:data.order_status,
         });
 
