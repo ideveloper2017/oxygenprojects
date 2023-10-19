@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { Repository } from 'typeorm';
 import { Floor } from './entities/floor.entity';
+import { Buildings } from '../buildings/entities/building.entity';
+import { Entrance } from '../entrance/entities/entrance.entity';
 
 @Injectable()
 export class FloorsService {
@@ -26,6 +28,16 @@ export class FloorsService {
     newFloor.entrance_id = entrance_id;
 
     const result = await this.floorRepository.save(newFloor);
+    
+    const building = await Entrance.findOne({where: {id: entrance_id}, relations: ['buildings']});
+
+    await Buildings.createQueryBuilder()
+      .update(Buildings)
+      .set({ floor_number: () => 'floor_number + 1' })
+      .where({ id: building.buildings.id })
+      .execute();
+
+    
     return result;
   }
 

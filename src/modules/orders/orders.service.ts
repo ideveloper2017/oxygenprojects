@@ -160,7 +160,7 @@ export class OrdersService {
     });
     orderItem.price = kv_price
     orderItem.price_usd = kv_price_usd
-    orderItem.final_price = total;
+    orderItem.final_price = total_floored;
 
     await Apartments.update(
       { id: createOrderDto.apartment_id },
