@@ -35,20 +35,20 @@ export class PaymentsService {
       const usdRate = await ExchangRates.findOne({where: {is_default: true}})
       let newPay;
   
-      if (
-        paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
-        paymentMethods.name_alias.toLowerCase() == 'subsidia'
-      ) {
-        newPay = await this.payForInstallment(newPaymentDto)
-      }
-        
-      else {
-        newPay = await this.doPayment(newPaymentDto)
-      }
+
   
       
       if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.IN){
         await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.COMPLETED})
+        if (
+            paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
+            paymentMethods.name_alias.toLowerCase() == 'subsidia'
+        ) {
+          newPay = await this.payForInstallment(newPaymentDto)
+        }  else {
+          newPay = await this.doPayment(newPaymentDto)
+        }
+
       }else if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.OUT){
         await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.REFUNDED})
       }
