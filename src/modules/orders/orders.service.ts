@@ -107,7 +107,8 @@ export class OrdersService {
     const total = deal_price ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
-    const total_floored = Math.floor(total / 1000) * 1000
+    // const total_floored = Math.floor(total / 1000) * 1000
+    const total_floored =total;
     let schedule;
 
     if (
