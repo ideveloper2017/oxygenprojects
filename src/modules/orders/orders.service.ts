@@ -108,7 +108,7 @@ export class OrdersService {
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
     // const total_floored = Math.floor(total / 1000) * 1000
-    const total_floored =total;
+    const total_floored = Math.floor(total / 1000) * 1000
     let schedule;
 
     if (
@@ -141,6 +141,7 @@ export class OrdersService {
 
 
         console.log(oneMonthDue);
+        console.log(createOrderDto.initial_pay);
       }
 
 
