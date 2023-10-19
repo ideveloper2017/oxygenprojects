@@ -65,15 +65,22 @@ export class OrdersService {
       );
     }
 
-    let initial_pay, deal_price;
+    let initial_pay, deal_price, kv_price_usd, kv_price;
 
     if (payment_method.name_alias === 'dollar') {
-      deal_price = (createOrderDto.price * usdRate.rate_value);
-      initial_pay = (createOrderDto.initial_pay * usdRate.rate_value);
+      deal_price = Math.floor(createOrderDto.price * usdRate.rate_value);
+      initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value);
+      kv_price = Math.floor(createOrderDto.price * usdRate.rate_value);
+      kv_price_usd = createOrderDto.price
     } else {
+
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
+      kv_price_usd = Math.floor(createOrderDto.price / usdRate.rate_value);
+      kv_price = createOrderDto.price
     }
+
+    const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
 
     const order = new Orders();
     order.clients = await Clients.findOne({
@@ -82,7 +89,7 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.order_date = new Date();
-    order.initial_pay = Math.floor(initial_pay);
+    order.initial_pay = initial_floored
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({where:{id:users.userId}});
     order.quantity = 1;
@@ -99,6 +106,7 @@ export class OrdersService {
     const total = deal_price ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
+    const total_floored = Math.floor(total / 1000) * 1000
     let schedule;
 
     if (
@@ -138,9 +146,10 @@ export class OrdersService {
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {
-        total_amount: Math.floor(total),
+        total_amount: total_floored,
         total_amount_usd: total_in_usd,
-        order_status: total == initial_pay ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
+        order_status:
+          total_floored == initial_floored ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
       },
     );
 
@@ -149,6 +158,8 @@ export class OrdersService {
     orderItem.apartments = await Apartments.findOne({
       where: { id: +createOrderDto.apartment_id },
     });
+    orderItem.price = kv_price
+    orderItem.price_usd = kv_price_usd
     orderItem.final_price = total;
 
     await Apartments.update(

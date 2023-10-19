@@ -21,6 +21,12 @@ export class OrderItems extends Model {
   
   @Column()
   apartment_id: number
+ 
+  @Column({nullable: true})
+  price: number
+  
+  @Column({nullable: true})
+  price_usd: number
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   final_price: number;
