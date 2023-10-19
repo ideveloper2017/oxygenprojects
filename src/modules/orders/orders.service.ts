@@ -140,8 +140,8 @@ export class OrdersService {
         creditSchedule.push(installment);
 
 
-        console.log(oneMonthDue);
-        console.log(createOrderDto.initial_pay);
+        console.log((total - createOrderDto.initial_pay) +"/"+ createOrderDto.installment_month);
+
       }
 
 
