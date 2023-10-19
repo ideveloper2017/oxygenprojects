@@ -80,7 +80,8 @@ export class OrdersService {
       kv_price = createOrderDto.price
     }
 
-    const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
+    // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
+    const initial_floored = initial_pay;
 
     const order = new Orders();
     order.clients = await Clients.findOne({
