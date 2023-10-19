@@ -316,7 +316,7 @@ export class OrdersService {
         });
       } else {
         const sum = data.payments.reduce((accumulator, currentValue) => {
-          return accumulator + +currentValue.amount;
+          return accumulator + Math.floor(currentValue.amount);
         }, 0);
 
         result.push({
