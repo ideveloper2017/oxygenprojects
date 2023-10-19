@@ -137,7 +137,11 @@ export class OrdersService {
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
+
+
+        console.log(oneMonthDue);
       }
+
 
       schedule = await CreditTable.save(creditSchedule);
     }
