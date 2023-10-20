@@ -128,7 +128,7 @@ export class UsersService {
         user.last_name=updateUserDto.last_name;
         // user.username: updateUserDto.username,
         user.phone_number= updateUserDto.phone_number;
-        if (!updateUserDto.password){
+        if (updateUserDto.password){
           user.password= await bcrypt.hash(updateUserDto.password, 10);
           console.log(updateUserDto+" "+ user.password);
         }
