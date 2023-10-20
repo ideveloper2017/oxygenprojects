@@ -128,10 +128,10 @@ export class UsersService {
         user.last_name=updateUserDto.last_name;
         // user.username: updateUserDto.username,
         user.phone_number= updateUserDto.phone_number;
-        if (updateUserDto.password){
+        // if (updateUserDto.password){
           user.password= await bcrypt.hash(updateUserDto.password, 10);
-          console.log(updateUserDto+" "+ user.password+" "+bcrypt.decrypt(user.password) );
-        }
+
+        // }
         user.is_active= updateUserDto.is_active;
         user.roles= await Roles.findOne({ where: { id: updateUserDto.role_id } });
         user.town_access=updateUserDto.town_access?.join(',');
