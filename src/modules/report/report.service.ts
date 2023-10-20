@@ -106,9 +106,9 @@ export class ReportService {
     let res;
     let updatedRes;
 
-    const startDate = new Date(from);
+    const startDate = new Date('2023-10-20');
     // startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(to);
+    const endDate = new Date('2023-10-20');
     // endDate.setDate(endDate.getDate());
 
     res = await this.orderRepo.manager
