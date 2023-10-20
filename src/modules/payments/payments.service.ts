@@ -45,10 +45,9 @@ export class PaymentsService {
           }
         } else {
           newPay = await this.doPayment(newPaymentDto)
-
       }
-  
-      
+
+      console.log(newPaymentDto)      ;
       if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.IN){
         await Orders.update({id: newPaymentDto.order_id}, {order_status: OrderStatus.COMPLETED})
       }else if(newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.OUT){
