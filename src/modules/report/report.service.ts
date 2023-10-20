@@ -148,10 +148,10 @@ export class ReportService {
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      // .andWhere('payments.payment_date BETWEEN :startDate AND :endDate', {
-      //   startDate,
-      //   endDate,
-      // })
+      .andWhere('TO_CHAR(payments.payment_date,\'DD.MM.YYYY\') BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
 
       .groupBy('payments.payment_date')
       .addGroupBy('payments.paymentmethods')
