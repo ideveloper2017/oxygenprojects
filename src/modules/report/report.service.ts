@@ -283,18 +283,21 @@ export class ReportService {
 
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
-      .leftJoin(
+      .leftJoinAndSelect(
         'payments.caishers',
         'caishers',
         'caishers.id=payments.caisher_id',
       )
-      .select('caishers.caisher_name')
+      .leftJoinAndSelect('payments.users','users','users.id=payments.user_id')
+      .select('users.*')
+      .addSelect('caishers.caisher_name')
       .addSelect('caishers.id')
       .addSelect('payments.paymentmethods')
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .groupBy('caishers.id')
+       .groupBy('users.id')
+      .addGroupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
