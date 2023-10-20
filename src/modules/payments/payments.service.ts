@@ -40,9 +40,7 @@ export class PaymentsService {
             paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
             paymentMethods.name_alias.toLowerCase() == 'subsidia'
         ) {
-          if (newPaymentDto.caishertype === Caishertype.IN) {
            newPay = await this.payForInstallment(newPaymentDto)
-          }
         } else {
           newPay = await this.doPayment(newPaymentDto)
       }
