@@ -35,15 +35,17 @@ export class PaymentsService {
       const usdRate = await ExchangRates.findOne({where: {is_default: true}})
       let newPay;
 
-      if (newPaymentDto.caishertype === Caishertype.IN) {
+
         if (
             paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
             paymentMethods.name_alias.toLowerCase() == 'subsidia'
         ) {
-          newPay = await this.payForInstallment(newPaymentDto)
+          if (newPaymentDto.caishertype === Caishertype.IN) {
+           newPay = await this.payForInstallment(newPaymentDto)
+          }
         } else {
           newPay = await this.doPayment(newPaymentDto)
-        }
+
       }
   
       
