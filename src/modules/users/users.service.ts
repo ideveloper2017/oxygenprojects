@@ -122,7 +122,7 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    console.log(updateUserDto);
+
     const user=new Users();
         user.first_name= updateUserDto.first_name;
         user.last_name=updateUserDto.last_name;
@@ -135,6 +135,8 @@ export class UsersService {
         user.roles= await Roles.findOne({ where: { id: updateUserDto.role_id } });
         user.town_access=updateUserDto.town_access?.join(',');
         user.user_is_deleted=false;
+
+    console.log(updateUserDto+" "+ user.password);
     return await this.usersRepository.update(
       { id: id },
         user,
