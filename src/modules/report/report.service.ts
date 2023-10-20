@@ -150,9 +150,9 @@ export class ReportService {
       })
 
       .groupBy('payments.payment_date')
-      .addGroupBy('payments.paymentmethods')
       .addGroupBy('towns.id')
       .addGroupBy('caishers.id')
+          .addGroupBy('payments.paymentmethods')
       .getRawMany();
       console.log(startDate+' '+endDate);
     updatedRes = await Promise.all(
