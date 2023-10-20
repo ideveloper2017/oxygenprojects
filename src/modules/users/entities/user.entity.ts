@@ -82,7 +82,7 @@ export class Users extends Model {
 
   async hashPassword() {
     const salt = await bcrypt.genSalt();
-    this.password = await bcrypt.hash(this.password, salt);
+    this.password = await bcrypt.hash(this.password, 10);
   }
 
   async validatePassword(password: string): Promise<boolean> {
