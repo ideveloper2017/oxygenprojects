@@ -106,26 +106,11 @@ export class ReportService {
     let res;
     let updatedRes;
 
-    // if (dayType=='day') {
-
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0);
-    // const tomorrow = new Date(today);
-    // tomorrow.setDate(tomorrow.getDate() + 1);
-    // from?from:today;
-    // to?to:to
-    // const dateObjectFrom: moment.Moment = moment(from);
-    // const startDate = new Date(from);
-    // const dateObjectTo: moment.Moment = moment(to);
-    //  const endDate = new Date(to);
-
     const startDate = new Date(from);
-    // if (dayType == 'day') {
-    startDate.setHours(0, 0, 0, 0);
+    // startDate.setHours(0, 0, 0, 0);
     const endDate = new Date(to);
-    endDate.setDate(endDate.getDate());
+    // endDate.setDate(endDate.getDate());
 
-    console.log(`${startDate}` + ' ' + `${endDate}`);
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
@@ -195,92 +180,7 @@ export class ReportService {
         return data;
       }),
     );
-    // } else if (dayType=='month')  {
-    //     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    //     res = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
-    //         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
-    //         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
-    //         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
-    //         .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
-    //         .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
-    //         .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-    //         .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-    //         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-    //         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-    //         .select('TO_CHAR(payments.payment_date, \'YYYY-MONTH\') as month')
-    //         .addSelect('towns.name')
-    //         .addSelect('towns.id')
-    //         .addSelect('caishers.id')
-    //         .addSelect('payments.paymentmethods')
-    //         .addSelect('caishers.caisher_name')
-    //         .addSelect('SUM(payments.amount)', 'total_sum')
-    //         .addSelect('SUM(payments.amount_usd)', 'total_usd')
-    //         .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
-    //         .andWhere('payments.payment_date>= :startDate', { startDate: startOfMonth })
-    //         .groupBy('payments.payment_date')
-    //         .addGroupBy('payments.paymentmethods')
-    //         .addGroupBy('towns.id')
-    //         .addGroupBy('caishers.id')
-    //         .addGroupBy("payments.paymentmethods")
-    //         .orderBy('payments.payment_date',"DESC")
-    //         .getRawMany()
-    //     updatedRes = await Promise.all(res.map(async (data) => {
-    //         let summa_out;
-    //         summa_out = await this.payment_sum_in(data.towns_id, data.payments_paymentmethods, data.caishers_id,dayType)
-    //             .then((response) => {
-    //                 return response;
-    //             });
-    //         data['total_sum_out'] = Number(summa_out.total_sum_out);
-    //         data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-    //         data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out)
-    //         data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out)
-    //         return data;
-    //     }));
-    // } else if (dayType=='year')  {
-    //      const startOfYear = new Date(today.getFullYear(), 0, 1);
-    //     res = await this.orderRepo.manager.createQueryBuilder(Payments, 'payments')
-    //         .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
-    //         .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
-    //         .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
-    //         .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
-    //         .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
-    //         .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-    //         .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-    //         .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-    //         .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-    //         .select('DATE_TRUNC(\'year\', payments.payment_date) as year')
-    //         .addSelect('towns.name')
-    //         .addSelect('towns.id')
-    //         .addSelect('caishers.id')
-    //         .addSelect('payments.paymentmethods')
-    //         .addSelect('caishers.caisher_name')
-    //         .addSelect('SUM(payments.amount)', 'total_sum')
-    //         .addSelect('SUM(payments.amount_usd)', 'total_usd')
-    //         .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
-    //         .andWhere('payments.payment_date>= :startDate', { startDate: startOfYear })
-    //         .groupBy('DATE_TRUNC(\'year\', payments.payment_date)')
-    //         .addGroupBy('payments.payment_date')
-    //         .addGroupBy('payments.paymentmethods')
-    //         .addGroupBy('towns.id')
-    //         .addGroupBy('caishers.id')
-    //         .addGroupBy("payments.paymentmethods")
-    //         .orderBy('payments.payment_date',"DESC")
-    //         .getRawMany()
-    //
-    //
-    //     updatedRes = await Promise.all(res.map(async (data) => {
-    //         let summa_out;
-    //         summa_out = await this.payment_sum_in(data.towns_id, data.payments_paymentmethods, data.caishers_id,dayType)
-    //             .then((response) => {
-    //                 return response;
-    //             });
-    //         data['total_sum_out'] = Number(summa_out.total_sum_out);
-    //         data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-    //         data['grand_total_sum'] = Number(data.total_sum - summa_out.total_sum_out)
-    //         data['grand_total_usd'] = Number(data.total_usd - summa_out.total_usd_out)
-    //         return data;
-    //     }));
-    // }
+
 
     return updatedRes;
   }
