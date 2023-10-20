@@ -148,7 +148,7 @@ export class ReportService {
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .andWhere('TO_CHAR(payments.payment_date,\'DD.MM.YYYY\') BETWEEN :startDate AND :endDate', {
+      .andWhere('TO_CHAR(payments.payment_date,\'YYYY-MM-DD\') BETWEEN :startDate AND :endDate', {
         startDate,
         endDate,
       })
@@ -158,9 +158,7 @@ export class ReportService {
       .addGroupBy('towns.id')
       .addGroupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
-        .getSql();
-    console.log(res)
-      // .getRawMany();
+      .getRawMany();
 
     updatedRes = await Promise.all(
       res.map(async (data) => {
