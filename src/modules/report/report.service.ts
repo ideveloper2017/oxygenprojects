@@ -106,11 +106,12 @@ export class ReportService {
     let res;
     let updatedRes;
 
-    const startDate = new Date('2023-10-20');
+    const startDate = new Date(from);
     // startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date('2023-10-20');
+    const endDate = new Date(to);
     // endDate.setDate(endDate.getDate());
 
+    console.log(from+' '+to);
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
