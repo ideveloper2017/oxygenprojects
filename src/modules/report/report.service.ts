@@ -339,7 +339,9 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
+        .leftJoinAndSelect('payments.users','users','users.id=payments.user_id')
       .select([
+        'users.*',
         'caishers.caisher_name',
         'payments.paymentmethods',
         'SUM(payments.amount) AS total_sum',
@@ -351,7 +353,8 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymentmethods', {
         paymentmethods: paymentmethods,
       })
-      .groupBy('caishers.id')
+        .groupBy('users.id')
+      .addGroupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
