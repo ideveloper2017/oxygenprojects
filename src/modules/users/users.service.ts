@@ -124,11 +124,11 @@ export class UsersService {
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
     console.log(updateUserDto);
     const user=new Users();
-    user.first_name= updateUserDto.first_name;
-    user.last_name=updateUserDto.last_name;
+        user.first_name= updateUserDto.first_name;
+        user.last_name=updateUserDto.last_name;
         // user.username: updateUserDto.username,
         user.phone_number= updateUserDto.phone_number;
-        if (updateUserDto.password!=null){
+        if (updateUserDto.password!==null){
           user.password= await bcrypt.hash(updateUserDto.password, 10);
         }
         user.is_active= updateUserDto.is_active;
