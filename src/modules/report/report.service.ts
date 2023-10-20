@@ -158,8 +158,8 @@ export class ReportService {
       .addGroupBy('towns.id')
       .addGroupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
-      .getRawMany();
-
+      .getSql();
+      console.log(res)
     updatedRes = await Promise.all(
       res.map(async (data) => {
         let summa_out;
