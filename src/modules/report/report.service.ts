@@ -107,12 +107,8 @@ export class ReportService {
     let updatedRes;
 
     const startDate = String(new Date(from).getFullYear())+'-'+String(new Date(from).getMonth()+1).padStart(2,'0')+'-'+String(new Date(from).getDate()).padStart(2,'0');
-    // startDate.setHours(0, 0, 0, 0);
     const endDate =String(new Date(to).getFullYear())+'-'+String(new Date(to).getMonth()+1).padStart(2,'0')+'-'+String(new Date(to).getDate()).padStart(2,'0');
-    // endDate.setDate(endDate.getDate());
-
-    console.log(from+' '+to);
-    res = await this.orderRepo.manager
+      res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
         'payments.caishers',
@@ -157,7 +153,6 @@ export class ReportService {
       .addGroupBy('payments.paymentmethods')
       .addGroupBy('towns.id')
       .addGroupBy('caishers.id')
-      .addGroupBy('payments.paymentmethods')
       .getRawMany();
       console.log(startDate+' '+endDate);
     updatedRes = await Promise.all(
