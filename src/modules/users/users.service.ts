@@ -130,13 +130,14 @@ export class UsersService {
         user.phone_number= updateUserDto.phone_number;
         if (!updateUserDto.password){
           user.password= await bcrypt.hash(updateUserDto.password, 10);
+          console.log(updateUserDto+" "+ user.password);
         }
         user.is_active= updateUserDto.is_active;
         user.roles= await Roles.findOne({ where: { id: updateUserDto.role_id } });
         user.town_access=updateUserDto.town_access?.join(',');
         user.user_is_deleted=false;
 
-    console.log(updateUserDto+" "+ user.password);
+
     return await this.usersRepository.update(
       { id: id },
         user,
