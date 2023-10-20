@@ -138,7 +138,8 @@ export class ReportService {
         'buildings.id=entrance.building_id',
       )
       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-      .select('towns.name')
+      .select('TO_CHAR(payments.payment_date,\'DD-MM-YYYY\') as payment_date')
+      .addSelect('towns.name')
       .addSelect('towns.id')
       .addSelect('caishers.id')
       .addSelect('payments.paymentmethods')
