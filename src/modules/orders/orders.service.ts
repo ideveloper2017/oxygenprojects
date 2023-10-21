@@ -215,6 +215,7 @@ export class OrdersService {
     if (id == 0) {
       order = await this.ordersRepository.find({
         where: { order_status: In([OrderStatus.ACTIVE,OrderStatus.COMPLETED])},
+        order: { order_status:"ASC"},
         relations: [
           'clients',
           'users',
