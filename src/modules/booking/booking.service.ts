@@ -16,7 +16,7 @@ export class BookingService {
     private readonly bookingsRepository: Repository<Booking>,
   ) {}
 
-  async bookingApartment(user_id:any,bookingDto: BookingDto) {
+  async bookingApartment(bookingDto: BookingDto) {
     let savedBooking;
     const apartment = await Apartments.findOne({
       where: { id: +bookingDto.apartment_id },
