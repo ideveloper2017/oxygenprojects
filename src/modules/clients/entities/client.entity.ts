@@ -61,7 +61,7 @@ export class Clients extends Model {
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
-  @Column({ default: 0 })
+  @Column({ nullable:true })
   user_id: number;
 
   @OneToMany((type) => Booking, (booking) => booking.clients)
