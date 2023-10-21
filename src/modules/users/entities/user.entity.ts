@@ -50,7 +50,7 @@ export class Users extends Model {
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
 
-  @OneToMany((type) => Clients, (clients) =>clients.users)
+  @OneToMany((type) => Clients, (clients) => clients.users)
   clients: Clients[];
 
 

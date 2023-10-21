@@ -64,10 +64,10 @@ export class ClientsService {
 
   async findAllClients(offset: number, limit: number) {
     const clients = await this.clientRepo.find({
-      relations: ['userrs'],
       skip: offset,
       take: limit,
       order: { id: 'desc' },
+      relations: ['users'],
     });
     return { status: 200, data: clients, message: "Mijozlar ro'yxati" };
   }

@@ -67,6 +67,7 @@ export class BookingService {
       .createQueryBuilder('booking')
       .leftJoinAndSelect('booking.clients', 'client')
       .leftJoinAndSelect('booking.apartments', 'apartment')
+      .leftJoinAndSelect('booking.users', 'users')
       .where('booking.bron_is_active = :isActive', { isActive: true })
       .andWhere('apartment.id = :apartment_id', {apartment_id})
       .getOne()
