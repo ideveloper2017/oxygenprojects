@@ -418,8 +418,8 @@ export class ReportService {
         'apartments.room_space',
         'buildings.mk_price',
       ])
-      .where('orders.order_status= :orderStatus', {
-        orderStatus: OrderStatus.ACTIVE,
+      .where('orders.order_status IN(..:orderStatus)', {
+        orderStatus: [OrderStatus.ACTIVE,OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
