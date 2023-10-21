@@ -1,7 +1,8 @@
-import { Column, Entity, OneToMany } from 'typeorm';
+import {Column, Entity, JoinColumn, OneToMany} from 'typeorm';
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
+import {Users} from "../../users/entities/user.entity";
 
 @Entity('Clients')
 export class Clients extends Model {
@@ -55,6 +56,13 @@ export class Clients extends Model {
 
   @OneToMany((type) => Orders, (orders) => orders.clients)
   orders: Orders[];
+
+  @OneToMany((type)=>Users,(users)=>users.clients)
+  @JoinColumn({name:'user_id'})
+  users:Users;
+
+  @Column()
+  user_id:number;
 
   @OneToMany((type) => Booking, (booking) => booking.clients)
   bookings: Booking[];

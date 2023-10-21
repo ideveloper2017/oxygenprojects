@@ -16,7 +16,7 @@ export class BookingService {
     private readonly bookingsRepository: Repository<Booking>,
   ) {}
 
-  async bookingApartment(bookingDto: BookingDto) {
+  async bookingApartment(user_id:any,bookingDto: BookingDto) {
     let savedBooking;
     const apartment = await Apartments.findOne({
       where: { id: +bookingDto.apartment_id },
@@ -52,7 +52,7 @@ export class BookingService {
   async findAllBookings(offset: number, limit: number) {
     const booking = await this.bookingsRepository.find({
       where: { bron_is_active: true },
-      relations: ['apartments', 'clients'],
+      relations: ['apartments', 'clients','users'],
       skip: offset,
       take: limit,
       order: {'created_at': 'DESC'}

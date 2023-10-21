@@ -5,24 +5,28 @@ import {
   Param,
   Patch,
   Post,
-  Query,
+  Query, UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {ApiBearerAuth, ApiOperation, ApiResponse, ApiTags} from '@nestjs/swagger';
 import { CreateClientDto } from './dto/create-client.dto';
 import { Clients } from './entities/client.entity';
 import { ClientsService } from './clients.service';
 import { UpdateClientDto } from './dto/update-client.dto';
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 
 @ApiTags('Clients')
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Yangi mijoz qo'shish" })
   @ApiResponse({ status: 201, description: "Mijoz qo'shildi!" })
   @Post('/create')
-  createClient(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.createClient(createClientDto);
+  createClient(@AuthUser() userId:any,@Body() createClientDto: CreateClientDto) {
+    return this.clientsService.createClient(createClientDto,userId);
   }
 
   @ApiOperation({ summary: "Mavjud mijozlar ro'yxati" })
@@ -34,14 +38,17 @@ export class ClientsController {
     return this.clientsService.findAllClients(offset, limit);
   }
 
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: "Mijoz ma'lumotlarini tahrirlash" })
   @ApiResponse({ status: 200, description: "Mijoz ma'lumotlari tahrirlandi." })
   @Patch('/edit/:id')
-  updateClient(
+  updateClient(@AuthUser() user_id:any,
     @Param('id') id: number,
     @Body() updateClientDto: UpdateClientDto,
   ) {
-    return this.clientsService.editClientInfo(id, updateClientDto);
+    return this.clientsService.editClientInfo(id, updateClientDto,user_id);
   }
 
   @ApiOperation({ summary: "Mijoz ma'lumotlari" })

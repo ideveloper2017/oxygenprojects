@@ -11,7 +11,7 @@ export class ClientsService {
     @InjectRepository(Clients) private readonly clientRepo: Repository<Clients>,
   ) {}
 
-  async createClient(createClientDto: CreateClientDto) {
+  async createClient(createClientDto: CreateClientDto, user_id: any) {
     try {
       const client = await this.clientRepo.findBy({
         passport_seria: createClientDto.passport_seria,
@@ -42,7 +42,8 @@ export class ClientsService {
       newClient.legal_address = createClientDto.legal_address;
       newClient.registered_address = createClientDto.registered_address;
       newClient.description = createClientDto.description;
-      newClient.tin=createClientDto.tin;
+      newClient.tin = createClientDto.tin;
+      newClient.user_id = user_id.userId;
       newClient = await this.clientRepo.save(newClient);
 
       return {
@@ -63,6 +64,7 @@ export class ClientsService {
 
   async findAllClients(offset: number, limit: number) {
     const clients = await this.clientRepo.find({
+      relations: ['userrs'],
       skip: offset,
       take: limit,
       order: { id: 'desc' },
@@ -78,27 +80,43 @@ export class ClientsService {
     return { status: 200, data: client, message: 'success' };
   }
 
-  async editClientInfo(id: number, updateClientDto: UpdateClientDto) {
+  async editClientInfo(id: number, updateClientDto: UpdateClientDto,user_id:any) {
     try {
+      const updatedClient = await this.clientRepo
+        .createQueryBuilder()
+        .update(Clients)
+        .set({
+          first_name: updateClientDto.first_name,
+          last_name: updateClientDto.last_name,
+          middle_name: updateClientDto.middle_name,
+          gender: updateClientDto.gender,
+          type: updateClientDto.type,
+          address: updateClientDto.address,
+          contact_number: updateClientDto.contact_number,
+          date_of_birth: updateClientDto.date_of_birth,
+          passport_seria: updateClientDto.passport_seria,
+          given_from: updateClientDto.given_from,
+          given_date: updateClientDto.given_date,
+          untill_date: updateClientDto.untill_date,
+          legal_address: updateClientDto.legal_address,
+          registered_address: updateClientDto.registered_address,
+          description: updateClientDto.description,
+          tin: updateClientDto.tin,
+          user_id: user_id.userId,
+        })
+        .where('id = :id', { id })
+        .execute();
 
-      const updatedClient = await this.clientRepo.createQueryBuilder()
-      .update(Clients)
-      .set(updateClientDto)
-      .where('id = :id', {id})
-      .execute()
-      
-      if(updatedClient.affected){
-
+      if (updatedClient.affected) {
         return {
           success: true,
           message: "Mijoz ma'lumotalri tahrirlandi",
         };
-      }else {
+      } else {
         return {
           success: false,
-          message: "Mijoz tahrirlanmadi",
+          message: 'Mijoz tahrirlanmadi',
         };
-
       }
     } catch (error) {
       if (error.code === '23505') {

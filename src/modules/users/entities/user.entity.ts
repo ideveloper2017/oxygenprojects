@@ -17,6 +17,7 @@ import { Payments } from '../../payments/entities/payment.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { Exclude } from 'class-transformer';
 import { Towns } from 'src/modules/towns/entities/town.entity';
+import {Clients} from "../../clients/entities/client.entity";
 
 @Entity('Users')
 export class Users extends Model {
@@ -48,6 +49,10 @@ export class Users extends Model {
 
   @OneToMany((type) => Orders, (orders) => orders.users)
   orders: Orders[];
+
+  @OneToMany((type) => Clients, (clients) =>clients.users)
+  clients: Clients[];
+
 
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];

@@ -1,17 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import {Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards} from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { BookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {ApiBearerAuth, ApiOperation, ApiTags} from '@nestjs/swagger';
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
 
 @ApiTags('Bookings')
 @Controller('booking')
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({summary: "Booking apartment"})
   @Post('/new-booking')
-  create(@Body() createBookingDto: BookingDto) {
+  create(@AuthUser() user_id:any,@Body() createBookingDto: BookingDto) {
     return this.bookingService.bookingApartment(createBookingDto).then(data => {
       if(data) {
         return {success: true, data, message: "New booking"}

@@ -195,7 +195,6 @@ export class ReportService {
     };
     let result;
     const today = new Date();
-    // if (dayType == 'day') {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
