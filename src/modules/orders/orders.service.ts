@@ -257,6 +257,7 @@ export class OrdersService {
       .leftJoinAndSelect('order.clients', 'clients')
       .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
       .leftJoinAndSelect('order.payments', 'payment')
+      .leftJoinAndSelect('order.users','users')
       .where('apartment.id = :id', { id })
       .getOne();
 
