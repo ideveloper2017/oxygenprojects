@@ -1,8 +1,8 @@
-import {Column, Entity, JoinColumn, ManyToOne, OneToMany} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
-import {Users} from "../../users/entities/user.entity";
+import { Users } from '../../users/entities/user.entity';
 
 @Entity('Clients')
 export class Clients extends Model {
@@ -16,7 +16,7 @@ export class Clients extends Model {
   middle_name: string;
 
   @Column()
-  tin:string;
+  tin: string;
 
   @Column({ enum: ['male', 'female'] })
   gender: string;
@@ -57,12 +57,12 @@ export class Clients extends Model {
   @OneToMany((type) => Orders, (orders) => orders.clients)
   orders: Orders[];
 
-  @ManyToOne((type)=>Users,(users)=>users.clients)
+  @ManyToOne((type) => Users, (users) => users.clients)
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
-  @Column()
-  user_id:number;
+  @Column({ default: 0 })
+  user_id: number;
 
   @OneToMany((type) => Booking, (booking) => booking.clients)
   bookings: Booking[];

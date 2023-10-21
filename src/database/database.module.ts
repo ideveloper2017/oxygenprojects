@@ -24,7 +24,5 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
   ],
 })
 export class DatabaseModule {
-  constructor() {
-    console.log(process.env.DB_TYPE);
-  }
+
 }
