@@ -70,10 +70,10 @@ export class ReportService {
       // .addSelect('apartments.cells')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
-      .andWhere(
-        'orders.order_date>= :startDate and orders.order_date<= :endDate',
-        { startDate: startDate, endDate: endDate },
-      )
+      // .andWhere(
+      //   'orders.order_date>= :startDate and orders.order_date<= :endDate',
+      //   { startDate: startDate, endDate: endDate },
+      // )
       .andWhere('apartments.status=:aprstatus', {
         aprstatus: ApartmentStatus.SOLD,
       })
