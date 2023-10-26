@@ -122,14 +122,13 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-    console.log(updateUserDto);
-    let obj;
 
+    let obj;
     if (updateUserDto.password!=null) {
       obj = {
         first_name: updateUserDto.first_name,
         last_name: updateUserDto.last_name,
-        // username: updateUserDto.username,
+        username: updateUserDto.username,
         phone_number: updateUserDto.phone_number,
         password: await bcrypt.hash(updateUserDto.password, 10),
         is_active: updateUserDto.is_active,
@@ -141,6 +140,7 @@ export class UsersService {
       obj = {
         first_name: updateUserDto.first_name,
         last_name: updateUserDto.last_name,
+        username: updateUserDto.username,
         phone_number: updateUserDto.phone_number,
         is_active: updateUserDto.is_active,
         roles: await Roles.findOne({where: {id: updateUserDto.role_id}}),

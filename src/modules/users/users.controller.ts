@@ -57,7 +57,6 @@ export class UsersController {
     return this.usersService.createLogin(createUserDto);
   }
 
-
   @Patch('/update/:id')
   update(
     @Param('id', ParseIntPipe) id: number,

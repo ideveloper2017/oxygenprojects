@@ -83,6 +83,7 @@ export class WordexportController {
         total_sum_usd:order.total_amount_usd,
         credits:credits,
         credits_usd:credits_usd,
+        count_month:credits.count(),
         initalpay:order.initial_pay,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         totalsum_usd:(summa_usd?summa_usd.summa:0)+ +order.initial_pay,
