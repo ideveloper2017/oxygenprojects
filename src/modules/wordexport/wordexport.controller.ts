@@ -89,6 +89,7 @@ export class WordexportController {
       apartment
     };
 
+    console.log(data);
     const handler = new TemplateHandler({
 
       plugins: createDefaultPlugins(),
