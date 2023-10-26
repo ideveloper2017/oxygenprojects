@@ -22,8 +22,8 @@ export class WordexportController {
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id: number, @Res() res) {
     let client,credits,credits_usd, creditsTotalSum;
-    const filename = 'data/contract_fayzli_uylar.docx';
-    const templateFile = fs.readFileSync('data/contract_fayzli_uylar.docx');
+    const filename = 'data/contract.docx';
+    const templateFile = fs.readFileSync('data/contract.docx');
 
     // client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
     const order = await this.orderRepo.findOne({
