@@ -63,7 +63,7 @@ export class WordexportController {
         total_sum_usd:order.total_amount_usd,
         credits:credits,
         initalpay:order.initial_pay,
-        totalsum:Number((summa?summa.summa:0)+order.initial_pay),
+        totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         number_to_words: numberToWordsRu.convert(
           Number(
             data?.apartments?.floor?.entrance?.buildings?.mk_price *
