@@ -11,13 +11,15 @@ const fs = require('fs');
 import numberToWordsRu, {
   convert as convertNumberToWordsRu,
 } from 'number-to-words-ru';
-import {CreditTable} from "../credit-table/entities/credit-table.entity"; // ES6
+import {CreditTable} from "../credit-table/entities/credit-table.entity";
+import {CurrenciesService} from "../currencies/currencies.service"; // ES6
 
 @Controller('wordexport')
 export class WordexportController {
   constructor(
     @InjectRepository(Orders)
     private readonly orderRepo: Repository<Orders>,
+    private readonly currenciesService: CurrenciesService,
   ) {}
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id: number, @Res() res) {
@@ -49,12 +51,23 @@ export class WordexportController {
           .groupBy('order_id')
         .getRawOne();
 
+    const summa_usd=await this.orderRepo.manager.createQueryBuilder(CreditTable,'credits')
+        .select("SUM(usd_due_amount) as summa")
+        .where('order_id= :order_id',{order_id:client_id})
+        .groupBy('order_id')
+        .getRawOne();
+
+    this.currenciesService.getLastRate();
+
     const apartment =order?.orderItems?.map((data) => {
       return {
         order_date: String(order?.order_date.getDate()).padStart(2,'0')+'.'+String((order?.order_date.getMonth()+1)).padStart(2,'0')+'.'+String(order?.order_date.getFullYear()).padStart(2,'0'),
         order_number: order?.id,
         client_name:
           order?.clients?.first_name + ' ' + order?.clients?.last_name,
+        client_first_name:order?.clients?.first_name,
+        client_last_name:order?.clients?.last_name,
+        client_middle_name:order?.clients?.middle_name,
         tin: order?.clients?.tin,
         contact_number: order?.clients?.contact_number,
         passport_seria: order?.clients?.passport_seria,
@@ -72,6 +85,7 @@ export class WordexportController {
         credits_usd:credits_usd,
         initalpay:order.initial_pay,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
+        totalsum_usd:(summa_usd?summa_usd.summa:0)+ +order.initial_pay,
         number_to_words: numberToWordsRu.convert(
           Number(
             data?.apartments?.floor?.entrance?.buildings?.mk_price *
