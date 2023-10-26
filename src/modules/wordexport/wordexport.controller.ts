@@ -21,9 +21,9 @@ export class WordexportController {
   ) {}
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id: number, @Res() res) {
-    let client,credits, creditsTotalSum;
-    const filename = 'data/contract.docx';
-    const templateFile = fs.readFileSync('data/contract.docx');
+    let client,credits,credits_usd, creditsTotalSum;
+    const filename = 'data/contract_fayzli_uylar.docx';
+    const templateFile = fs.readFileSync('data/contract_fayzli_uylar.docx');
 
     // client=  await this.orderRepo.manager.getRepository(Clients).findOne({where:{id:client_id}});
     const order = await this.orderRepo.findOne({
@@ -36,6 +36,11 @@ export class WordexportController {
     credits= await this.orderRepo.manager.createQueryBuilder(CreditTable,'credits')
         .where('order_id= :order_id',{order_id:client_id})
         .select(['TO_CHAR(due_date,\'DD.MM.YYYY\') as due_date','due_amount'])
+        .getRawMany();
+
+    credits_usd= await this.orderRepo.manager.createQueryBuilder(CreditTable,'credits')
+        .where('order_id= :order_id',{order_id:client_id})
+        .select(['TO_CHAR(due_date,\'DD.MM.YYYY\') as due_date','usd_due_amount'])
         .getRawMany();
 
       const summa=await this.orderRepo.manager.createQueryBuilder(CreditTable,'credits')
@@ -56,12 +61,15 @@ export class WordexportController {
         given_from: order?.clients?.given_from,
         client_address: order?.clients?.address,
         address: data?.apartments?.floor?.entrance?.buildings?.towns?.address,
+        town_number: data?.apartments?.floor?.entrance?.buildings?.towns.id,
+        enterance_number: data?.apartments?.floor?.entrance?.entrance_number,
         floor_number: data?.apartments?.floor?.floor_number,
         room_space: data?.apartments?.room_space,
         room_number: data?.apartments?.room_number,
         total_sum:order.total_amount,
         total_sum_usd:order.total_amount_usd,
         credits:credits,
+        credits_usd:credits_usd,
         initalpay:order.initial_pay,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         number_to_words: numberToWordsRu.convert(
