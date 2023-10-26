@@ -83,7 +83,7 @@ export class WordexportController {
 
     const handler = new TemplateHandler({
 
-      plugins: createDefaultPlugins(), // TemplatePlugin[]
+      plugins: createDefaultPlugins(),
       defaultContentType: TEXT_CONTENT_TYPE, // string
       containerContentType: LOOP_CONTENT_TYPE, // string
       delimiters: {
