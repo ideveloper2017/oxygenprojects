@@ -80,7 +80,7 @@ export class WordexportController {
     const data = {
       apartment
     };
-    //console.log(data)
+
     const handler = new TemplateHandler({
 
       plugins: createDefaultPlugins(), // TemplatePlugin[]

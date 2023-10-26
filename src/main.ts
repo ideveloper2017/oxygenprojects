@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 
+
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
