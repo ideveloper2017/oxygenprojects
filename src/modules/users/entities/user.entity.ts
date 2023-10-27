@@ -30,7 +30,7 @@ export class Users extends Model {
   @Column({ nullable: true })
   phone_number: string;
 
-  @Column({ unique: true })
+  @Column()
   username: string;
 
   @Column()
@@ -52,7 +52,6 @@ export class Users extends Model {
 
   @OneToMany((type) => Clients, (clients) => clients.users)
   clients: Clients[];
-
 
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];
