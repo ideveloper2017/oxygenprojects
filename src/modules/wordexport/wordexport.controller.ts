@@ -92,11 +92,8 @@ export class WordexportController {
         percent:percent,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         totalsum_usd:(summa_usd?summa_usd.summa:0)+ +initial_pay_usd,
-        number_to_words: this.numberToWords(
-          Number(
-            data?.apartments?.floor?.entrance?.buildings?.mk_price *
-              data?.apartments?.room_space,
-          )
+        number_to_words_sum: this.numberToWords(
+            (summa?summa.summa:0)+ +order.initial_pay
         ),
       };
     });
