@@ -37,7 +37,7 @@ export class Apartments extends Model {
   status: ApartmentStatus;
 
   @Column({type:'enum',enum:PositionStatus,nullable:true})
-  position:PositionStatus;
+  positions:PositionStatus;
 
   @OneToMany((type) => Price, (price) => price.apartment_id)
   price: Price[];

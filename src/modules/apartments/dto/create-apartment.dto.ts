@@ -19,5 +19,5 @@ export class CreateApartmentDto {
   status: ApartmentStatus
 
   @ApiProperty({example:"leftside",enum:PositionStatus})
-  position:PositionStatus;
+  positions:PositionStatus;
 }
