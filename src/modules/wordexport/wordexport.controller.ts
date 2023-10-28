@@ -135,10 +135,10 @@ export class WordexportController {
 
 
   numberToWords(num: number): string {
-    const units: string[] = ["", "thousand", "million", "billion", "trillion"];
-    const ones: string[] = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
-    const teens: string[] = ["", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
-    const tens: string[] = ["", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+    const units: string[] = ["", "ming", "million", "milliard", "trillion"];
+    const ones: string[] = ["", "bir", "ikki", "uch", "to`rt", "besh", "olti", "etti", "sakkiz", "toqqiz"];
+    const teens: string[] = ["", "o'n bir", "o'n ikki", "o'n uch", "o'n to'rt", "o'n besh", "o'n olti", "o'n etti", "o'n sakkiz", "o'n to'qqiz"];
+    const tens: string[] = ["", "o'n", "yigirma", "o'ttiz", "qirq", "ellik", "oltmish", "etmish", "sakson", "to'qson"];
 
     function convertLessThanThousand(num: number): string {
       if (num === 0) {
