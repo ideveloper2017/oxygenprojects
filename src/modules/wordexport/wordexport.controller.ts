@@ -134,30 +134,45 @@ export class WordexportController {
   }
 
 
-   numberToWords(num: number): string {
-    const units: string[] = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-    const teens: string[] = ['Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    const tens: string[] = ['', 'Ten', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  numberToWords(num: number): string {
+    const units: string[] = ["", "thousand", "million", "billion", "trillion"];
+    const ones: string[] = ["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+    const teens: string[] = ["", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+    const tens: string[] = ["", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
 
-    if (num < 10) {
-      return units[num];
-    } else if (num < 20) {
-      return teens[num - 11];
-    } else if (num < 100) {
-      const ten = Math.floor(num / 10);
-      const unit = num % 10;
-      return tens[ten] + (unit !== 0 ? ' ' + units[unit] : '');
-    } else if (num < 1000) {
-      const hundred = Math.floor(num / 100);
-      const remaining = num % 100;
-      return units[hundred] + ' Hundred' + (remaining !== 0 ? ' ' + numberToWords(remaining) : '');
-    } else if (num < 1000000) {
-      const thousand = Math.floor(num / 1000);
-      const remaining = num % 1000;
-      return numberToWords(thousand) + ' Thousand' + (remaining !== 0 ? ' ' + numberToWords(remaining) : '');
-    } else {
-      return 'Number out of range';
+    function convertLessThanThousand(num: number): string {
+      if (num === 0) {
+        return "";
+      } else if (num < 10) {
+        return ones[num];
+      } else if (num < 20) {
+        return teens[num - 10];
+      } else if (num < 100) {
+        return tens[Math.floor(num / 10)] + " " + ones[num % 10];
+      } else {
+        return ones[Math.floor(num / 100)] + " hundred " + convertLessThanThousand(num % 100);
+      }
     }
+
+    function convert(num: number): string {
+      if (num === 0) {
+        return "zero";
+      }
+      let words = "";
+      let i = 0;
+
+      while (num > 0) {
+        if (num % 1000 !== 0) {
+          words = convertLessThanThousand(num % 1000) + " " + units[i] + " " + words;
+        }
+        num = Math.floor(num / 1000);
+        i++;
+      }
+
+      return words.trim();
+    }
+
+    return convert(num);
   }
 
 
