@@ -40,7 +40,7 @@ export class ApartmentsService {
     newApartment.cells = createApartmentDto.cells;
     newApartment.room_space = createApartmentDto.room_space;
     newApartment.status = createApartmentDto.status;
-
+    newApartment.postion=createApartmentDto.position
     return await this.apartmentRepository.save(newApartment);
   }
 
