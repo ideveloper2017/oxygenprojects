@@ -60,7 +60,7 @@ export class WordexportController {
 
       const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
       initial_pay_usd = Math.floor(order.initial_pay / usdRate.rate_value);
-      percent=((+order.initial_pay)*100)/(summa?summa.summa:0);
+      percent=Math.round(((+order.initial_pay)*100)/(summa?summa.summa:0));
 
     const apartment =order?.orderItems?.map((data) => {
       return {
