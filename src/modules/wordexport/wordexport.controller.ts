@@ -147,7 +147,7 @@ export class WordexportController {
       } else if (num < 100) {
         return tens[Math.floor(num / 10)] + " " + ones[num % 10];
       } else {
-        return ones[Math.floor(num / 100)] + " hundred " + convertLessThanThousand(num % 100);
+        return ones[Math.floor(num / 100)] + " yuz " + convertLessThanThousand(num % 100);
       }
     }
 
