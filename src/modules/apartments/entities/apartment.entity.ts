@@ -13,7 +13,7 @@ import { OrderItems } from '../../order-items/entities/order-item.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { ApartmentStatus } from '../../../common/enums/apartment-status';
-
+import {PositionStatus} from "../../../common/enums/PositionStatus";
 
 @Entity('Apartments')
 export class Apartments extends Model {
@@ -36,6 +36,9 @@ export class Apartments extends Model {
   @Column({ type: 'enum', enum: ApartmentStatus, nullable: true })
   status: ApartmentStatus;
 
+  @Column({type:'enum',enum:PositionStatus,nullable:true})
+  postion:PositionStatus;
+
   @OneToMany((type) => Price, (price) => price.apartment_id)
   price: Price[];
 
@@ -51,4 +54,5 @@ export class Apartments extends Model {
 
   @OneToMany(() => Booking, (booking) => booking.apartments)
   bookings: Booking[];
+
 }

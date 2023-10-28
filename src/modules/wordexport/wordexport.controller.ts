@@ -60,7 +60,7 @@ export class WordexportController {
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
 
-    if (order.paymentMethods.name_alias === 'dollar') {
+    if (order?.paymentMethods?.name_alias === 'dollar') {
       initial_pay_usd = Math.floor(order.initial_pay / usdRate.rate_value);
     } else {
       initial_pay_usd = Math.floor(order.initial_pay * usdRate.rate_value);

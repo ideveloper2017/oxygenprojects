@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt } from 'class-validator';
 import { OrderStatus } from '../../../common/enums/order-status';
+import {PositionStatus} from "../../../common/enums/PositionStatus";
 
 export class CreateOrderDto {
   @ApiProperty({ example: 1, description: "ro'yxatdan o'tgan mijoz idisi" })
@@ -34,6 +35,9 @@ export class CreateOrderDto {
 
   @ApiProperty({ example: 'active', enum: OrderStatus })
   order_status: OrderStatus;
+
+  @ApiProperty({ example: 'leftside', enum: PositionStatus })
+  position: PositionStatus;
 
   @ApiProperty({ example: 1, description: 'nechta kvartira olayotgani' })
   quantity: number;
