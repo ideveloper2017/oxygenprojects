@@ -89,6 +89,7 @@ export class OrdersService {
     });
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
+    order.percent=createOrderDto.percent;
     order.order_date = new Date();
     order.initial_pay = initial_floored
     order.currency_value = usdRate.rate_value;
@@ -173,7 +174,7 @@ export class OrdersService {
 
     await Apartments.update(
       { id: createOrderDto.apartment_id },
-      { status: ApartmentStatus.SOLD },
+      {postion:createOrderDto.position, status: ApartmentStatus.SOLD },
     );
 
     const inBooking = await Booking.findOne({

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsInt } from "class-validator";
+import {PositionStatus} from "../../../common/enums/PositionStatus";
 
 export class BookingDto {
   
@@ -17,6 +18,9 @@ export class BookingDto {
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
   @IsInt()
   apartment_id: number;
+
+  @ApiProperty({example:'leftside',description:'Uylarni qaysi tomoga qarashi'})
+  position:PositionStatus;
 
   @ApiProperty({ example: '2023-09-04' })
   bron_date: Date;
