@@ -132,10 +132,10 @@ export class WordexportController {
 
 
   numberToWords(num: number): string {
-    const units: string[] = ["", "ming", "million", "milliard", "trillion"];
-    const ones: string[] = ["", "bir", "ikki", "uch", "to`rt", "besh", "olti", "etti", "sakkiz", "toqqiz"];
-    const teens: string[] = ["", "o'n bir", "o'n ikki", "o'n uch", "o'n to'rt", "o'n besh", "o'n olti", "o'n etti", "o'n sakkiz", "o'n to'qqiz"];
-    const tens: string[] = ["", "o'n", "yigirma", "o'ttiz", "qirq", "ellik", "oltmish", "etmish", "sakson", "to'qson"];
+    const units: string[] = ["", "минг", "миллион", "миллиард", "трилион"];
+    const ones: string[] = ["", "бир", "икки", "уч", "тўрт", "беш", "олти", "етти", "саккиз", "тўққиз"];
+    const teens: string[] = ["", "ўн бир", "ўн икки", "ўн уч", "ўн тўрт", "ўн беш", "ўн олти", "ўн етти", "ўн саккиз", "ўн тўққиз"];
+    const tens: string[] = ["", "ўн", "йигирма", "ўттиз", "қирқ", "эллик", "олтмиш", "етмиш", "саксон", "тўқсон"];
 
     function convertLessThanThousand(num: number): string {
       if (num === 0) {
@@ -147,7 +147,7 @@ export class WordexportController {
       } else if (num < 100) {
         return tens[Math.floor(num / 10)] + " " + ones[num % 10];
       } else {
-        return ones[Math.floor(num / 100)] + " yuz " + convertLessThanThousand(num % 100);
+        return ones[Math.floor(num / 100)] + " юз " + convertLessThanThousand(num % 100);
       }
     }
 
