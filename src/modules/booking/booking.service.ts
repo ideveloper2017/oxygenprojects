@@ -39,7 +39,7 @@ export class BookingService {
 
     if (apartment.status === ApartmentStatus.FREE) {
       apartment.status = ApartmentStatus.BRON;
-      apartment.postion=bookingDto.position
+      apartment.positions=bookingDto.positions
       await apartment.save();
 
       savedBooking = await this.bookingsRepository.save(booking);

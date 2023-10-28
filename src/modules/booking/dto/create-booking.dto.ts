@@ -20,7 +20,7 @@ export class BookingDto {
   apartment_id: number;
 
   @ApiProperty({example:'leftside',description:'Uylarni qaysi tomoga qarashi'})
-  position:PositionStatus;
+  positions:PositionStatus;
 
   @ApiProperty({ example: '2023-09-04' })
   bron_date: Date;
