@@ -174,7 +174,7 @@ export class OrdersService {
 
     await Apartments.update(
       { id: createOrderDto.apartment_id },
-      {positions:createOrderDto.positions, status: ApartmentStatus.SOLD },
+      {status: ApartmentStatus.SOLD },
     );
 
     const inBooking = await Booking.findOne({
