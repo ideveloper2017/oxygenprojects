@@ -92,6 +92,7 @@ export class WordexportController {
         percent:percent,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         totalsum_usd:(summa_usd?summa_usd.summa:0)+ +initial_pay_usd,
+        number_to_words_percent:this.numberToWords(percent),
         number_to_words_sum: this.numberToWords(
             (summa?summa.summa:0)+ +order.initial_pay
         ),
