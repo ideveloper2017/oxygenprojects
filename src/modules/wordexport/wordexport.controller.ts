@@ -60,7 +60,8 @@ export class WordexportController {
 
       const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
       initial_pay_usd = Math.floor(order.initial_pay / usdRate.rate_value);
-      percent=Math.round(((+order.initial_pay)*100)/(summa?summa.summa:0));
+      // percent=Math.round(((+order.initial_pay)*100)/(summa?summa.summa:0));
+      percent=order?.percent;
 
     const apartment =order?.orderItems?.map((data) => {
       return {
@@ -148,7 +149,7 @@ export class WordexportController {
       } else if (num < 100) {
         return tens[Math.floor(num / 10)] + " " + ones[num % 10];
       } else {
-        return ones[(+num / 100)] + " юз " + convertLessThanThousand(num % 100);
+        return ones[Math.floor(num / 100)] + " юз " + convertLessThanThousand(num % 100);
       }
     }
 
