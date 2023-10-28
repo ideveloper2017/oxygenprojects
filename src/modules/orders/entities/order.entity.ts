@@ -20,6 +20,9 @@ export class Orders extends Model {
   users: Users;
 
   @Column()
+  percent:number;
+
+  @Column()
   quantity: number;
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })

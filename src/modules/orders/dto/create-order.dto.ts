@@ -39,6 +39,9 @@ export class CreateOrderDto {
   @ApiProperty({ example: 'leftside', enum: PositionStatus })
   position: PositionStatus;
 
+  @ApiProperty({example:'100%',description:'Foiz hisobida'})
+  percent:number;
+
   @ApiProperty({ example: 1, description: 'nechta kvartira olayotgani' })
   quantity: number;
 
