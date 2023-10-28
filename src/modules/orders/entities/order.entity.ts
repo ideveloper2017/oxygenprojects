@@ -19,7 +19,7 @@ export class Orders extends Model {
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
-  @Column()
+  @Column({nullable:true})
   percent:number;
 
   @Column()
