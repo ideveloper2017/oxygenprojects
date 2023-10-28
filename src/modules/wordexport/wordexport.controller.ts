@@ -24,7 +24,7 @@ export class WordexportController {
   ) {}
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id: number, @Res() res) {
-    let client,credits,credits_usd, creditsTotalSum,initial_pay_usd;
+    let client,credits,credits_usd, creditsTotalSum,initial_pay_usd,percent;
     const filename = 'data/contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
@@ -58,9 +58,9 @@ export class WordexportController {
         .groupBy('order_id')
         .getRawOne();
 
-    const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
-
+      const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
       initial_pay_usd = Math.floor(order.initial_pay / usdRate.rate_value);
+      percent=((summa?summa.summa:0)*100)/+order.initial_pay;
 
     const apartment =order?.orderItems?.map((data) => {
       return {
@@ -89,6 +89,7 @@ export class WordexportController {
         count_month:credits.length,
         initalpay:order.initial_pay,
         initial_pay_usd:initial_pay_usd,
+        percent:percent,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         totalsum_usd:(summa_usd?summa_usd.summa:0)+ +initial_pay_usd,
         number_to_words: numberToWordsRu.convert(
