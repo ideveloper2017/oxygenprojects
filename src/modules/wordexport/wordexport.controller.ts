@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Res } from '@nestjs/common';
+import {Controller, Get, Param, ParseIntPipe, Res, StreamableFile} from '@nestjs/common';
 // import fs from "fs";
   import {createDefaultPlugins, LOOP_CONTENT_TYPE, TemplateHandler, TEXT_CONTENT_TYPE} from 'easy-template-x';
 import { OrdersService } from '../orders/orders.service';
@@ -13,7 +13,11 @@ import numberToWordsRu, {
 } from 'number-to-words-ru';
 import {CreditTable} from "../credit-table/entities/credit-table.entity";
 import {CurrenciesService} from "../currencies/currencies.service";
-import {ExchangRates} from "../exchang-rates/entities/exchang-rate.entity"; // ES6
+import {ExchangRates} from "../exchang-rates/entities/exchang-rate.entity";
+import {Response} from "express";
+import {createReadStream, existsSync} from "fs";
+import {join} from "path";
+import {FileUploadService} from "../file-upload/file-upload.service"; // ES6
 
 @Controller('wordexport')
 export class WordexportController {
@@ -21,6 +25,7 @@ export class WordexportController {
     @InjectRepository(Orders)
     private readonly orderRepo: Repository<Orders>,
     private readonly currenciesService: CurrenciesService,
+    private fileService: FileUploadService
   ) {}
   @Get('export/:client_id')
   async exportWord(@Param('client_id') client_id: number, @Res() res) {
@@ -91,7 +96,7 @@ export class WordexportController {
         initalpay:order.initial_pay,
         initial_pay_usd:initial_pay_usd,
         percent:percent,
-        apartment_image:data?.apartments?.file?.path,
+        apartment_image: data?.apartments?.file_id,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         totalsum_usd:(summa_usd?summa_usd.summa:0)+ +initial_pay_usd,
         number_to_words_percent:this.numberToWords(percent),
@@ -173,6 +178,20 @@ export class WordexportController {
     }
 
     return convert(num);
+  }
+
+  async getDatabaseFileById(id: number, @Res({ passthrough: true }) response: Response) {
+    const file = await this.fileService.getFileById(id)
+    if(existsSync(file.path)){
+      const stream = createReadStream(join(process.cwd(), file.path));
+      response.set({
+        'Content-Disposition': `inline; filename="${file.filename}"`,
+        'Content-Type': file.mimetype,
+      });
+      return new StreamableFile(stream);
+    } else {
+      return {success: false , message: "image not found or may be deleted"}
+    }
   }
 
 
