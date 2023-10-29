@@ -91,6 +91,7 @@ export class WordexportController {
         initalpay:order.initial_pay,
         initial_pay_usd:initial_pay_usd,
         percent:percent,
+        apartment_image:data?.apartments.file.filename,
         totalsum:(summa?summa.summa:0)+ +order.initial_pay,
         totalsum_usd:(summa_usd?summa_usd.summa:0)+ +initial_pay_usd,
         number_to_words_percent:this.numberToWords(percent),
