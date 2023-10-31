@@ -130,7 +130,7 @@ export class WordexportController {
         credits: credits,
         credits_usd: credits_usd,
         count_month: credits.length,
-        initalpay: order.initial_pay,
+        initalpay: Number(order.initial_pay),
         initial_pay_usd: initial_pay_usd,
         delevery_time:
           order?.delivery_time + ' (' + this.numberToWords(order?.delivery_time)+')',
