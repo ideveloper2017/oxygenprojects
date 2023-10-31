@@ -91,6 +91,8 @@ export class WordexportController {
       _type: 'image',
       source: fs.readFileSync(file.path),
       format:file.mimetype,
+      width: 550,
+      height: 400
     };
     const apartment = order?.orderItems?.map((data) => {
       return {
@@ -131,7 +133,7 @@ export class WordexportController {
         initalpay: order.initial_pay,
         initial_pay_usd: initial_pay_usd,
         delevery_time:
-          order?.delivery_time + ' ' + this.numberToWords(order?.delivery_time),
+          order?.delivery_time + ' (' + this.numberToWords(order?.delivery_time)+')',
         percent: percent,
         apartment_image: fileobj,
         totalsum: (summa ? summa.summa : 0) + +order.initial_pay,
@@ -147,26 +149,29 @@ export class WordexportController {
     };
 
     console.log(JSON.stringify(data));
-    const handler = new TemplateHandler({
-      plugins: createDefaultPlugins(),
-      defaultContentType: TEXT_CONTENT_TYPE, // string
-      containerContentType: LOOP_CONTENT_TYPE, // string
-      delimiters: {
-        tagStart: '{',
-        tagEnd: '}',
-        containerTagOpen: '#',
-        containerTagClose: '/',
-      },
-
-      maxXmlDepth: 20,
-      extensions: {
-        // ExtensionOptions
-        beforeCompilation: undefined, // TemplateExtension[]
-        afterCompilation: undefined, // TemplateExtension[]
-      },
-
-      scopeDataResolver: undefined, // ScopeDataResolver
-    });
+    const handler = new TemplateHandler(
+    //     {
+    //   plugins: createDefaultPlugins(),
+    //   defaultContentType: TEXT_CONTENT_TYPE, // string
+    //   containerContentType: LOOP_CONTENT_TYPE, // string
+    //   delimiters: {
+    //     tagStart: '{',
+    //     tagEnd: '}',
+    //     containerTagOpen: '#',
+    //     containerTagClose: '/',
+    //   },
+    //
+    //
+    //   maxXmlDepth: 20,
+    //   extensions: {
+    //     // ExtensionOptions
+    //     beforeCompilation: undefined, // TemplateExtension[]
+    //     afterCompilation: new DataBindingExtension(), // TemplateExtension[]
+    //   },
+    //
+    //   scopeDataResolver: undefined, // ScopeDataResolver
+    // }
+    );
     const filename = 'contract.docx';
     const templateFile = fs.readFileSync('data/contract.docx');
 
