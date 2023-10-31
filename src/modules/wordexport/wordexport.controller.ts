@@ -29,7 +29,8 @@ import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { Response } from 'express';
 import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
-import { FileUploadService } from '../file-upload/file-upload.service'; // ES6
+import { FileUploadService } from '../file-upload/file-upload.service';
+import {exists} from "nestjs-i18n/dist/utils"; // ES6
 
 @Controller('wordexport')
 export class WordexportController {
@@ -46,6 +47,7 @@ export class WordexportController {
     @Res({ passthrough: true }) response: Response,
   ) {
     let client, credits, credits_usd, creditsTotalSum, initial_pay_usd, percent;
+
     const order = await this.orderRepo.findOne({
       where: { id: client_id },
       relations: [
@@ -89,7 +91,7 @@ export class WordexportController {
     const file = await this.fileService.getFileById(file_id[0]);
     const fileobj = {
       _type: 'image',
-      source: fs.readFileSync(file.path),
+      source: existsSync(file.path)?fs.readFileSync(file.path):'',
       format:file.mimetype,
       width: 550,
       height: 400
@@ -125,8 +127,6 @@ export class WordexportController {
         room_space: data?.apartments?.room_space,
         room_number: data?.apartments?.room_number,
         room_cells: data?.apartments?.cells,
-        total_sum: order.total_amount,
-        total_sum_usd: order.total_amount_usd,
         credits: credits,
         credits_usd: credits_usd,
         count_month: credits.length,
@@ -136,6 +136,7 @@ export class WordexportController {
           order?.delivery_time + ' (' + this.numberToWords(order?.delivery_time)+')',
         percent: percent,
         apartment_image: fileobj,
+        total_sum: (summa ? summa.summa : 0) + +order.initial_pay,
         totalsum: (summa ? summa.summa : 0) + +order.initial_pay,
         totalsum_usd: (summa_usd ? summa_usd.summa : 0) + +initial_pay_usd,
         number_to_words_percent: this.numberToWords(percent),
