@@ -95,7 +95,7 @@ export class OrdersService {
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({where:{id:users.userId}});
     order.quantity = 1;
-
+    order.delivery_time=createOrderDto.delivery_time;
     const savedOrder = await this.ordersRepository.save(order);
 
     const apartment = await Apartments.findOne({

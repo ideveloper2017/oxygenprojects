@@ -39,6 +39,9 @@ export class CreateOrderDto {
   @ApiProperty({example:'100%',description:'Foiz hisobida'})
   percent:number;
 
+  @ApiProperty({example:'18 oy',description:'Topshirish muddati'})
+  delivery_time:number;
+
   @ApiProperty({ example: 1, description: 'nechta kvartira olayotgani' })
   quantity: number;
 
