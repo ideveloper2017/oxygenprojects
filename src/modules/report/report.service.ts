@@ -355,12 +355,24 @@ export class ReportService {
     return updatedRes;
   }
 
-  async allCaisher_Out(paymentmethods: string, caisher_id: number) {
+  async allCaisher_Out(paymentmethods: string, caisher_id: number,from: string, to: string) {
     const sumResults = {
       total_sum_out: 0,
       total_usd_out: 0,
     };
     let result;
+    const startDate =
+        String(new Date(from).getFullYear()) +
+        '-' +
+        String(new Date(from).getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(new Date(from).getDate()).padStart(2, '0');
+    const endDate =
+        String(new Date(to).getFullYear()) +
+        '-' +
+        String(new Date(to).getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(new Date(to).getDate()).padStart(2, '0');
 
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -382,6 +394,13 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymentmethods', {
         paymentmethods: paymentmethods,
       })
+        .andWhere(
+            "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
+            {
+              startDate,
+              endDate,
+            },
+        )
       .groupBy('users.id')
       .addGroupBy('caishers.id')
       // .addGroupBy('payments.paymentmethods')
