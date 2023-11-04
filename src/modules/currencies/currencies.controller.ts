@@ -1,9 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {Body, Controller, Get, Param, Patch, Post, UseGuards} from '@nestjs/common';
+import {ApiBearerAuth, ApiOperation, ApiTags} from '@nestjs/swagger';
 import { CurrenciesService } from './currencies.service';
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { CreatexchangeRateDto } from '../exchang-rates/dto/create-exchange-rate.dto';
 import { EditExchangeRateDto } from '../exchang-rates/dto/edit-exchange-rate.dto';
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
+import {JwtAuthGuard} from "../auth/jwt-auth.guard";
 
 @ApiTags('Currencies')
 @Controller('currency')
@@ -30,10 +32,12 @@ export class CurrenciesController {
 
   // ================================== Valyuta kursi API ================================
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'valuta kursini kiritish' })
   @Post('/exchange-rate/new')
-  updateExchangeRate(@Body() exchangeRateDto: CreatexchangeRateDto) {
-    return this.currancyService.newRate(exchangeRateDto).then((data) => {
+  updateExchangeRate(@AuthUser() user_id:any,@Body() exchangeRateDto: CreatexchangeRateDto) {
+    return this.currancyService.newRate(exchangeRateDto,user_id).then((data) => {
       if (data) {
         return { success: true, data, message: 'Kurs yangilandi' };
       } else {

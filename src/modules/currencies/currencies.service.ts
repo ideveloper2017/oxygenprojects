@@ -51,7 +51,7 @@ export class CurrenciesService {
 
   //====================================== EchangeRates Repository logic ===========================
 
-  async newRate(exchangeRateDto: CreatexchangeRateDto) {
+  async newRate(exchangeRateDto: CreatexchangeRateDto,user_id:any) {
     const rate = new ExchangRates();
     rate.rate_value = exchangeRateDto.rate_value;
     rate.currencies = await Currencies.findOne({
