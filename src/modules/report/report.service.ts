@@ -66,7 +66,9 @@ export class ReportService {
       .addSelect('buildings.name')
       // .addSelect('entrance.entrance_number')
       .addSelect('floor.floor_number')
-      .addSelect('cast(SUM(apartments.room_space) as numeric) as all_room_space')
+      .addSelect(
+        'cast(SUM(apartments.room_space) as numeric) as all_room_space',
+      )
       // .addSelect('apartments.cells')
       .where('orders.order_status= :status', { status: OrderStatus.ACTIVE })
       .andWhere('orders.is_deleted= :delete', { delete: false })
@@ -106,9 +108,19 @@ export class ReportService {
     let res;
     let updatedRes;
 
-    const startDate = String(new Date(from).getFullYear())+'-'+String(new Date(from).getMonth()+1).padStart(2,'0')+'-'+String(new Date(from).getDate()).padStart(2,'0');
-    const endDate =String(new Date(to).getFullYear())+'-'+String(new Date(to).getMonth()+1).padStart(2,'0')+'-'+String(new Date(to).getDate()).padStart(2,'0');
-      res = await this.orderRepo.manager
+    const startDate =
+      String(new Date(from).getFullYear()) +
+      '-' +
+      String(new Date(from).getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(new Date(from).getDate()).padStart(2, '0');
+    const endDate =
+      String(new Date(to).getFullYear()) +
+      '-' +
+      String(new Date(to).getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(new Date(to).getDate()).padStart(2, '0');
+    res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoin(
         'payments.caishers',
@@ -135,7 +147,7 @@ export class ReportService {
         'buildings.id=entrance.building_id',
       )
       .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-      .select('TO_CHAR(payments.payment_date,\'DD.MM.YYYY\') as payment_date')
+      .select("TO_CHAR(payments.payment_date,'DD.MM.YYYY') as payment_date")
       .addSelect('towns.name')
       .addSelect('towns.id')
       .addSelect('caishers.id')
@@ -144,18 +156,21 @@ export class ReportService {
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .andWhere('TO_CHAR(payments.payment_date,\'YYYY-MM-DD\') BETWEEN :startDate AND :endDate', {
-        startDate,
-        endDate,
-      })
+      .andWhere(
+        "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
+        {
+          startDate,
+          endDate,
+        },
+      )
 
       .groupBy('payments.payment_date')
-          .addGroupBy('caishers.id')
+      .addGroupBy('caishers.id')
       .addGroupBy('towns.id')
 
-          .addGroupBy('payments.paymentmethods')
+      .addGroupBy('payments.paymentmethods')
       .getRawMany();
-      console.log(startDate+' '+endDate);
+    console.log(startDate + ' ' + endDate);
     updatedRes = await Promise.all(
       res.map(async (data) => {
         let summa_out;
@@ -178,7 +193,6 @@ export class ReportService {
         return data;
       }),
     );
-
 
     return updatedRes;
   }
@@ -279,8 +293,18 @@ export class ReportService {
   async allCaisher(from: string, to: string) {
     let res;
     let updatedRes;
-    const startDate= String(new Date(from).getFullYear())+'-'+String(new Date(from).getMonth()+1).padStart(2,'0')+'-'+String(new Date(from).getDate()).padStart(2,'0');
-    const endDate = String(new Date(to).getFullYear())+'-'+String(new Date(to).getMonth()+1).padStart(2,'0')+'-'+String(new Date(to).getDate()).padStart(2,'0');
+    const startDate =
+      String(new Date(from).getFullYear()) +
+      '-' +
+      String(new Date(from).getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(new Date(from).getDate()).padStart(2, '0');
+    const endDate =
+      String(new Date(to).getFullYear()) +
+      '-' +
+      String(new Date(to).getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(new Date(to).getDate()).padStart(2, '0');
 
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -289,17 +313,20 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
-      .leftJoinAndSelect('payments.users','users','users.id=payments.user_id')
+      .leftJoinAndSelect('payments.users', 'users', 'users.id=payments.user_id')
       .select('users.*')
       .addSelect('caishers.caisher_name')
       .addSelect('caishers.id')
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-       .andWhere('TO_CHAR(payments.payment_date,\'YYYY-MM-DD\') BETWEEN :startDate AND :endDate', {
+      .andWhere(
+        "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
+        {
           startDate,
           endDate,
-        })
+        },
+      )
       .groupBy('users.id')
       .addGroupBy('caishers.id')
       .getRawMany();
@@ -342,7 +369,7 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
-        .leftJoinAndSelect('payments.users','users','users.id=payments.user_id')
+      .leftJoinAndSelect('payments.users', 'users', 'users.id=payments.user_id')
       .select([
         'users.*',
         'caishers.caisher_name',
@@ -355,9 +382,9 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymentmethods', {
         paymentmethods: paymentmethods,
       })
-        .groupBy('users.id')
+      .groupBy('users.id')
       .addGroupBy('caishers.id')
-     // .addGroupBy('payments.paymentmethods')
+      // .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
     result.forEach((item) => {
@@ -421,7 +448,7 @@ export class ReportService {
         'buildings.mk_price',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.ACTIVE,OrderStatus.COMPLETED],
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
