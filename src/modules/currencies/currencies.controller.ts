@@ -57,7 +57,9 @@ export class CurrenciesController {
         } else {
           return { success: false, message: "Kurs olishda xatolik" };
         }
-      });
+      }).catch((error)=>{
+          return { success: false, message: error.message};
+        });
   }
   
   

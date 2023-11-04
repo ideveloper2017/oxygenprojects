@@ -54,6 +54,7 @@ export class CurrenciesService {
   async newRate(exchangeRateDto: CreatexchangeRateDto,user_id:any) {
     const rate = new ExchangRates();
     rate.rate_value = exchangeRateDto.rate_value;
+    rate.user_id=user_id.userId;
     rate.currencies = await Currencies.findOne({
       where: { id: exchangeRateDto.currency_id },
     });
@@ -66,7 +67,7 @@ export class CurrenciesService {
   }
 
   async findRates() {
-    const rates = await this.exchangeRepo.find()
+    const rates = await this.exchangeRepo.find({relations:['users']})
     if(rates && rates.length > 0) {
       return {success: true, data: rates, message: "Rates found"}
     }else {
@@ -88,8 +89,13 @@ export class CurrenciesService {
   async getLastRate() {
     return await this.exchangeRepo
       .createQueryBuilder('exchangeRate')
-      .where('is_default = :val', { val: true })
-      .orderBy('id', 'DESC')
+      .leftJoinAndSelect(
+        'exchangeRate.users',
+        'users',
+        'users.id=exchangeRate.user_id',
+      )
+      .where('exchangeRate.is_default = :val', { val: true })
+      .orderBy('exchangeRate.id', 'DESC')
       .getOne();
   }
 

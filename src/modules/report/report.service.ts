@@ -276,9 +276,11 @@ export class ReportService {
     return sumResults;
   }
 
-  async allCaisher() {
+  async allCaisher(from: string, to: string) {
     let res;
     let updatedRes;
+    const startDate= String(new Date(from).getFullYear())+'-'+String(new Date(from).getMonth()+1).padStart(2,'0')+'-'+String(new Date(from).getDate()).padStart(2,'0');
+    const endDate = String(new Date(to).getFullYear())+'-'+String(new Date(to).getMonth()+1).padStart(2,'0')+'-'+String(new Date(to).getDate()).padStart(2,'0');
 
     res = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -291,13 +293,15 @@ export class ReportService {
       .select('users.*')
       .addSelect('caishers.caisher_name')
       .addSelect('caishers.id')
-      .addSelect('payments.paymentmethods')
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-       .groupBy('users.id')
+       .andWhere('TO_CHAR(payments.payment_date,\'YYYY-MM-DD\') BETWEEN :startDate AND :endDate', {
+          startDate,
+          endDate,
+        })
+      .groupBy('users.id')
       .addGroupBy('caishers.id')
-      .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
     updatedRes = await Promise.all(
@@ -342,7 +346,6 @@ export class ReportService {
       .select([
         'users.*',
         'caishers.caisher_name',
-        'payments.paymentmethods',
         'SUM(payments.amount) AS total_sum',
         'SUM(payments.amount_usd) AS total_usd',
       ])
@@ -354,7 +357,7 @@ export class ReportService {
       })
         .groupBy('users.id')
       .addGroupBy('caishers.id')
-      .addGroupBy('payments.paymentmethods')
+     // .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
     result.forEach((item) => {

@@ -18,6 +18,7 @@ import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { Exclude } from 'class-transformer';
 import { Towns } from 'src/modules/towns/entities/town.entity';
 import {Clients} from "../../clients/entities/client.entity";
+import {ExchangRates} from "../../exchang-rates/entities/exchang-rate.entity";
 
 @Entity('Users')
 export class Users extends Model {
@@ -55,6 +56,9 @@ export class Users extends Model {
 
   @OneToMany((type) => Booking, (booking) => booking.users)
   bookings: Booking[];
+
+  @OneToMany((type)=>ExchangRates,(rates)=>rates.user_id)
+  rates:ExchangRates;
 
   @OneToMany((type) => Towns, (towns) => towns.user)
   towns: Towns;

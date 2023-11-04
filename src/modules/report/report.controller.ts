@@ -57,10 +57,10 @@ export class ReportController {
       });
   }
 
-  @Get('/caisher-report')
-  public async allCaisherReport() {
+  @Get('/caisher-report/:from/:to')
+  public async allCaisherReport(@Param('from') from: string, @Param('to') to: string) {
     return this.reportService
-      .allCaisher()
+      .allCaisher(from,to)
       .then((data) => {
         if (data) {
           return { status: 200, data: data, message: 'All Payments' };
