@@ -442,6 +442,8 @@ export class ReportService {
         'clients.middle_name',
         'orders.total_amount as total_amount',
         'orders.total_amount_usd as total_amount_usd',
+        'town.name as townname',
+        'buildings.name as buildingname',
         'apartments.cells',
         'apartments.room_number',
         'apartments.room_space',
