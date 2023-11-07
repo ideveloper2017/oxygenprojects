@@ -336,7 +336,7 @@ export class ReportService {
         let summa_out;
         summa_out = await this.allCaisher_Out(
           data.payments_paymentmethods,
-          data.caishers_id,
+          data.caishers_id,startDate,endDate
         ).then((response) => {
           return response;
         });
