@@ -5,14 +5,18 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { LoggingInterceptor } from './common/interceptor/logging.interceptor';
 import { ValidationPipe } from '@nestjs/common';
-
+import { join } from 'path';
 
 async function bootstrap() {
   const app: NestExpressApplication = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.enableCors({
-    origin: ['http://localhost:5173','https://oxygenhouse.uz','https://oxy.brainsmart.uz'],
+    origin: [
+      'http://localhost:5173',
+      'https://oxygenhouse.uz',
+      'https://oxy.brainsmart.uz',
+    ],
     credentials: true,
     exposedHeaders: ['set-cookie'],
   });

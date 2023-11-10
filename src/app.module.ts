@@ -45,13 +45,19 @@ import { BookingModule } from './modules/booking/booking.module';
 import { LoggerMiddleware } from './common/middleware/logger-middleware';
 import { ReportModule } from './modules/report/report.module';
 
-
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      exclude: ['/api/(.*)'],
+    }),
+
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ServeStaticModule.forRoot({rootPath: join(__dirname, '..', 'uploads/images')}),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads/images'),
+    }),
     ScheduleModule.forRoot(),
     // TypeOrmModule.forRoot({
     //   type: process.env.DB_TYPE as any,

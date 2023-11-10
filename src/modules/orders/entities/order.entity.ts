@@ -22,6 +22,9 @@ export class Orders extends Model {
   @Column({nullable:true})
   percent:number;
 
+  @Column({nullable:true})
+  delivery_time:number;
+
   @Column()
   quantity: number;
 

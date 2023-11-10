@@ -95,7 +95,7 @@ export class OrdersService {
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({where:{id:users.userId}});
     order.quantity = 1;
-
+    order.delivery_time=createOrderDto.delivery_time;
     const savedOrder = await this.ordersRepository.save(order);
 
     const apartment = await Apartments.findOne({
@@ -216,7 +216,7 @@ export class OrdersService {
     if (id == 0) {
       order = await this.ordersRepository.find({
         where: { order_status: In([OrderStatus.ACTIVE,OrderStatus.COMPLETED])},
-        order: { order_status:"ASC"},
+        order: {id:"desc",order_status:"ASC"},
         relations: [
           'clients',
           'users',
@@ -237,6 +237,7 @@ export class OrdersService {
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
+        order: {id:"desc",order_status:"ASC"},
         relations: ['clients', 'payments', 'users', 'paymentMethods'],
       });
 
