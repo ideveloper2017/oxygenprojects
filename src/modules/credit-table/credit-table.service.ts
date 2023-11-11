@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreditTable } from './entities/credit-table.entity';
 import { Orders } from '../orders/entities/order.entity';
 import { Payments } from '../payments/entities/payment.entity';
+import { Caishertype } from 'src/common/enums/caishertype';
 
 @Injectable()
 export class CreditTableService {
@@ -45,9 +46,19 @@ export class CreditTableService {
       order: { creditTables: { due_date: 'ASC' } },
     });
 
+    // const sum = order['payments'].reduce(
+    //   (accumulator, currentValue) => accumulator + Number(currentValue.amount),
+    //   0,
+    // );
+    
     const sum = order['payments'].reduce(
-      (accumulator, currentValue) => accumulator + Number(currentValue.amount),
-      0,
+      (accumulator, currentValue) => {
+        if (currentValue.caisher_type === Caishertype.IN) {
+          return accumulator + Number(currentValue.amount);
+        }
+        return accumulator;
+      },
+      0
     );
     order['sumOfpayments'] = sum;
 
