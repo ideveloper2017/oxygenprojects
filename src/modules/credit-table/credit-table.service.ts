@@ -46,21 +46,29 @@ export class CreditTableService {
       order: { creditTables: { due_date: 'ASC' } },
     });
 
-    // const sum = order['payments'].reduce(
-    //   (accumulator, currentValue) => accumulator + Number(currentValue.amount),
-    //   0,
-    // );
     
-    const sum = order['payments'].reduce(
+    // const sum = order['payments'].reduce(
+    //   (accumulator, currentValue) => {
+    //     if (currentValue.caisher_type === Caishertype.IN) {
+    //       return accumulator + Number(currentValue.amount);
+    //     }
+    //     return accumulator;
+    //   },
+    //   0
+    // );
+    // order['sumOfpayments'] = sum;
+    
+    const { incomingSum, outgoingSum } = order['payments'].reduce(
       (accumulator, currentValue) => {
-        if (currentValue.caisher_type === Caishertype.IN) {
-          return accumulator + Number(currentValue.amount);
-        }
+        currentValue.caisher_type === Caishertype.IN
+          ? (accumulator.incomingSum += +currentValue.amount)
+          : (accumulator.outgoingSum += +currentValue.amount);
         return accumulator;
       },
-      0
-    );
-    order['sumOfpayments'] = sum;
+      { incomingSum: 0, outgoingSum: 0 },
+      );
+      
+      order['sumOfpayments'] = incomingSum - outgoingSum;
 
     // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
 
