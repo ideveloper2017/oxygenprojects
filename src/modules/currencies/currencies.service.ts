@@ -60,7 +60,7 @@ export class CurrenciesService {
     });
     rate.is_default = true;
 
-    await this.exchangeRepo.update({}, { is_default: false });
+    await this.exchangeRepo.update({ is_default: true }, { is_default: false });
 
     const savedRate = await this.exchangeRepo.save(rate);
     return savedRate;
