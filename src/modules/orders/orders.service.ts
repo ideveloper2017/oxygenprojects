@@ -42,7 +42,6 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================
 
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
-    
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
@@ -71,13 +70,12 @@ export class OrdersService {
       deal_price = Math.floor(createOrderDto.price * usdRate.rate_value);
       initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value);
       kv_price = Math.floor(createOrderDto.price * usdRate.rate_value);
-      kv_price_usd = createOrderDto.price
+      kv_price_usd = createOrderDto.price;
     } else {
-
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
       kv_price_usd = Math.floor(createOrderDto.price / usdRate.rate_value);
-      kv_price = createOrderDto.price
+      kv_price = createOrderDto.price;
     }
 
     // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
@@ -89,13 +87,13 @@ export class OrdersService {
     });
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
-    order.percent=createOrderDto.percent;
+    order.percent = createOrderDto.percent;
     order.order_date = new Date();
-    order.initial_pay = initial_floored
+    order.initial_pay = initial_floored;
     order.currency_value = usdRate.rate_value;
-    order.users = await Users.findOne({where:{id:users.userId}});
+    order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
-    order.delivery_time=createOrderDto.delivery_time;
+    order.delivery_time = createOrderDto.delivery_time;
     const savedOrder = await this.ordersRepository.save(order);
 
     const apartment = await Apartments.findOne({
@@ -105,13 +103,20 @@ export class OrdersService {
 
     // binodagi barcha apartmentlarga tegishli narxini olish
 
-    const total = deal_price ? deal_price * apartment.room_space
+    const total = deal_price
+      ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
-    console.log((deal_price+"-"+apartment.room_space) +"/"+ apartment.floor.entrance.buildings.mk_price);
+    console.log(
+      deal_price +
+        '-' +
+        apartment.room_space +
+        '/' +
+        apartment.floor.entrance.buildings.mk_price,
+    );
 
     // const total_floored = Math.floor(total / 1000) * 1000
-    const total_floored = Math.floor(total) ;
+    const total_floored = Math.floor(total);
     let schedule;
 
     if (
@@ -120,8 +125,9 @@ export class OrdersService {
     ) {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
 
-      const oneMonthDue = createOrderDto.initial_pay ? 
-      (total - createOrderDto.initial_pay) / createOrderDto.installment_month
+      const oneMonthDue = createOrderDto.initial_pay
+        ? (total - createOrderDto.initial_pay) /
+          createOrderDto.installment_month
         : total / createOrderDto.installment_month;
 
       const creditSchedule = [];
@@ -142,11 +148,14 @@ export class OrdersService {
         installment.status = 'waiting';
         creditSchedule.push(installment);
 
-
-        console.log((total+"-"+createOrderDto.initial_pay) +"/"+ createOrderDto.installment_month);
-
+        console.log(
+          total +
+            '-' +
+            createOrderDto.initial_pay +
+            '/' +
+            createOrderDto.installment_month,
+        );
       }
-
 
       schedule = await CreditTable.save(creditSchedule);
     }
@@ -159,7 +168,9 @@ export class OrdersService {
         total_amount: total_floored,
         total_amount_usd: total_in_usd,
         order_status:
-          total_floored == initial_floored ? OrderStatus.COMPLETED : OrderStatus.ACTIVE,
+          total_floored == initial_floored
+            ? OrderStatus.COMPLETED
+            : OrderStatus.ACTIVE,
       },
     );
 
@@ -168,13 +179,13 @@ export class OrdersService {
     orderItem.apartments = await Apartments.findOne({
       where: { id: +createOrderDto.apartment_id },
     });
-    orderItem.price = kv_price
-    orderItem.price_usd = kv_price_usd
+    orderItem.price = kv_price;
+    orderItem.price_usd = kv_price_usd;
     orderItem.final_price = total_floored;
 
     await Apartments.update(
       { id: createOrderDto.apartment_id },
-      {status: ApartmentStatus.SOLD },
+      { status: ApartmentStatus.SOLD },
     );
 
     const inBooking = await Booking.findOne({
@@ -215,8 +226,10 @@ export class OrdersService {
     let order;
     if (id == 0) {
       order = await this.ordersRepository.find({
-        where: { order_status: In([OrderStatus.ACTIVE,OrderStatus.COMPLETED])},
-        order: {id:"desc",order_status:"ASC"},
+        where: {
+          order_status: In([OrderStatus.ACTIVE, OrderStatus.COMPLETED]),
+        },
+        order: { id: 'desc', order_status: 'ASC' },
         relations: [
           'clients',
           'users',
@@ -237,7 +250,7 @@ export class OrdersService {
     } else {
       order = await this.ordersRepository.findOne({
         where: { id: id },
-        order: {id:"desc",order_status:"ASC"},
+        order: { id: 'desc', order_status: 'ASC' },
         relations: ['clients', 'payments', 'users', 'paymentMethods'],
       });
 
@@ -260,7 +273,7 @@ export class OrdersService {
       .leftJoinAndSelect('order.clients', 'clients')
       .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
       .leftJoinAndSelect('order.payments', 'payment')
-      .leftJoinAndSelect('order.users','users')
+      .leftJoinAndSelect('order.users', 'users')
       .where('apartment.id = :id', { id })
       .getOne();
 
@@ -316,7 +329,7 @@ export class OrdersService {
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           left_amount: incomingSum - outgoingSum,
-          order_status:data.order_status,
+          order_status: data.order_status,
         });
       } else {
         const sum = data.payments.reduce((accumulator, currentValue) => {
@@ -328,10 +341,10 @@ export class OrdersService {
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           totalsum: Math.floor(data.total_amount - sum),
-          order_status:data.order_status,
+          order_status: data.order_status,
         });
 
-        console.log(data.total_amount +'-----'+ sum)
+        console.log(data.total_amount + '-----' + sum);
       }
     });
     return result;
@@ -479,6 +492,7 @@ export class OrdersService {
           status: OrderStatus.COMPLETED,
         })
         .andWhere('orders.id = :id', { id })
+        .orderBy('orders.id', 'DESC')
         .getOne();
     } else {
       result = await this.ordersRepository
@@ -490,6 +504,7 @@ export class OrdersService {
         .where('orders.order_status = :status', {
           status: OrderStatus.COMPLETED,
         })
+        .orderBy('orders.id', 'DESC')
         .getMany();
     }
 
