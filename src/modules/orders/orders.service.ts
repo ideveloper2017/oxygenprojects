@@ -88,7 +88,7 @@ export class OrdersService {
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.percent = createOrderDto.percent;
-    order.order_date = new Date();
+    order.order_date = createOrderDto.order_date;
     order.initial_pay = initial_floored;
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({ where: { id: users.userId } });
