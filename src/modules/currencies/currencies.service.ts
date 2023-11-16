@@ -67,7 +67,7 @@ export class CurrenciesService {
   }
 
   async findRates() {
-    const rates = await this.exchangeRepo.find({relations:['users']})
+    const rates = await this.exchangeRepo.find({ relations:['users'],order:{id:"desc"}})
     if(rates && rates.length > 0) {
       return {success: true, data: rates, message: "Rates found"}
     }else {
