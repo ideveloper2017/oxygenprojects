@@ -27,7 +27,7 @@ export class Clients extends Model {
   @Column()
   address: string;
 
-  @Column({ unique: true })
+  @Column()
   contact_number: string;
 
   @Column({ nullable: true })
