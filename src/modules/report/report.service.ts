@@ -573,9 +573,15 @@ export class ReportService {
         'payments',
         'orders.id=payments.order_id',
       )
-      .select(['buildings.name as buildingname', 'SUM(payments.amount) as amount'])
+      .select([
+        'buildings.name as buildingname',
+        'SUM(payments.amount) as amount',
+      ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      })
+      .andWhere('payments.caisher_type=:caisher_type', {
+        caisher_type: Caishertype.IN,
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .groupBy('buildings.id')
