@@ -597,9 +597,7 @@ export class ReportService {
         });
         data['total_sum_cash'] = Number(summa.total_sum);
         data['total_sum_bank'] = Number(summabank.total_sum);
-        data['total_sum_due'] = Number(
-          data.total_amount
-        );
+        data['total_sum_due'] = Number(data.total_amount)-Number(summabank.total_sum+summa.total_sum);
         return data;
       }),
     );
