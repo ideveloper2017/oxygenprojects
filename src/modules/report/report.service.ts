@@ -570,12 +570,6 @@ export class ReportService {
       )
       .select([
         'buildings.name as buildingname',
-        'entrance.entrance_number',
-        'floor.floor_number',
-        'apartments.cells',
-        'apartments.room_number',
-        'apartments.room_space',
-        'buildings.mk_price',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
