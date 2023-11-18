@@ -530,7 +530,8 @@ export class ReportService {
   }
 
   async summaryReport() {
-    return await this.orderRepo.manager
+    let result;
+    result = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
         'orders.clients',
@@ -589,5 +590,7 @@ export class ReportService {
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .getRawMany();
+
+    return result;
   }
 }

@@ -94,6 +94,17 @@ export class ReportController {
 
   @Get('/summary-report')
   public getSummaryReport() {
-    return this.reportService.summaryReport();
+    return this.reportService
+      .summaryReport()
+      .then((data) => {
+        if (data) {
+          return { success: true, data: data, message: 'fetch all data!!!' };
+        } else {
+          return { success: true, message: 'not record data!!!' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
   }
 }
