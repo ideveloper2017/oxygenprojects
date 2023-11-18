@@ -336,7 +336,9 @@ export class ReportService {
         let summa_out;
         summa_out = await this.allCaisher_Out(
           data.payments_paymentmethods,
-          data.caishers_id,startDate,endDate
+          data.caishers_id,
+          startDate,
+          endDate,
         ).then((response) => {
           return response;
         });
@@ -355,24 +357,29 @@ export class ReportService {
     return updatedRes;
   }
 
-  async allCaisher_Out(paymentmethods: string, caisher_id: number,from: string, to: string) {
+  async allCaisher_Out(
+    paymentmethods: string,
+    caisher_id: number,
+    from: string,
+    to: string,
+  ) {
     const sumResults = {
       total_sum_out: 0,
       total_usd_out: 0,
     };
     let result;
     const startDate =
-        String(new Date(from).getFullYear()) +
-        '-' +
-        String(new Date(from).getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(new Date(from).getDate()).padStart(2, '0');
+      String(new Date(from).getFullYear()) +
+      '-' +
+      String(new Date(from).getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(new Date(from).getDate()).padStart(2, '0');
     const endDate =
-        String(new Date(to).getFullYear()) +
-        '-' +
-        String(new Date(to).getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(new Date(to).getDate()).padStart(2, '0');
+      String(new Date(to).getFullYear()) +
+      '-' +
+      String(new Date(to).getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(new Date(to).getDate()).padStart(2, '0');
 
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -394,13 +401,13 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymentmethods', {
         paymentmethods: paymentmethods,
       })
-        .andWhere(
-            "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
-            {
-              startDate,
-              endDate,
-            },
-        )
+      .andWhere(
+        "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
+        {
+          startDate,
+          endDate,
+        },
+      )
       .groupBy('users.id')
       .addGroupBy('caishers.id')
       // .addGroupBy('payments.paymentmethods')
@@ -520,5 +527,67 @@ export class ReportService {
       sumResults.total_usd_out = item.total_usd;
     });
     return sumResults;
+  }
+
+  async summaryReport() {
+    return await this.orderRepo.manager
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .select([
+        'orders.id as order_id',
+        'clients.id',
+        'clients.first_name',
+        'clients.last_name',
+        'clients.middle_name',
+        'orders.total_amount as total_amount',
+        'orders.total_amount_usd as total_amount_usd',
+        'towns.name as townname',
+        'buildings.name as buildingname',
+        'entrance.entrance_number',
+        'floor.floor_number',
+        'apartments.cells',
+        'apartments.room_number',
+        'apartments.room_space',
+        'buildings.mk_price',
+      ])
+      .where('orders.order_status IN(:...orderStatus)', {
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      })
+      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      .getRawMany();
   }
 }

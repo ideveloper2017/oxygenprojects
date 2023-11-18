@@ -58,9 +58,12 @@ export class ReportController {
   }
 
   @Get('/caisher-report/:from/:to')
-  public async allCaisherReport(@Param('from') from: string, @Param('to') to: string) {
+  public async allCaisherReport(
+    @Param('from') from: string,
+    @Param('to') to: string,
+  ) {
     return this.reportService
-      .allCaisher(from,to)
+      .allCaisher(from, to)
       .then((data) => {
         if (data) {
           return { status: 200, data: data, message: 'All Payments' };
@@ -85,7 +88,12 @@ export class ReportController {
         }
       })
       .catch((error) => {
-          return { status: error.code, message: error.message };
+        return { status: error.code, message: error.message };
       });
+  }
+
+  @Get('/summary-report')
+  public getSummaryReport() {
+    return this.reportService.summaryReport();
   }
 }
