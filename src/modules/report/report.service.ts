@@ -575,6 +575,7 @@ export class ReportService {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      .groupBy('buildings.id')
       .getRawMany();
 
     return result;
