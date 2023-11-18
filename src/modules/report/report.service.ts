@@ -654,7 +654,7 @@ export class ReportService {
 
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere('buildings.id= :id', { id: build_id })
-        .andWhere('paymentspaymentmethods.paymentmethods=:paymethod',{paymethod:paymentMethod})
+        .andWhere('payments.paymentmethods=:paymethod',{paymethod:paymentMethod})
       // .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
       // .andWhere(
       //     "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
