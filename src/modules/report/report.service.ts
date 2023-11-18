@@ -1,22 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { OrdersService } from '../orders/orders.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Orders } from '../orders/entities/order.entity';
-import {
-  Between,
-  getManager,
-  getRepository,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
-import { OrderStatus } from '../../common/enums/order-status';
-import { Payments } from '../payments/entities/payment.entity';
-import { Caishertype } from '../../common/enums/caishertype';
-import { OrderItems } from '../order-items/entities/order-item.entity';
-import * as moment from 'moment/moment';
-import { groupBy } from 'rxjs';
-import { ApartmentStatus } from '../../common/enums/apartment-status';
-import { response } from 'express';
+import {Injectable} from '@nestjs/common';
+import {OrdersService} from '../orders/orders.service';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Orders} from '../orders/entities/order.entity';
+import {Repository,} from 'typeorm';
+import {OrderStatus} from '../../common/enums/order-status';
+import {Payments} from '../payments/entities/payment.entity';
+import {Caishertype} from '../../common/enums/caishertype';
+import {ApartmentStatus} from '../../common/enums/apartment-status';
+import {Paymentmethods} from "../../common/enums/paymentmethod";
 
 @Injectable()
 export class ReportService {
@@ -591,11 +582,15 @@ export class ReportService {
 
     result=await Promise.all(
       res.map(async (data) => {
-        let summa;
-        summa = await this.allSummaryPayment(data.build_id).then((data) => {
+        let summa,summabank;
+        summa = await this.allSummaryPayment(data.build_id,Paymentmethods.CASH).then((data) => {
           return data;
         });
-        data['total_sum_out'] = Number(summa.total_sum_out);
+        summabank = await this.allSummaryPayment(data.build_id,Paymentmethods.BANK).then((data) => {
+          return data;
+        });
+        data['total_sum_cash'] = Number(summa.total_sum);
+        data['total_sum_bank'] = Number(summabank.total_sum);
         return data;
       }),
     );
@@ -603,10 +598,10 @@ export class ReportService {
     return result;
   }
 
-  async allSummaryPayment(build_id: number) {
+  async allSummaryPayment(build_id: number,paymentMethod:Paymentmethods) {
     const sumResults = {
-      total_sum_out: 0,
-      total_usd_out: 0,
+      total_sum: 0,
+      total_usd: 0,
     };
     let result;
 
@@ -659,6 +654,7 @@ export class ReportService {
 
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere('buildings.id= :id', { id: build_id })
+        .andWhere('paymentspaymentmethods.paymentmethods=:paymethod',{paymethod:paymentMethod})
       // .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
       // .andWhere(
       //     "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
@@ -672,8 +668,8 @@ export class ReportService {
       .getRawMany();
 
     result.forEach((item) => {
-      sumResults.total_sum_out = item.total_sum;
-      sumResults.total_usd_out = item.total_usd;
+      sumResults.total_sum = item.total_sum;
+      sumResults.total_usd = item.total_usd;
     });
     return sumResults;
   }
