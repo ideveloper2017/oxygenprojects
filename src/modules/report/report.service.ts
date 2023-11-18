@@ -568,9 +568,12 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .select([
-        'buildings.name as buildingname',
-      ])
+      .leftJoinAndSelect(
+        'orders.payments',
+        'payments',
+        'orders.id=payments.order_id',
+      )
+      .select(['buildings.name as buildingname', 'payments.amount'])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
