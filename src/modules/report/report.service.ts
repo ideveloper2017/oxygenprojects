@@ -566,6 +566,7 @@ export class ReportService {
       )
       .select([
         'buildings.id as build_id',
+        'towns.name as townname',
         'buildings.name as buildingname',
         'SUM(orders.total_amount) as total_amount',
       ])
