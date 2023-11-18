@@ -569,14 +569,6 @@ export class ReportService {
         'towns.id=buildings.town_id',
       )
       .select([
-        'orders.id as order_id',
-        'clients.id',
-        'clients.first_name',
-        'clients.last_name',
-        'clients.middle_name',
-        'orders.total_amount as total_amount',
-        'orders.total_amount_usd as total_amount_usd',
-        'towns.name as townname',
         'buildings.name as buildingname',
         'entrance.entrance_number',
         'floor.floor_number',
