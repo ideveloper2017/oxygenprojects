@@ -576,7 +576,7 @@ export class ReportService {
       .select([
         'buildings.id as build_id',
         'buildings.name as buildingname',
-        'SUM(payments.amount) as amount',
+        'SUM(orders.total_amount) as total_amount',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
