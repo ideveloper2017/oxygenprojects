@@ -688,7 +688,7 @@ export class ReportService {
 
   async returnReport() {
     let result, res;
-    let clients=[];
+    const clients = [];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
@@ -755,7 +755,7 @@ export class ReportService {
 
     result = await Promise.all(
       res.map(async (data) => {
-        data['clients'].push(await this.returnPayment());
+        data['clients'] = clients.push(await this.returnPayment());
         return data;
       }),
     );
