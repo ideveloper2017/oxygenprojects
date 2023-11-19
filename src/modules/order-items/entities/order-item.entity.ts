@@ -22,7 +22,7 @@ export class OrderItems extends Model {
   @Column()
   apartment_id: number
  
-  @Column({nullable: true})
+  @Column({nullable: true,type:'float'})
   price: number
   
   @Column({nullable: true})

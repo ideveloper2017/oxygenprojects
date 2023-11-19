@@ -116,7 +116,7 @@ export class OrdersService {
     );
 
     // const total_floored = Math.floor(total / 1000) * 1000
-    const total_floored = Math.floor(total);
+    const total_floored = total;
     let schedule;
 
     if (
@@ -138,12 +138,12 @@ export class OrdersService {
 
         const installment = new CreditTable();
         installment.orders = savedOrder;
-        installment.due_amount = Math.floor(oneMonthDue);
+        installment.due_amount =oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount = Math.floor(
+        installment.usd_due_amount =
           installment.due_amount / usdRate.rate_value,
-        );
+        ;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
