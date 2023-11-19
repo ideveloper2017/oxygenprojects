@@ -735,6 +735,8 @@ export class ReportService {
         'clients.first_name as first_name',
         'clients.last_name as last_name',
         'clients.middle_name as moddle_name',
+        'clients.middle_name as moddle_name',
+        'clients.contact_number as phone',
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
