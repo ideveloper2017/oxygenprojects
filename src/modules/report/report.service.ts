@@ -806,7 +806,7 @@ export class ReportService {
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
-        data['payments'] =  await this.returnPayment(data.client_id);
+        data['payments'] = await this.returnPayment(data.client_id);
         return data;
       }),
     );
@@ -829,7 +829,7 @@ export class ReportService {
         'client.id=payments.client_id',
       )
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-      .andWhere('clients.id= :client_id', { client_id: client_id })
+      .andWhere('payments.client_id= :client_id', { client_id: client_id })
       .getRawMany();
     return result;
   }
