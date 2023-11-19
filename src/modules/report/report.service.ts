@@ -730,12 +730,6 @@ export class ReportService {
         'payments',
         'orders.id=payments.order_id',
       )
-      .select([
-        'buildings.id as build_id',
-        'towns.name as townname',
-        'buildings.name as buildingname',
-        'SUM(orders.total_amount) as total_amount',
-      ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
