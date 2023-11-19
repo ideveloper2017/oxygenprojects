@@ -764,12 +764,7 @@ export class ReportService {
   }
 
   async returnPayment() {
-    const sumResults = {
-      total_sum: 0,
-      total_usd: 0,
-    };
-    let result;
-
+    let result: any;
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .leftJoinAndSelect(
@@ -777,28 +772,8 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
-
-      // .select([
-      //   'SUM(payments.amount) AS total_sum',
-      //   'SUM(payments.amount_usd) AS total_usd',
-      // ])
-
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-      // .andWhere('buildings.id= :id', { id: build_id })
-      // .andWhere('payments.paymentmethods=:paymethod', {
-      //   paymethod: paymentMethod,
-      // })
-      // .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
-      // .andWhere(
-      //     "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
-      //     {
-      //       startDate,
-      //       endDate,
-      //     },
-      // )
-      // .addGroupBy('caishers.id')
-      // .addGroupBy('payments.paymentmethods')
       .getRawMany();
-    return result``;
+    return result;
   }
 }
