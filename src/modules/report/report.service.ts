@@ -688,7 +688,7 @@ export class ReportService {
 
   async returnReport() {
     let result, res;
-    let clients[];
+    const clients = [];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
@@ -753,11 +753,10 @@ export class ReportService {
       // .addGroupBy('buildings.id')
       .getRawMany();
 
-
     result = await Promise.all(
       res.map(async (data) => {
-        clients.push(data)
-        data['clients']=clients;
+        clients.push(data);
+        data['clients'] = clients;
         return data;
       }),
     );
