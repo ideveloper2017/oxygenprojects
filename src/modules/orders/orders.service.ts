@@ -67,14 +67,14 @@ export class OrdersService {
     let initial_pay, deal_price, kv_price_usd, kv_price;
 
     if (payment_method.name_alias === 'dollar') {
-      deal_price = Math.floor(createOrderDto.price * usdRate.rate_value);
-      initial_pay = Math.floor(createOrderDto.initial_pay * usdRate.rate_value);
-      kv_price = Math.floor(createOrderDto.price * usdRate.rate_value);
+      deal_price = createOrderDto.price * usdRate.rate_value;
+      initial_pay = createOrderDto.initial_pay * usdRate.rate_value;
+      kv_price = createOrderDto.price * usdRate.rate_value;
       kv_price_usd = createOrderDto.price;
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
-      kv_price_usd = Math.floor(createOrderDto.price / usdRate.rate_value);
+      kv_price_usd = createOrderDto.price / usdRate.rate_value;
       kv_price = createOrderDto.price;
     }
 

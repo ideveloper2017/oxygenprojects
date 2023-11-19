@@ -755,7 +755,7 @@ export class ReportService {
 
     result = await Promise.all(
       res.map(async (data) => {
-        data['clients'] = clients.push({data:data});
+        data['clients'].push(await this.returnPayment());
         return data;
       }),
     );
