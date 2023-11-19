@@ -731,7 +731,8 @@ export class ReportService {
         'orders.id=payments.order_id',
       )
       .select([
-        'apartments.room_number',
+        'apartments.room_number as room_number',
+        'clients.first_name || clients.last_name as client_name',
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
