@@ -834,7 +834,7 @@ export class ReportService {
         'clients.id=orders.client_id',
       )
       .select([
-        'to_char(payments.payment_date,\'MM-YYYY\')',
+        'to_char(payments.payment_date,\'MM-YYYY\') as payment_date',
         'payments.amount',
         'payments.amount_usd',
       ])
