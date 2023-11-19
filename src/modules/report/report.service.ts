@@ -9,6 +9,7 @@ import { Caishertype } from '../../common/enums/caishertype';
 import { ApartmentStatus } from '../../common/enums/apartment-status';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
 import { Apartments } from '../apartments/entities/apartment.entity';
+import { Clients } from '../clients/entities/client.entity';
 
 @Injectable()
 export class ReportService {
@@ -757,7 +758,8 @@ export class ReportService {
   }
 
   async getApartment(building_id: number) {
-    return await this.orderRepo.manager
+    let result, res;
+    res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
         'orders.clients',
@@ -794,12 +796,28 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .select(['apartments.room_number', 'clients.first_name','clients.last_name','clients.middle_name','clients.contact_number'])
+      .select([
+        'apartments.room_number',
+        'clients.id as client_id',
+        'clients.first_name',
+        'clients.last_name',
+        'clients.middle_name',
+        'clients.contact_number',
+      ])
       .where('buildings.id= :building_id', { building_id: building_id })
       .getRawMany();
+    result = await Promise.all(
+      res.map(async (data) => {
+        const payments = await this.returnPayment(data.client_id);
+        data['payments'] = payments;
+        return data;
+      }),
+    );
+
+    return result;
   }
 
-  async returnPayment() {
+  async returnPayment(client_id: number) {
     let result: any;
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -808,7 +826,13 @@ export class ReportService {
         'caishers',
         'caishers.id=payments.caisher_id',
       )
+      .leftJoinAndSelect(
+        'payments.clients',
+        'clients',
+        'client.id=payments.client_id',
+      )
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      .andWhere('clients.id= :client_id', { client_id })
       .getRawMany();
     return result;
   }
