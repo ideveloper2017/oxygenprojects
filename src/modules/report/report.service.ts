@@ -834,7 +834,7 @@ export class ReportService {
         'clients.id=orders.client_id',
       )
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-      .andWhere('payments.client_id= :client_id', { client_id: client_id })
+      .andWhere('clients.id= :client_id', { client_id: client_id })
       .getRawMany();
     return result;
   }
