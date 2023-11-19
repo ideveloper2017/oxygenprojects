@@ -778,10 +778,10 @@ export class ReportService {
         'caishers.id=payments.caisher_id',
       )
 
-      .select([
-        'SUM(payments.amount) AS total_sum',
-        'SUM(payments.amount_usd) AS total_usd',
-      ])
+      // .select([
+      //   'SUM(payments.amount) AS total_sum',
+      //   'SUM(payments.amount_usd) AS total_usd',
+      // ])
 
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       // .andWhere('buildings.id= :id', { id: build_id })
