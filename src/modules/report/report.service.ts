@@ -835,11 +835,12 @@ export class ReportService {
       )
       .select([
         'to_char(payments.payment_date,\'MM-YYYY\') as payment_date',
-        'payments.amount',
-        'payments.amount_usd',
+        'SUM(payments.amount) as amount',
+        'SUM(payments.amount_usd) as amount_usd',
       ])
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('clients.id= :client_id', { client_id: client_id })
+      .groupBy('to_char(payments.payment_date,\'MM-YYYY\')')
       .getRawMany();
     return result;
   }
