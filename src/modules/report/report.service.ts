@@ -824,9 +824,14 @@ export class ReportService {
         'caishers.id=payments.caisher_id',
       )
       .leftJoinAndSelect(
-        'payments.clients',
+        'payments.orders',
+        'orders',
+        'orders.id=payments.order_id',
+      )
+      .leftJoinAndSelect(
+        'orders.clients',
         'clients',
-        'client.id=payments.client_id',
+        'clients.id=orders.client_id',
       )
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('payments.client_id= :client_id', { client_id: client_id })
