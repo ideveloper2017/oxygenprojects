@@ -8,6 +8,7 @@ import { Payments } from '../payments/entities/payment.entity';
 import { Caishertype } from '../../common/enums/caishertype';
 import { ApartmentStatus } from '../../common/enums/apartment-status';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
+import { Apartments } from '../apartments/entities/apartment.entity';
 
 @Injectable()
 export class ReportService {
@@ -731,17 +732,7 @@ export class ReportService {
         'payments',
         'orders.id=payments.order_id',
       )
-      .select([
-        'apartments.room_number as room_number',
-        'clients.first_name as first_name',
-        'clients.last_name as last_name',
-        'clients.middle_name as moddle_name',
-        'clients.middle_name as moddle_name',
-        'clients.contact_number as phone',
-        'buildings.id as build_id',
-        'towns.name as townname',
-        'buildings.name as buildingname',
-      ])
+      .select(['buildings.id as build_id', 'buildings.name as buildingname'])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.INACTIVE],
       })
@@ -755,13 +746,56 @@ export class ReportService {
 
     result = await Promise.all(
       res.map(async (data) => {
-        const payments=await this.returnPayment();
+        const payments = await this.returnPayment();
+        data['apartment']=await this.getApartment(data.build_id);
         data['clients'] = payments;
         return data;
       }),
     );
 
     return result;
+  }
+
+  async getApartment(building_id: number) {
+    return await this.orderRepo.manager
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .where('buildings.id=:building_id', { building: building_id })
+      .getRawMany();
   }
 
   async returnPayment() {
