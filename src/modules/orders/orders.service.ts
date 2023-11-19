@@ -142,8 +142,7 @@ export class OrdersService {
         installment.due_date = mon;
         installment.left_amount = 0;
         installment.usd_due_amount =
-          installment.due_amount / usdRate.rate_value,
-        ;
+          installment.due_amount / usdRate.rate_value;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
