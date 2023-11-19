@@ -138,7 +138,7 @@ export class OrdersService {
 
         const installment = new CreditTable();
         installment.orders = savedOrder;
-        installment.due_amount =oneMonthDue;
+        installment.due_amount = oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
         installment.usd_due_amount =
@@ -159,7 +159,7 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    const total_in_usd = Math.floor(total / usdRate.rate_value);
+    const total_in_usd = (total / usdRate.rate_value);
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
@@ -206,9 +206,7 @@ export class OrdersService {
     payment.caishers = await Caisher.findOne({
       where: { id: createOrderDto.caisher_id, is_active: true },
     });
-    payment.amount_usd = Math.floor(
-      savedOrder.initial_pay / usdRate.rate_value,
-    );
+    payment.amount_usd =(savedOrder.initial_pay / usdRate.rate_value);
     payment.currency_value = usdRate.rate_value;
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;

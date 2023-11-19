@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt } from 'class-validator';
+import {isDecimal, IsInt} from 'class-validator';
 import { OrderStatus } from '../../../common/enums/order-status';
 import {PositionStatus} from "../../../common/enums/PositionStatus";
 
@@ -24,7 +24,6 @@ export class CreateOrderDto {
     example: 8_000_000,
     description: 'kvartira kvadrat metr narxi',
   })
-  @IsInt()
   price?: number;
 
   @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov somda' })
