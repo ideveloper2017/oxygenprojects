@@ -688,7 +688,7 @@ export class ReportService {
 
   async returnReport() {
     let result, res;
-    const clients = [];
+    let clients=[];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
