@@ -688,6 +688,7 @@ export class ReportService {
 
   async returnReport() {
     let result, res;
+    let clients[];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
@@ -742,40 +743,64 @@ export class ReportService {
         'buildings.name as buildingname',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+        orderStatus: [OrderStatus.INACTIVE],
       })
       .andWhere('payments.caisher_type=:caisher_type', {
-        caisher_type: Caishertype.IN,
+        caisher_type: Caishertype.OUT,
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       // .groupBy('towns.id')
       // .addGroupBy('buildings.id')
       .getRawMany();
 
-    // result = await Promise.all(
-    //   res.map(async (data) => {
-    //     let summa, summabank;
-    //     summa = await this.allSummaryPayment(
-    //       data.build_id,
-    //       Paymentmethods.CASH,
-    //     ).then((data) => {
-    //       return data;
-    //     });
-    //     summabank = await this.allSummaryPayment(
-    //       data.build_id,
-    //       Paymentmethods.BANK,
-    //     ).then((data) => {
-    //       return data;
-    //     });
-    //     data['total_sum_cash'] = Number(summa.total_sum);
-    //     data['total_sum_bank'] = Number(summabank.total_sum);
-    //     data['total_sum_due'] =
-    //       Number(data.total_amount) -
-    //       (Number(summabank.total_sum) + Number(summa.total_sum));
-    //     return data;
-    //   }),
-    // );
 
-    return res;
+    result = await Promise.all(
+      res.map(async (data) => {
+        clients.push(data)
+        data['clients']=clients;
+        return data;
+      }),
+    );
+
+    return result;
+  }
+
+  async returnPayment() {
+    const sumResults = {
+      total_sum: 0,
+      total_usd: 0,
+    };
+    let result;
+
+    result = await this.orderRepo.manager
+      .createQueryBuilder(Payments, 'payments')
+      .leftJoinAndSelect(
+        'payments.caishers',
+        'caishers',
+        'caishers.id=payments.caisher_id',
+      )
+
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+
+      .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      // .andWhere('buildings.id= :id', { id: build_id })
+      // .andWhere('payments.paymentmethods=:paymethod', {
+      //   paymethod: paymentMethod,
+      // })
+      // .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
+      // .andWhere(
+      //     "TO_CHAR(payments.payment_date,'YYYY-MM-DD') BETWEEN :startDate AND :endDate",
+      //     {
+      //       startDate,
+      //       endDate,
+      //     },
+      // )
+      // .addGroupBy('caishers.id')
+      // .addGroupBy('payments.paymentmethods')
+      .getRawMany();
+    return result``;
   }
 }
