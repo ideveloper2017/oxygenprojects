@@ -598,7 +598,9 @@ export class ReportService {
         });
         data['total_sum_cash'] = Number(summa.total_sum);
         data['total_sum_bank'] = Number(summabank.total_sum);
-        data['total_sum_due'] =Number(data.total_amount)-(Number(summabank.total_sum) + Number(summa.total_sum));
+        data['total_sum_due'] =
+          Number(data.total_amount) -
+          (Number(summabank.total_sum) + Number(summa.total_sum));
         return data;
       }),
     );
@@ -682,5 +684,93 @@ export class ReportService {
       sumResults.total_usd = item.total_usd;
     });
     return sumResults;
+  }
+
+  async returnReport() {
+    let result, res;
+    res = await this.orderRepo.manager
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .leftJoinAndSelect(
+        'orders.payments',
+        'payments',
+        'orders.id=payments.order_id',
+      )
+      .select([
+        'buildings.id as build_id',
+        'towns.name as townname',
+        'buildings.name as buildingname',
+        'SUM(orders.total_amount) as total_amount',
+      ])
+      .where('orders.order_status IN(:...orderStatus)', {
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      })
+      .andWhere('payments.caisher_type=:caisher_type', {
+        caisher_type: Caishertype.IN,
+      })
+      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      // .groupBy('towns.id')
+      // .addGroupBy('buildings.id')
+      .getRawMany();
+
+    // result = await Promise.all(
+    //   res.map(async (data) => {
+    //     let summa, summabank;
+    //     summa = await this.allSummaryPayment(
+    //       data.build_id,
+    //       Paymentmethods.CASH,
+    //     ).then((data) => {
+    //       return data;
+    //     });
+    //     summabank = await this.allSummaryPayment(
+    //       data.build_id,
+    //       Paymentmethods.BANK,
+    //     ).then((data) => {
+    //       return data;
+    //     });
+    //     data['total_sum_cash'] = Number(summa.total_sum);
+    //     data['total_sum_bank'] = Number(summabank.total_sum);
+    //     data['total_sum_due'] =
+    //       Number(data.total_amount) -
+    //       (Number(summabank.total_sum) + Number(summa.total_sum));
+    //     return data;
+    //   }),
+    // );
+
+    return res;
   }
 }

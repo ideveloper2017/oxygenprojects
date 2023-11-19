@@ -107,4 +107,9 @@ export class ReportController {
         return { success: false, message: error.message };
       });
   }
+
+  @Get('/report-return')
+  public getReturnReport() {
+    return this.reportService.returnReport();
+  }
 }
