@@ -730,6 +730,12 @@ export class ReportService {
         'payments',
         'orders.id=payments.order_id',
       )
+      .select([
+        'apartments.room_number',
+        'buildings.id as build_id',
+        'towns.name as townname',
+        'buildings.name as buildingname',
+      ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
