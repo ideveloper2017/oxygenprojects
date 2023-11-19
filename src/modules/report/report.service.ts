@@ -748,7 +748,7 @@ export class ReportService {
       res.map(async (data) => {
         const payments = await this.returnPayment();
         data['apartment'] = await this.getApartment(data.build_id);
-        data['clients'] = payments;
+        // data['clients'] = payments;
         return data;
       }),
     );
