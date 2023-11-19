@@ -794,6 +794,7 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
+      .select('buildings.name')
       .where('buildings.id= :building_id', { building_id: building_id })
       .getRawMany();
   }
