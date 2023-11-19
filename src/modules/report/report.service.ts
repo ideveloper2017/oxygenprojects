@@ -836,7 +836,7 @@ export class ReportService {
       .select([
         'payments.payment_date',
         'payments.amount',
-        'paymennts.amount_usd',
+        'payments.amount_usd',
       ])
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('clients.id= :client_id', { client_id: client_id })
