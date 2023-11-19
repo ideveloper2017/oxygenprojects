@@ -732,7 +732,9 @@ export class ReportService {
       )
       .select([
         'apartments.room_number as room_number',
-        "clients.first_name || ' ' || clients.last_name,|| ' ' ||,clients.middle_name as client_name",
+        'clients.first_name as first_name',
+        'clients.last_name as last_name',
+        'clients.middle_name as moddle_name',
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
