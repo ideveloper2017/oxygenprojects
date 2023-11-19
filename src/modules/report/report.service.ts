@@ -794,7 +794,7 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .select(['apartments.room_number', 'clients.first_name'])
+      .select(['apartments.room_number', 'clients.first_name','clients.last_name','clients.middle_name','clients.contact_number'])
       .where('buildings.id= :building_id', { building_id: building_id })
       .getRawMany();
   }
