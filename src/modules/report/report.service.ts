@@ -833,6 +833,11 @@ export class ReportService {
         'clients',
         'clients.id=orders.client_id',
       )
+      .select([
+        'payments.payment_date',
+        'payments.amount',
+        'paymennts.amount_usd',
+      ])
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('clients.id= :client_id', { client_id: client_id })
       .getRawMany();
