@@ -834,14 +834,88 @@ export class ReportService {
         'clients.id=orders.client_id',
       )
       .select([
-        'to_char(payments.payment_date,\'MM-YYYY\') as payment_date',
+        "to_char(payments.payment_date,'MM-YYYY') as payment_date",
         'SUM(payments.amount) as amount',
         'SUM(payments.amount_usd) as amount_usd',
       ])
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('clients.id= :client_id', { client_id: client_id })
-      .groupBy('to_char(payments.payment_date,\'MM-YYYY\')')
+      .groupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
     return result;
+  }
+
+  async dueListReport() {
+    let result, res;
+    const clients = [];
+    res = await this.orderRepo.manager
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .leftJoinAndSelect('orders.users', 'users', 'users.id=orders.user_id')
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .leftJoinAndSelect(
+        'orders.payments',
+        'payments',
+        'orders.id=payments.order_id',
+      )
+      .select([
+        'orders.order_date',
+        'users.first_name as ufrist_name',
+        'users.last_name as ulast_name',
+        'clients.first_name as cfirst_name',
+        'clients.last_name as flast_name',
+      ])
+      .where('orders.order_status IN(:...orderStatus)', {
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      })
+      .andWhere('payments.caisher_type=:caisher_type', {
+        caisher_type: Caishertype.IN,
+      })
+      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      // .groupBy('towns.id')
+      // .addGroupBy('buildings.id')
+      .getRawMany();
+
+    // result = await Promise.all(
+    //   res.map(async (data) => {
+    //     data['apartment'] = await this.getApartment(data.build_id);
+    //     return data;
+    //   }),
+    // );
+
+    return res;
   }
 }

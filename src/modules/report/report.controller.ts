@@ -112,4 +112,9 @@ export class ReportController {
   public getReturnReport() {
     return this.reportService.returnReport();
   }
+
+  @Get('/report-duelist')
+  public getDueListReport(){
+      return this.reportService.returnReport()
+  }
 }
