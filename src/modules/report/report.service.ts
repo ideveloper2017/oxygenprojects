@@ -10,6 +10,7 @@ import { ApartmentStatus } from '../../common/enums/apartment-status';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import { Clients } from '../clients/entities/client.entity';
+import { CreditTable } from '../credit-table/entities/credit-table.entity';
 
 @Injectable()
 export class ReportService {
@@ -890,14 +891,15 @@ export class ReportService {
         'orders.payments',
         'payments',
         'orders.id=payments.order_id',
-      ).leftJoinAndSelect(
+      )
+      .leftJoinAndSelect(
         'orders.paymentMethods',
         'paymentMethods',
         'paymentMethods.id=orders.payment_method_id',
       )
       .select([
         'orders.id as order_id',
-        'to_char(orders.order_date,\'DD.MM.YYYY\') as order_date',
+        "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
         'users.first_name as ufrist_name',
         'users.last_name as ulast_name',
         'clients.first_name as cfirst_name',
@@ -906,7 +908,6 @@ export class ReportService {
         'clients.contact_number as phone',
         'paymentMethods.name as paymethod',
         'orders.total_amount as total_amount',
-
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
@@ -922,10 +923,19 @@ export class ReportService {
     result = await Promise.all(
       res.map(async (data) => {
         data['payment'] = await this.clientPayment(data.order_id);
+        data['payment_months'] = await this.getCreditTable(data.order_id);
         return data;
       }),
     );
 
+    return result;
+  }
+
+  public async getCreditTable(order_id: number) {
+    let result;
+    result = this.orderRepo.manager
+      .createQueryBuilder(CreditTable, 'credittable')
+      .where('credittable.order_id= :order_id', { order_id: order_id });
     return result;
   }
 }
