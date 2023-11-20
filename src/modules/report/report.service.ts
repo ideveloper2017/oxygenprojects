@@ -892,7 +892,7 @@ export class ReportService {
         'orders.id=payments.order_id',
       )
       .select([
-        'orders.order_date',
+        'to_char(orders.order_date,\'DD.MM.YYYY\') as order_date',
         'users.first_name as ufrist_name',
         'users.last_name as ulast_name',
         'clients.first_name as cfirst_name',
