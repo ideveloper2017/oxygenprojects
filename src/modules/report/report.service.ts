@@ -936,7 +936,7 @@ export class ReportService {
     result = this.orderRepo.manager
       .createQueryBuilder(CreditTable, 'credittable')
       .where('credittable.order_id= :order_id', { order_id: order_id })
-        .getRawMany();
+      .getRawMany();
     return result;
   }
 }
