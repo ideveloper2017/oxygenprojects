@@ -896,6 +896,7 @@ export class ReportService {
         'paymentMethods.id=orders.payment_method_id',
       )
       .select([
+        'orders.id as order_id',
         'to_char(orders.order_date,\'DD.MM.YYYY\') as order_date',
         'users.first_name as ufrist_name',
         'users.last_name as ulast_name',
@@ -918,13 +919,13 @@ export class ReportService {
       // .addGroupBy('buildings.id')
       .getRawMany();
 
-    // result = await Promise.all(
-    //   res.map(async (data) => {
-    //     data['apartment'] = await this.getApartment(data.build_id);
-    //     return data;
-    //   }),
-    // );
+    result = await Promise.all(
+      res.map(async (data) => {
+        data['payment'] = await this.clientPayment(data.order_id);
+        return data;
+      }),
+    );
 
-    return res;
+    return result;
   }
 }
