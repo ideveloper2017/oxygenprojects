@@ -935,7 +935,7 @@ export class ReportService {
     let result;
     result = this.orderRepo.manager
       .createQueryBuilder(CreditTable, 'credittable')
-      .select(['to_char(credittable.due_date,\'DD-MM-YYYY\')', 'credittable.due_amount'])
+      .select(['to_char(credittable.due_date,\'DD-MM-YYYY\') as due_date', 'credittable.due_amount as due_amount'])
       .where('credittable.order_id= :order_id', { order_id: order_id })
       .getRawMany();
     return result;
