@@ -902,8 +902,8 @@ export class ReportService {
         'clients.first_name as cfirst_name',
         'clients.last_name as flast_name',
         'clients.middle_name as fmiddle_name',
-        'clients.contact_number',
-        'paymentMethods.name',
+        'clients.contact_number as phone',
+        'paymentMethods.name as paymethod',
 
       ])
       .where('orders.order_status IN(:...orderStatus)', {
