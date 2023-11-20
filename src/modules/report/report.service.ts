@@ -904,6 +904,7 @@ export class ReportService {
         'clients.middle_name as fmiddle_name',
         'clients.contact_number as phone',
         'paymentMethods.name as paymethod',
+        'orders.total_amount as total_amount',
 
       ])
       .where('orders.order_status IN(:...orderStatus)', {
