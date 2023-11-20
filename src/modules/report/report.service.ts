@@ -922,8 +922,13 @@ export class ReportService {
 
     result = await Promise.all(
       res.map(async (data) => {
-        data['payment'] = await this.clientPayment(data.order_id);
+        let payment, credit_table;
+        payment = await this.clientPayment(data.order_id);
+        credit_table = await this.getCreditTable(data.order_id);
+        data['payment'] = payment;
         data['payment_months'] = await this.getCreditTable(data.order_id);
+        data['summary_due'] =
+          Number(data.total_amount) - Number(payment.total_sum);
         return data;
       }),
     );
@@ -935,7 +940,10 @@ export class ReportService {
     let result;
     result = this.orderRepo.manager
       .createQueryBuilder(CreditTable, 'credittable')
-      .select(['to_char(credittable.due_date,\'DD-MM-YYYY\') as due_date', 'credittable.due_amount as due_amount'])
+      .select([
+        "to_char(credittable.due_date,'DD-MM-YYYY') as due_date",
+        'credittable.due_amount as due_amount',
+      ])
       .where('credittable.order_id= :order_id', { order_id: order_id })
       .getRawMany();
     return result;
