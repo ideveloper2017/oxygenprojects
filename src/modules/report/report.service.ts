@@ -942,6 +942,7 @@ export class ReportService {
       .select([
         "to_char(credittable.due_date,'DD-MM-YYYY') as due_date",
         'credittable.due_amount as due_amount',
+        'credittable.status as status',
       ])
       .where('credittable.order_id= :order_id', { order_id: order_id })
       .getRawMany();
