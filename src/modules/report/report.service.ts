@@ -928,7 +928,7 @@ export class ReportService {
         data['payment'] = payment;
         data['payment_months'] = await this.getCreditTable(data.order_id);
         data['summary_due'] =
-            (data.total_amount) - (payment.total_sum_out);
+            (data.total_amount - payment.total_sum_out);
         return data;
       }),
     );
