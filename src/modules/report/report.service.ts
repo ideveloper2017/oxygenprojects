@@ -890,6 +890,10 @@ export class ReportService {
         'orders.payments',
         'payments',
         'orders.id=payments.order_id',
+      ).leftJoinAndSelect(
+        'orders.paymentMethods',
+        'paymentMethods',
+        'paymentMethods.id=orders.payment_method_id',
       )
       .select([
         'to_char(orders.order_date,\'DD.MM.YYYY\') as order_date',
@@ -897,6 +901,10 @@ export class ReportService {
         'users.last_name as ulast_name',
         'clients.first_name as cfirst_name',
         'clients.last_name as flast_name',
+        'clients.middle_name as fmiddle_name',
+        'clients.contact_number',
+        'paymentMethods.name',
+
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
