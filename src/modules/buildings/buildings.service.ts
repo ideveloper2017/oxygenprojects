@@ -17,7 +17,7 @@ export class BuildingsService {
   ) {}
 
   async createBuilding(createBuildingDto: CreateBuildingDto) {
-    try{
+    try {
       let building = new Buildings();
       building.name = createBuildingDto.name;
       building.town_id = createBuildingDto.town_id;
@@ -35,23 +35,31 @@ export class BuildingsService {
         entrance.buildings = building;
         entrance.entrance_number = blok;
         await this.buildingRepository.manager
-            .getRepository(Entrance)
-            .save(entrance);
+          .getRepository(Entrance)
+          .save(entrance);
 
         for (let layer = 1; layer <= building.floor_number; layer++) {
           const floor = new Floor();
           floor.floor_number = layer;
           floor.entrance = entrance;
-          await this.buildingRepository.manager.getRepository(Floor).save(floor);
+          await this.buildingRepository.manager
+            .getRepository(Floor)
+            .save(floor);
 
           for (
-              let apartment = 1;
-              apartment <= building.apartment_number;
-              apartment++
+            let apartment = 1;
+            apartment <= building.apartment_number;
+            apartment++
           ) {
+            const romnumber = await this.buildingRepository.manager.createQueryBuilder(Apartments, 'apartment').getOne();
+
             const apartment = new Apartments();
             apartment.floor = floor;
-            apartment.room_number = kv++;
+            if (romnumber){
+              apartment.room_number = romnumber.room_number+1;
+            } else {
+              apartment.room_number = 1;
+            }
             apartment.cells = 1;
             apartment.status = ApartmentStatus.FREE;
             apartment.room_space = 58.5;
@@ -60,13 +68,12 @@ export class BuildingsService {
         }
       }
       const result = await this.buildingRepository.manager
-          .getRepository(Apartments)
-          .save(records);
+        .getRepository(Apartments)
+        .save(records);
       return result;
-    } catch (error){
+    } catch (error) {
       return { message: 'Error creating building', error: error.message };
     }
-
   }
   async findAllBuildings(id: number) {
     let result;

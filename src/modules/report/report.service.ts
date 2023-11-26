@@ -931,7 +931,6 @@ export class ReportService {
         return data;
       }),
     );
-
     return result;
   }
 
