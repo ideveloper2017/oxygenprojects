@@ -25,22 +25,24 @@ export class ApartmentsService {
       relations: ['entrance.buildings.towns'],
     });
     const town_id = res.entrance.buildings.towns.id;
-    const { maxRoomNumber } = await Towns.createQueryBuilder('town')
+    const build_id = res.entrance.buildings.id;
+    const maxRoomNumber= await Towns.createQueryBuilder('town')
       .innerJoin('town.buildings', 'building')
       .innerJoin('building.entrances', 'entrance')
       .innerJoin('entrance.floors', 'floor')
       .innerJoin('floor.apartments', 'apartment')
       .where('building.town_id = :town_id', { town_id })
-      .select('MAX(apartment.room_number)', 'maxRoomNumber')
+      .andWhere('entrance.building_id= :build_id', { build_id: build_id })
+      .select('apartment.room_number AS maxRoomNumber')
+      .orderBy('apartment.room_number', 'DESC')
       .getRawOne();
-
     const newApartment = new Apartments();
     newApartment.floor_id = floor_id;
-    newApartment.room_number = maxRoomNumber ? maxRoomNumber + 1 : 1;
+    newApartment.room_number = (maxRoomNumber!==undefined)? maxRoomNumber.maxroomnumber + 1 : 1;
     newApartment.cells = createApartmentDto.cells;
     newApartment.room_space = createApartmentDto.room_space;
     newApartment.status = createApartmentDto.status;
-    newApartment.positions=createApartmentDto.positions
+    newApartment.positions = createApartmentDto.positions;
     return await this.apartmentRepository.save(newApartment);
   }
 
@@ -75,10 +77,14 @@ export class ApartmentsService {
 
   async bookingApartment(id: number) {
     const check = await this.apartmentRepository.findOne({ where: { id: id } });
-    if (check.status != ApartmentStatus.SOLD && check.status != ApartmentStatus.INACTIVE) {
+    if (
+      check.status != ApartmentStatus.SOLD &&
+      check.status != ApartmentStatus.INACTIVE
+    ) {
       const booking = await this.apartmentRepository.update(
         { id: id },
-        { status: ApartmentStatus.BRON });
+        { status: ApartmentStatus.BRON },
+      );
 
       return booking;
     } else {
@@ -91,15 +97,13 @@ export class ApartmentsService {
     return apartments;
   }
 
-  async findBookedApartments(offset: number, limit :number) {
+  async findBookedApartments(offset: number, limit: number) {
     const bookeds = await this.apartmentRepository.find({
       where: { status: ApartmentStatus.BRON },
       skip: offset,
       take: limit,
       order: { updated_at: 'DESC' },
-      
     });
     return bookeds;
   }
-
 }

@@ -78,26 +78,26 @@ export class PaymentMethodsService {
       this.paymentMethodRepo.save([
         {
           id:1,
-          name: 'Нақд',
+          name: 'Нақд (so`m)',
           name_alias:'naqd',
-          is_active: true
+          is_active: true,
         },
         {
           id:2,
-          name: 'Ипотека',
-          name_alias:'ipoteka',
-          is_active: true
+          name: 'Naqd (dollar)',
+          name_alias:'dollar',
+          is_active: true,
         },
         {
           id:3,
-          name: 'Доллар',
-          name_alias:'dollar',
-          is_active: true
-        }, {
+          name: 'Ipoteka (Nasiya savdo)',
+          name_alias:'ipoteka',
+          is_active: true,
+        },{
           id:4,
-          name: 'Субсидиа',
+          name: 'Subsidia',
           name_alias:'subsidia',
-          is_active: true
+          is_active: true,
         }
       ])
     }

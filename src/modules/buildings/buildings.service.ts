@@ -51,15 +51,9 @@ export class BuildingsService {
             apartment <= building.apartment_number;
             apartment++
           ) {
-            const romnumber = await this.buildingRepository.manager.createQueryBuilder(Apartments, 'apartment').getOne();
-
             const apartment = new Apartments();
             apartment.floor = floor;
-            if (romnumber){
-              apartment.room_number = romnumber.room_number+1;
-            } else {
-              apartment.room_number = 1;
-            }
+            apartment.room_number = kv++;
             apartment.cells = 1;
             apartment.status = ApartmentStatus.FREE;
             apartment.room_space = 58.5;
