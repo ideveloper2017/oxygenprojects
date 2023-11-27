@@ -78,7 +78,7 @@ export class PaymentMethodsService {
       this.paymentMethodRepo.save([
         {
           id:1,
-          name: 'Нақд (so`m)',
+          name: 'Naqd (so`m)',
           name_alias:'naqd',
           is_active: true,
         },
