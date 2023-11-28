@@ -30,7 +30,7 @@ import { Response } from 'express';
 import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
 import { FileUploadService } from '../file-upload/file-upload.service';
-import {exists} from "nestjs-i18n/dist/utils"; // ES6
+import { exists } from 'nestjs-i18n/dist/utils'; // ES6
 
 @Controller('wordexport')
 export class WordexportController {
@@ -91,10 +91,10 @@ export class WordexportController {
     const file = await this.fileService.getFileById(file_id[0]);
     const fileobj = {
       _type: 'image',
-      source: existsSync(file.path)?fs.readFileSync(file.path):'',
-      format:file.mimetype,
+      source: existsSync(file.path) ? fs.readFileSync(file.path) : '',
+      format: file.mimetype,
       width: 550,
-      height: 400
+      height: 400,
     };
     const apartment = order?.orderItems?.map((data) => {
       return {
@@ -106,7 +106,11 @@ export class WordexportController {
           String(order?.order_date.getFullYear()).padStart(2, '0'),
         order_number: order?.id,
         client_name:
-          order?.clients?.first_name + ' ' + order?.clients?.last_name+' '+order?.clients?.middle_name,
+          order?.clients?.first_name +
+          ' ' +
+          order?.clients?.last_name +
+          ' ' +
+          order?.clients?.middle_name,
         client_first_name: order?.clients?.first_name,
         client_last_name: order?.clients?.last_name,
         client_middle_name: order?.clients?.middle_name,
@@ -133,12 +137,17 @@ export class WordexportController {
         initalpay: Number(order.initial_pay),
         initial_pay_usd: initial_pay_usd,
         delevery_time:
-          order?.delivery_time + ' (' + this.numberToWords(order?.delivery_time)+')',
+          order?.delivery_time +
+          ' (' +
+          this.numberToWords(order?.delivery_time) +
+          ')',
         percent: percent,
         apartment_image: fileobj,
         total_sum: (summa ? summa.summa : 0) + +order.initial_pay,
         totalsum: (summa ? summa.summa : 0) + +order.initial_pay,
-        totalsum_usd: (summa_usd ? summa_usd.summa : 0) + +initial_pay_usd,
+        totalsum_usd: Number(
+          (summa_usd ? summa_usd.summa : 0) + +initial_pay_usd,
+        ),
         number_to_words_percent: this.numberToWords(percent),
         number_to_words_sum: this.numberToWords(
           (summa ? summa.summa : 0) + +order.initial_pay,
@@ -150,7 +159,7 @@ export class WordexportController {
     };
 
     console.log(JSON.stringify(data));
-    const handler = new TemplateHandler(
+    const handler = new TemplateHandler();
     //     {
     //   plugins: createDefaultPlugins(),
     //   defaultContentType: TEXT_CONTENT_TYPE, // string
@@ -172,7 +181,6 @@ export class WordexportController {
     //
     //   scopeDataResolver: undefined, // ScopeDataResolver
     // }
-    );
     const filename = 'shartnoma.docx';
     const templateFile = fs.readFileSync('data/shartnoma.docx');
 
