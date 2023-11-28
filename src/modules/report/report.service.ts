@@ -505,7 +505,6 @@ export class ReportService {
       total_usd_out: 0,
     };
     let result;
-
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
       .select([
@@ -908,7 +907,7 @@ export class ReportService {
         'clients.contact_number as phone',
         'paymentMethods.name as paymethod',
         'orders.total_amount as total_amount',
-        'orders.total_amount as total_amount_usd',
+        'orders.total_amount_usd as total_amount_usd',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
