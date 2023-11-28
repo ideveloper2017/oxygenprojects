@@ -114,7 +114,18 @@ export class ReportController {
   }
 
   @Get('/report-duelist')
-  public getDueListReport(){
-      return this.reportService.dueListReport();
+  public getDueListReport() {
+    return this.reportService
+      .dueListReport()
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'get all records' };
+        } else {
+          return { status: 401, message: 'not found records!!!' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 }
