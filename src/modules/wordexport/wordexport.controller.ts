@@ -148,9 +148,7 @@ export class WordexportController {
         apartment_image: fileobj,
         total_sum: (summa ? summa.summa : 0) + +order.initial_pay,
         totalsum: (summa ? summa.summa : 0) + +order.initial_pay,
-        totalsum_usd: Number(
-          (summa_usd ? summa_usd.summa : 0) + +initial_pay_usd,
-        ),
+        totalsum_usd: Number((summa_usd ? summa_usd.summa : 0)) + Number(initial_pay_usd),
         number_to_words_percent: this.numberToWords(percent),
         number_to_words_sum: this.numberToWords(
           (summa ? summa.summa : 0) + +order.initial_pay,
