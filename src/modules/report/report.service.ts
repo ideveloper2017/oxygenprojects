@@ -738,9 +738,9 @@ export class ReportService {
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.INACTIVE, OrderStatus.REFUNDED],
       })
-      .andWhere('payments.caisher_type=:caisher_type', {
-        caisher_type: Caishertype.OUT,
-      })
+      // .andWhere('payments.caisher_type=:caisher_type', {
+      //   caisher_type: Caishertype.OUT,
+      // })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: true })
       // .groupBy('towns.id')
       // .addGroupBy('buildings.id')
