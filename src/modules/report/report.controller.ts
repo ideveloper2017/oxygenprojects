@@ -110,7 +110,18 @@ export class ReportController {
 
   @Get('/report-return')
   public getReturnReport() {
-    return this.reportService.returnReport();
+    return this.reportService
+      .returnReport()
+      .then((data) => {
+        if (data) {
+          return { status: 200, data: data, message: 'get all records' };
+        } else {
+          return { status: 401, message: 'not found records!!!' };
+        }
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
 
   @Get('/report-duelist')
