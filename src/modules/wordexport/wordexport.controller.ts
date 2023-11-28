@@ -66,7 +66,7 @@ export class WordexportController {
       .where('order_id= :order_id', { order_id: client_id })
       .select([
         "TO_CHAR(due_date,'DD.MM.YYYY') as due_date",
-        "TO_CHAR(usd_due_amount,'fm999999D99') as usd_due_amount",
+        "TO_CHAR(usd_due_amount,'fm999999') as usd_due_amount",
       ])
       .getRawMany();
 
