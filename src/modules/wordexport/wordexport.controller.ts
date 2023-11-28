@@ -64,7 +64,10 @@ export class WordexportController {
     credits_usd = await this.orderRepo.manager
       .createQueryBuilder(CreditTable, 'credits')
       .where('order_id= :order_id', { order_id: client_id })
-      .select(["TO_CHAR(due_date,'DD.MM.YYYY') as due_date", 'usd_due_amount'])
+      .select([
+        "TO_CHAR(due_date,'DD.MM.YYYY') as due_date",
+        "TO_CHAR(usd_due_amount,'fm999G999D99')",
+      ])
       .getRawMany();
 
     const summa = await this.orderRepo.manager
