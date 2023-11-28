@@ -908,6 +908,7 @@ export class ReportService {
         'clients.contact_number as phone',
         'paymentMethods.name as paymethod',
         'orders.total_amount as total_amount',
+        'orders.total_amount as total_amount_usd',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
@@ -928,6 +929,7 @@ export class ReportService {
         data['payment'] = payment;
         data['payment_months'] = await this.getCreditTable(data.order_id);
         data['summary_due'] =(data.total_amount)-Number(payment.total_sum_out);
+        data['summary_due_usd'] =(data.total_amount_usd)-Number(payment.total_usd_out);
         return data;
       }),
     );
