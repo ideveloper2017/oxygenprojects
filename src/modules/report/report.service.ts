@@ -742,8 +742,9 @@ export class ReportService {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
-      // .groupBy('towns.id')
-      // .addGroupBy('buildings.id')
+      .groupBy('towns.id')
+      .addGroupBy('buildings.id')
+      .addGroupBy('orders.order_date')
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
