@@ -741,12 +741,9 @@ export class ReportService {
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
-      .andWhere('payments.caisher_type=:caisher_type', {
-        caisher_type: Caishertype.IN,
-      })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
-      .groupBy('towns.id')
-      .addGroupBy('buildings.id')
+      // .groupBy('towns.id')
+      // .addGroupBy('buildings.id')
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
