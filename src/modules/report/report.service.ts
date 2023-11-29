@@ -736,7 +736,7 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date"
+        "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
@@ -748,7 +748,7 @@ export class ReportService {
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
-        let summa, summabank,initial_sum;
+        let summa, summabank, initial_sum;
         summa = await this.allSaleSummaryPayment(
           data.build_id,
           Paymentmethods.CASH,
@@ -763,12 +763,15 @@ export class ReportService {
         ).then((data) => {
           return data;
         });
-        initial_sum=await this.summaryInitial(data.build_id,data.order_date).then((data)=>{
+        initial_sum = await this.summaryInitial(
+          data.build_id,
+          data.order_date,
+        ).then((data) => {
           return data;
-        })
+        });
         data['data_month'] = [
           {
-            total_initial_sum: +initial_sum,
+            total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
             total_sum_due:
@@ -1104,68 +1107,63 @@ export class ReportService {
     return sumResults;
   }
 
-  async summaryInitial(
-      build_id: number,
-      date: string,
-  ) {
+  async summaryInitial(build_id: number, date: string) {
     const sumResults = {
       total_sum: 0,
     };
     let result;
 
     result = await this.orderRepo.manager
-        .createQueryBuilder(Payments, 'payments')
-        .leftJoinAndSelect(
-            'payments.caishers',
-            'caishers',
-            'caishers.id=payments.caisher_id',
-        )
-        .leftJoinAndSelect(
-            'payments.orders',
-            'orders',
-            'orders.id=payments.order_id',
-        )
-        .leftJoinAndSelect(
-            'orders.orderItems',
-            'orderitems',
-            'orderitems.order_id=orders.id',
-        )
-        .leftJoinAndSelect(
-            'orderitems.apartments',
-            'apartments',
-            'apartments.id=orderitems.apartment_id',
-        )
-        .leftJoinAndSelect(
-            'apartments.floor',
-            'floor',
-            'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-            'floor.entrance',
-            'entrance',
-            'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-            'entrance.buildings',
-            'buildings',
-            'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-            'buildings.towns',
-            'towns',
-            'towns.id=buildings.town_id',
-        )
-        .select([
-          'SUM(orders.initial_pay) AS inital_pay',
-        ])
+      .createQueryBuilder(Payments, 'payments')
+      .leftJoinAndSelect(
+        'payments.caishers',
+        'caishers',
+        'caishers.id=payments.caisher_id',
+      )
+      .leftJoinAndSelect(
+        'payments.orders',
+        'orders',
+        'orders.id=payments.order_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .select(['SUM(orders.initial_pay) AS initial_pay'])
 
-        .where('payments.caisher_type= :cash', {cash: Caishertype.IN})
-        .andWhere('buildings.id= :id', {id: build_id})
-        .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", {date})
-        .getRawMany();
+      .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .andWhere('buildings.id= :id', { id: build_id })
+      .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
+      .getRawMany();
 
     result.forEach((item) => {
-      sumResults.total_sum = item.inital_pay;
+      sumResults.total_sum = item.initial_pay;
     });
     return sumResults;
   }
