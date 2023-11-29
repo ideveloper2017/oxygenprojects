@@ -748,8 +748,30 @@ export class ReportService {
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .getRawMany();
-
-    return res;
+    result = await Promise.all(
+      res.map(async (data) => {
+        let summa, summabank;
+        summa = await this.allSummaryPayment(
+          data.build_id,
+          Paymentmethods.CASH,
+        ).then((data) => {
+          return data;
+        });
+        summabank = await this.allSummaryPayment(
+          data.build_id,
+          Paymentmethods.BANK,
+        ).then((data) => {
+          return data;
+        });
+        data['total_sum_cash'] = Number(summa.total_sum);
+        data['total_sum_bank'] = Number(summabank.total_sum);
+        data['total_sum_due'] =
+          Number(data.total_amount) -
+          (Number(summabank.total_sum) + Number(summa.total_sum));
+        return data;
+      }),
+    );
+    return result;
   }
 
   async returnReport() {
