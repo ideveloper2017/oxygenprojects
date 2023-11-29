@@ -736,7 +736,7 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'TO_CHAR(orders.order_date,\'MONTH-YYYY\') as order_date',
+        "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
@@ -744,7 +744,7 @@ export class ReportService {
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
-      .addGroupBy('TO_CHAR(orders.order_date,\'MONTH-YYYY\')')
+      .addGroupBy("TO_CHAR(orders.order_date,'MONTH-YYYY')")
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
@@ -761,10 +761,17 @@ export class ReportService {
         ).then((data) => {
           return data;
         });
-        data['data_month']=[{total_sum_cahs:Number(summa.total_sum),total_sum_bank:Number(summabank.total_sum),total_sum_due:Number(data.total_amount) -(Number(summabank.total_sum) + Number(summa.total_sum))}]
-        // data['total_sum_cash'] = Number(summa.total_sum);
-        // data['total_sum_bank'] = Number(summabank.total_sum);
-        // data['total_sum_due'] =  Number(data.total_amount) -(Number(summabank.total_sum) + Number(summa.total_sum));
+        data['data_month'] = [
+          {
+            total_initial_sum:Number(data.initial_pay),
+            total_sum_cahs: Number(summa.total_sum),
+            total_sum_bank: Number(summabank.total_sum),
+            total_sum_due:
+              Number(data.total_amount) -
+              (Number(summabank.total_sum) + Number(summa.total_sum)),
+          },
+        ];
+
         return data;
       }),
     );
