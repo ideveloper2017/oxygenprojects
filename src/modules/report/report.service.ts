@@ -1108,10 +1108,8 @@ export class ReportService {
   }
 
   async summaryInitial(build_id: number, date: string) {
-    const sumResults = {
-      total_sum: 0,
-    };
-    let result;
+
+    let result,sumResults;
 
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -1163,7 +1161,7 @@ export class ReportService {
       .getRawMany();
 
     result.forEach((item) => {
-      sumResults.total_sum = item.initial_pay;
+      sumResults = item.initial_pay;
     });
     return sumResults;
   }
