@@ -736,7 +736,7 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'SUM(orders.total_amount) as total_amount',
+        'orders.order_date as order_date',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
@@ -763,11 +763,10 @@ export class ReportService {
         ).then((data) => {
           return data;
         });
-        data['total_sum_cash'] = Number(summa.total_sum);
-        data['total_sum_bank'] = Number(summabank.total_sum);
-        data['total_sum_due'] =
-          Number(data.total_amount) -
-          (Number(summabank.total_sum) + Number(summa.total_sum));
+        data['data_month']=[{total_sum_cahs:Number(summa.total_sum),total_sum_bank:Number(summabank.total_sum),total_sum_due:Number(data.total_amount) -(Number(summabank.total_sum) + Number(summa.total_sum))}]
+        // data['total_sum_cash'] = Number(summa.total_sum);
+        // data['total_sum_bank'] = Number(summabank.total_sum);
+        // data['total_sum_due'] =  Number(data.total_amount) -(Number(summabank.total_sum) + Number(summa.total_sum));
         return data;
       }),
     );
