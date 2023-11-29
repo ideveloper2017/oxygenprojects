@@ -737,7 +737,7 @@ export class ReportService {
         'towns.name as townname',
         'buildings.name as buildingname',
         "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date",
-        'orders.initial_pay'
+        'SUM(orders.initial_pay) as initial_pay'
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
