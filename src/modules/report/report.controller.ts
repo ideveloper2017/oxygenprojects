@@ -108,6 +108,22 @@ export class ReportController {
       });
   }
 
+  @Get('/sale-summary-report')
+  public getSaleSummaryReport() {
+    return this.reportService
+      .getSaleSummaryReport()
+      .then((data) => {
+        if (data) {
+          return { success: true, data: data, message: 'fetch all data!!!' };
+        } else {
+          return { success: true, message: 'not record data!!!' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
+  }
+
   @Get('/report-return')
   public getReturnReport() {
     return this.reportService
