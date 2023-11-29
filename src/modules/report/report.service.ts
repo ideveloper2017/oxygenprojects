@@ -765,7 +765,7 @@ export class ReportService {
         });
         data['data_month'] = [
           {
-            total_initial_sum:Number(data.initial_pay),
+            total_initial_sum:data.initial_pay,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
             total_sum_due:
