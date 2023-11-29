@@ -736,7 +736,7 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'TO_CHAR(orders.order_date as order_date,\'M-YYYY\') as order_date',
+        'TO_CHAR(orders.order_date,\'MONTH-YYYY\') as order_date',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
@@ -744,7 +744,7 @@ export class ReportService {
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
-      .addGroupBy('TO_CHAR(orders.order_date as order_date,\'M-YYYY\')')
+      .addGroupBy('TO_CHAR(orders.order_date,\'MONTH-YYYY\')')
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
