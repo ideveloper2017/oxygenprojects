@@ -182,8 +182,8 @@ export class WordexportController {
     //
     //   scopeDataResolver: undefined, // ScopeDataResolver
     // }
-    const filename = 'shartnoma_fayzli_uylar.docx';
-    const templateFile = fs.readFileSync('data/shartnoma_fayzli_uylar.docx');
+    const filename = 'contract.docx';
+    const templateFile = fs.readFileSync('data/contract.docx');
 
     const doc = await handler.process(templateFile, data);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
