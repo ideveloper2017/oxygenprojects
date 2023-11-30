@@ -1021,10 +1021,9 @@ export class ReportService {
         payment = await this.clientPayment(data.order_id);
         credit_table = await this.getCreditTable(data.order_id);
         data['payment'] = payment;
-        data['payment_months'] = await this.getCreditTable(data.order_id);
-        data['summary_due'] = data.total_amount - Number(payment.total_sum_out);
-        data['summary_due_usd'] =
-          data.total_amount_usd - Number(payment.total_usd_out);
+        data['payment_months'] = credit_table;
+        data['summary_due'] = Math.floor(Number(data.total_amount)) - Math.floor(Number(payment.total_sum_out));
+        data['summary_due_usd'] =Math.floor(Number(data.total_amount_usd)) - Math.floor(Number(payment.total_usd_out));
         return data;
       }),
     );
