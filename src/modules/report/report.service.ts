@@ -774,7 +774,7 @@ export class ReportService {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_due:
+            total_sum_return:
               Number(data.total_amount) -
               (Number(summabank.total_sum) + Number(summa.total_sum)),
           },
@@ -1099,6 +1099,79 @@ export class ReportService {
       })
       .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
       .getRawMany();
+
+    result.forEach((item) => {
+      sumResults.total_sum = item.total_sum;
+      sumResults.total_usd = item.total_usd;
+    });
+    return sumResults;
+  }
+
+  async allRetunSaleSummaryPayment(
+      build_id: number,
+      paymentMethod: Paymentmethods,
+      date: string,
+  ) {
+    const sumResults = {
+      total_sum: 0,
+      total_usd: 0,
+    };
+    let result;
+
+    result = await this.orderRepo.manager
+        .createQueryBuilder(Payments, 'payments')
+        .leftJoinAndSelect(
+            'payments.caishers',
+            'caishers',
+            'caishers.id=payments.caisher_id',
+        )
+        .leftJoinAndSelect(
+            'payments.orders',
+            'orders',
+            'orders.id=payments.order_id',
+        )
+        .leftJoinAndSelect(
+            'orders.orderItems',
+            'orderitems',
+            'orderitems.order_id=orders.id',
+        )
+        .leftJoinAndSelect(
+            'orderitems.apartments',
+            'apartments',
+            'apartments.id=orderitems.apartment_id',
+        )
+        .leftJoinAndSelect(
+            'apartments.floor',
+            'floor',
+            'floor.id=apartments.floor_id',
+        )
+        .leftJoinAndSelect(
+            'floor.entrance',
+            'entrance',
+            'entrance.id=floor.entrance_id',
+        )
+        .leftJoinAndSelect(
+            'entrance.buildings',
+            'buildings',
+            'buildings.id=entrance.building_id',
+        )
+        .leftJoinAndSelect(
+            'buildings.towns',
+            'towns',
+            'towns.id=buildings.town_id',
+        )
+        .select([
+          'SUM(payments.amount) AS total_sum',
+          'SUM(payments.amount_usd) AS total_usd',
+        ])
+
+        .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+        .andWhere('buildings.id= :id', { id: build_id })
+        .andWhere('payments.paymentmethods=:paymethod', {
+          paymethod: paymentMethod,
+        })
+        .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
+        .getRawMany();
 
     result.forEach((item) => {
       sumResults.total_sum = item.total_sum;
