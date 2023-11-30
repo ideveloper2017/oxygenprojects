@@ -739,7 +739,7 @@ export class ReportService {
         "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.INACTIVE,OrderStatus.REFUNDED, OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .groupBy('towns.id')
@@ -776,9 +776,7 @@ export class ReportService {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_return:
-              Number(data.total_amount) -
-              (Number(summabank.total_sum) + Number(summa.total_sum)),
+            total_sum_return:Number(data.total_amount) -(Number(summabank.total_sum) + Number(summa.total_sum)),
           },
         ];
 
