@@ -1179,6 +1179,7 @@ export class ReportService {
       ])
 
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+        .andWhere('orders.order_status IN(:...status)',{status:OrderStatus.INACTIVE})
       .andWhere('buildings.id= :id', { id: build_id })
       // .andWhere('payments.paymentmethods IN(:...paymethod)', {paymethod:paymentMethod })
       .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
