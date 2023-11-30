@@ -778,7 +778,8 @@ export class ReportService {
         return_sum=this.allReturnPayment(data.build_id,[Paymentmethods.BANK,Paymentmethods.CARD,Paymentmethods.CASH],
             data.order_date).then((data)=>{
               return data;
-        })
+        });
+        console.log(return_sum);
         data['data_month'] = [
           {
             total_initial_sum: initial_sum,
