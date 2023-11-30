@@ -775,8 +775,7 @@ export class ReportService {
           return data;
         });
 
-        return_sum=this.allReturnPayment(data.build_id,[Paymentmethods.BANK,Paymentmethods.CARD,Paymentmethods.CASH],
-            data.order_date).then((data)=>{
+        return_sum=this.allReturnPayment(data.build_id,data.order_date).then((data)=>{
               return data;
         });
         console.log(JSON.stringify(return_sum));
@@ -1122,7 +1121,6 @@ export class ReportService {
 
   async allReturnPayment(
     build_id: number,
-    paymentMethod: Paymentmethods[],
     date: string,
   ) {
     const sumResults = {
@@ -1185,6 +1183,7 @@ export class ReportService {
       .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
       .getRawMany();
 
+    console.log(result);
     result.forEach((item) => {
       sumResults.total_sum = item.total_sum;
       sumResults.total_usd = item.total_usd;
