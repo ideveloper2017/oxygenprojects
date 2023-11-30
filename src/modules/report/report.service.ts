@@ -779,7 +779,7 @@ export class ReportService {
             data.order_date).then((data)=>{
               return data;
         });
-        console.log(return_sum);
+        console.log({return_sum});
         data['data_month'] = [
           {
             total_initial_sum: initial_sum,
