@@ -1188,7 +1188,7 @@ export class ReportService {
       sumResults.total_sum = item.total_sum;
       sumResults.total_usd = item.total_usd;
     });
-    return result;
+    return sumResults;
   }
 
   async allRetunSaleSummaryPayment(
