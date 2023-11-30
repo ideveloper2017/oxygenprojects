@@ -784,7 +784,7 @@ export class ReportService {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_return:return_sum,
+            total_sum_return:Number(return_sum.total_sum),
           },
         ];
 
