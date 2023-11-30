@@ -1128,7 +1128,7 @@ export class ReportService {
       total_usd: 0,
     };
     let result;
-    console.log(build_id+ ' '+date)
+
     result = await this.orderRepo.manager
         .createQueryBuilder(Payments, 'payments')
         .leftJoinAndSelect(
@@ -1185,6 +1185,7 @@ export class ReportService {
       sumResults.total_sum = item.total_sum;
       sumResults.total_usd = item.total_usd;
     });
+    console.log(sumResults);
     return sumResults;
   }
 
