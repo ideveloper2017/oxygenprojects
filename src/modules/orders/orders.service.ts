@@ -242,7 +242,7 @@ export class OrdersService {
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? Math.floor(sumOfPayments) : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
@@ -255,7 +255,7 @@ export class OrdersService {
         (accumulator, currentValue) => accumulator + +currentValue.amount,
         0,
       );
-      order['sumOfpayments'] = sum ? Math.floor(sum) : 0;
+      order['sumOfpayments'] = sum ? sum : 0;
     }
     return order;
   }
