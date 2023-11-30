@@ -784,7 +784,7 @@ export class ReportService {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_return:Number(return_sum),
+            total_sum_return:Number(return_sum.total_sum),
           },
         ];
 
@@ -1183,12 +1183,12 @@ export class ReportService {
       .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
       .getRawMany();
 
-    console.log(result);
+
     result.forEach((item) => {
       sumResults.total_sum = item.total_sum;
       sumResults.total_usd = item.total_usd;
     });
-    return sumResults;
+    return result;
   }
 
   async allRetunSaleSummaryPayment(
