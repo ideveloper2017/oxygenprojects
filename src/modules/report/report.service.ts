@@ -486,8 +486,12 @@ export class ReportService {
         });
         data['total_sum_out'] = summa_out.total_sum_out;
         data['total_sum_out_usd'] = summa_out.total_usd_out;
-        data['due_total_sum'] =Math.floor(Number(data.total_amount)) - Math.floor(Number(summa_out.total_sum_out));
-        data['due_total_usd'] =Math.floor(Number(data.total_amount_usd)) - Math.floor(Number(summa_out.total_usd_out));
+        data['due_total_sum'] =
+          Math.floor(Number(data.total_amount)) -
+          Math.floor(Number(summa_out.total_sum_out));
+        data['due_total_usd'] =
+          Math.floor(Number(data.total_amount_usd)) -
+          Math.floor(Number(summa_out.total_usd_out));
         return data;
       }),
     );
@@ -1004,7 +1008,7 @@ export class ReportService {
         'orders.total_amount_usd as total_amount_usd',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+        orderStatus: [OrderStatus.ACTIVE],
       })
       // .andWhere('payments.caisher_type=:caisher_type', {
       //   caisher_type: Caishertype.IN,
@@ -1012,7 +1016,7 @@ export class ReportService {
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       // .groupBy('towns.id')
       // .addGroupBy('buildings.id')
-       .orderBy('orders.id','DESC')
+      .orderBy('orders.id', 'DESC')
       .getRawMany();
 
     result = await Promise.all(
@@ -1022,8 +1026,12 @@ export class ReportService {
         credit_table = await this.getCreditTable(data.order_id);
         data['payment'] = payment;
         data['payment_months'] = credit_table;
-        data['summary_due'] = Math.floor(Number(data.total_amount)) - Math.floor(Number(payment.total_sum_out));
-        data['summary_due_usd'] =Math.floor(Number(data.total_amount_usd)) - Math.floor(Number(payment.total_usd_out));
+        data['summary_due'] =
+          Math.floor(Number(data.total_amount)) -
+          Math.floor(Number(payment.total_sum_out));
+        data['summary_due_usd'] =
+          Math.floor(Number(data.total_amount_usd)) -
+          Math.floor(Number(payment.total_usd_out));
         return data;
       }),
     );
