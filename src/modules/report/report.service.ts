@@ -775,7 +775,7 @@ export class ReportService {
           return data;
         });
 
-        return_sum=this.allReturnPayment(data.build_id,data.order_date).then((data)=>{
+        return_sum=await this.allReturnPayment(data.build_id,data.order_date).then((data)=>{
               return data;
         });
 
@@ -1185,8 +1185,8 @@ export class ReportService {
       sumResults.total_sum = item.total_sum;
       sumResults.total_usd = item.total_usd;
     });
-    console.log(sumResults!);
-    return sumResults!;
+
+    return sumResults;
   }
 
   async allRetunSaleSummaryPayment(
