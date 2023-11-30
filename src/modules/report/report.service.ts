@@ -1012,7 +1012,7 @@ export class ReportService {
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       // .groupBy('towns.id')
       // .addGroupBy('buildings.id')
-       .orderBy('order_date','DESC')
+       .orderBy('orders.id as order_id','DESC')
       .getRawMany();
 
     result = await Promise.all(
