@@ -745,7 +745,8 @@ export class ReportService {
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .addGroupBy("TO_CHAR(orders.order_date,'MONTH-YYYY')")
-      .orderBy('order_date','DESC')
+      .orderBy('buildings.id','ASC')
+      .addOrderBy('order_date','DESC')
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
