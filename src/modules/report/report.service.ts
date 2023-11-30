@@ -1185,8 +1185,8 @@ export class ReportService {
       sumResults.total_sum = item.total_sum;
       sumResults.total_usd = item.total_usd;
     });
-    console.log(sumResults);
-    return sumResults;
+    console.log(sumResults!);
+    return sumResults!;
   }
 
   async allRetunSaleSummaryPayment(
