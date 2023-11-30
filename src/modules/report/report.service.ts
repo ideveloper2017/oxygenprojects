@@ -1128,7 +1128,7 @@ export class ReportService {
       total_usd: 0,
     };
     let result;
-
+    console.log(build_id+ ' '+date)
     result = await this.orderRepo.manager
         .createQueryBuilder(Payments, 'payments')
         .leftJoinAndSelect(
