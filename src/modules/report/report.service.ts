@@ -1,16 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { OrdersService } from '../orders/orders.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Orders } from '../orders/entities/order.entity';
-import { Repository } from 'typeorm';
-import { OrderStatus } from '../../common/enums/order-status';
-import { Payments } from '../payments/entities/payment.entity';
-import { Caishertype } from '../../common/enums/caishertype';
-import { ApartmentStatus } from '../../common/enums/apartment-status';
-import { Paymentmethods } from '../../common/enums/paymentmethod';
-import { Apartments } from '../apartments/entities/apartment.entity';
-import { Clients } from '../clients/entities/client.entity';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
+import {Injectable} from '@nestjs/common';
+import {OrdersService} from '../orders/orders.service';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Orders} from '../orders/entities/order.entity';
+import {Repository} from 'typeorm';
+import {OrderStatus} from '../../common/enums/order-status';
+import {Payments} from '../payments/entities/payment.entity';
+import {Caishertype} from '../../common/enums/caishertype';
+import {ApartmentStatus} from '../../common/enums/apartment-status';
+import {Paymentmethods} from '../../common/enums/paymentmethod';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
 
 @Injectable()
 export class ReportService {
@@ -739,18 +737,23 @@ export class ReportService {
         "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.ACTIVE, OrderStatus.INACTIVE,OrderStatus.REFUNDED, OrderStatus.COMPLETED],
+        orderStatus: [
+          OrderStatus.ACTIVE,
+          OrderStatus.INACTIVE,
+          OrderStatus.REFUNDED,
+          OrderStatus.COMPLETED,
+        ],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .addGroupBy("TO_CHAR(orders.order_date,'MONTH-YYYY')")
-      .orderBy('buildings.id','ASC')
-      .addOrderBy('order_date','DESC')
+      .orderBy('buildings.id', 'ASC')
+      .addOrderBy('order_date', 'DESC')
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
-        let summa, summabank, initial_sum;
+        let summa, summabank, initial_sum,return_sum;
         summa = await this.allSaleSummaryPayment(
           data.build_id,
           Paymentmethods.CASH,
@@ -771,12 +774,17 @@ export class ReportService {
         ).then((data) => {
           return data;
         });
+
+        return_sum=this.allReturnPayment(data.build_id,[Paymentmethods.BANK,Paymentmethods.CARD,Paymentmethods.CASH],
+            data.order_date).then((data)=>{
+              return data;
+        })
         data['data_month'] = [
           {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_return:Number(data.total_amount) -(Number(summabank.total_sum) + Number(summa.total_sum)),
+            total_sum_return:return_sum.total_sum
           },
         ];
 
@@ -1101,6 +1109,77 @@ export class ReportService {
       .andWhere('payments.paymentmethods=:paymethod', {
         paymethod: paymentMethod,
       })
+      .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
+      .getRawMany();
+
+    result.forEach((item) => {
+      sumResults.total_sum = item.total_sum;
+      sumResults.total_usd = item.total_usd;
+    });
+    return sumResults;
+  }
+
+  async allReturnPayment(
+    build_id: number,
+    paymentMethod: Paymentmethods[],
+    date: string,
+  ) {
+    const sumResults = {
+      total_sum: 0,
+      total_usd: 0,
+    };
+    let result;
+
+    result = await this.orderRepo.manager
+      .createQueryBuilder(Payments, 'payments')
+      .leftJoinAndSelect(
+        'payments.caishers',
+        'caishers',
+        'caishers.id=payments.caisher_id',
+      )
+      .leftJoinAndSelect(
+        'payments.orders',
+        'orders',
+        'orders.id=payments.order_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+
+      .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      .andWhere('buildings.id= :id', { id: build_id })
+      .andWhere('payments.paymentmethods IN(...:paymethod)', { paymentMethod })
       .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
       .getRawMany();
 
