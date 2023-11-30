@@ -778,13 +778,13 @@ export class ReportService {
         return_sum=this.allReturnPayment(data.build_id,data.order_date).then((data)=>{
               return data;
         });
-        console.log(JSON.stringify(return_sum));
+
         data['data_month'] = [
           {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_return:Number(return_sum?.total_sum),
+            total_sum_return:Number(return_sum),
           },
         ];
 
