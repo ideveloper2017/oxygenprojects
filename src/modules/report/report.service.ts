@@ -475,7 +475,7 @@ export class ReportService {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
-      .orderBy('orders.order_date', 'DESC')
+      .orderBy('orders.id', 'DESC')
       .getRawMany();
 
     updatedRes = await Promise.all(
