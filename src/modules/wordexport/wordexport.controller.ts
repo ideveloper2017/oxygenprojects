@@ -146,8 +146,8 @@ export class WordexportController {
           ')',
         percent: percent,
         apartment_image: fileobj,
-        total_sum: (summa ? summa.summa : 0) + +order.initial_pay,
-        totalsum: (summa ? summa.summa : 0) + +order.initial_pay,
+        total_sum: (summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay)),
+        totalsum: (summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay)),
         totalsum_usd: Math.round((Number((summa_usd ? summa_usd.summa : 0)) + Number(initial_pay_usd))),
         number_to_words_percent: this.numberToWords(percent),
         number_to_words_sum: this.numberToWords(
@@ -182,8 +182,8 @@ export class WordexportController {
     //
     //   scopeDataResolver: undefined, // ScopeDataResolver
     // }
-    const filename = 'contract.docx';
-    const templateFile = fs.readFileSync('data/contract.docx');
+    const filename = 'shartnoma.docx';
+    const templateFile = fs.readFileSync('data/shartnoma.docx');
 
     const doc = await handler.process(templateFile, data);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
