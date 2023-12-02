@@ -255,7 +255,7 @@ export class OrdersService {
         (accumulator, currentValue) => accumulator + +currentValue.amount,
         0,
       );
-      order['sumOfpayments'] = sum ? Math.floor(sum) : 0;
+      order['sumOfpayments'] = sum ? Math.round(sum) : 0;
     }
     return order;
   }
