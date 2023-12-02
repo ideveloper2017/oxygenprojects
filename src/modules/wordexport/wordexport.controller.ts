@@ -159,7 +159,6 @@ export class WordexportController {
       apartment,
     };
 
-    console.log(JSON.stringify(data));
     const handler = new TemplateHandler();
     //     {
     //   plugins: createDefaultPlugins(),
