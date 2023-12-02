@@ -484,10 +484,10 @@ export class ReportService {
         });
         data['total_sum_out'] = summa_out.total_sum_out;
         data['total_sum_out_usd'] = summa_out.total_usd_out;
-        data['due_total_sum'] =Math.round(
-          Math.round(Number(data.total_amount)) -
-          Math.round(Number(summa_out.total_sum_out)));
-        data['due_total_usd'] =Math.round(Math.round(Number(data.total_amount_usd))-Math.round(Number(summa_out.total_usd_out)));
+        data['due_total_sum'] =
+          Number(data.total_amount)-
+          Number(summa_out.total_sum_out);
+        data['due_total_usd'] =Number(data.total_amount_usd)-Number(summa_out.total_usd_out);
         return data;
       }),
     );
