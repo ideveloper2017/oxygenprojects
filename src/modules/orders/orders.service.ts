@@ -159,7 +159,7 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    const total_in_usd = (total / usdRate.rate_value);
+    const total_in_usd = total / usdRate.rate_value;
 
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
@@ -206,7 +206,7 @@ export class OrdersService {
     payment.caishers = await Caisher.findOne({
       where: { id: createOrderDto.caisher_id, is_active: true },
     });
-    payment.amount_usd =(savedOrder.initial_pay / usdRate.rate_value);
+    payment.amount_usd = savedOrder.initial_pay / usdRate.rate_value;
     payment.currency_value = usdRate.rate_value;
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;
@@ -252,10 +252,11 @@ export class OrdersService {
       });
 
       const sum = order['payments'].reduce(
-        (accumulator, currentValue) => accumulator + +currentValue.amount,
+        (accumulator, currentValue) =>
+          accumulator + Number(currentValue.amount),
         0,
       );
-      order['sumOfpayments'] = sum ? Math.round(sum) : 0;
+      order['sumOfpayments'] = sum ? sum : 0;
     }
     return order;
   }
