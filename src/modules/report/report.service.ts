@@ -512,8 +512,8 @@ export class ReportService {
       .getRawMany();
 
     result.forEach((item) => {
-      sumResults.total_sum_out = item.total_sum;
-      sumResults.total_usd_out = item.total_usd;
+      sumResults.total_sum_out = +item.total_sum;
+      sumResults.total_usd_out = +item.total_usd;
     });
     return sumResults;
   }
