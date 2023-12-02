@@ -14,8 +14,10 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:5173',
+      'https://fuylar.uz',
+      'https://api.fuylar.uz',
       'https://oxygenhouse.uz',
-      'https://oxy.brainsmart.uz',
+      'https://api.oxygenhouse.uz'
     ],
     credentials: true,
     exposedHeaders: ['set-cookie'],
@@ -46,9 +48,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-
   SwaggerModule.setup('api/docs', app, document);
-
   await app.listen(configService.get<number>('PORT'), () => {
     console.log('Web', configService.get<string>('BASE_URL'));
   });

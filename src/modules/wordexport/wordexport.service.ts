@@ -3,7 +3,7 @@ import * as PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 
 export const generateWordDocument = (data) => {
-  const content = fs.readFileSync('data/contract_oxy.docx', 'binary');
+  const content = fs.readFileSync('data/shartnoma_oxy.docx', 'binary');
   const zip = new PizZip(content);
   const doc = new Docxtemplater();
   doc.loadZip(zip);
