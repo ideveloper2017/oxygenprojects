@@ -70,11 +70,13 @@ export class OrdersService {
       deal_price = createOrderDto.price * usdRate.rate_value;
       initial_pay = createOrderDto.initial_pay * usdRate.rate_value;
       kv_price = createOrderDto.price * usdRate.rate_value;
-      kv_price_usd = createOrderDto.price;
+      kv_price_usd = Math.round(Number(createOrderDto.price));
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
-      kv_price_usd = createOrderDto.price / usdRate.rate_value;
+      kv_price_usd = Math.round(
+        Number(createOrderDto.price / usdRate.rate_value),
+      );
       kv_price = createOrderDto.price;
     }
 
@@ -237,12 +239,12 @@ export class OrdersService {
       });
 
       order.forEach((orderItem) => {
-        orderItem.total_amount = +orderItem.total_amount;
+        orderItem.total_amount = Math.round(Number(orderItem.total_amount));
         const sumOfPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
-        orderItem.sumOfpayments = sumOfPayments ? Math.floor(sumOfPayments) : 0;
+        orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
