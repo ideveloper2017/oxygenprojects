@@ -487,8 +487,9 @@ export class ReportService {
         data['due_total_sum'] =
           Math.floor(Number(data.total_amount)) -
           Math.floor(Number(summa_out.total_sum_out));
-        data['due_total_usd'] = data.total_amount_usd;
-        data['due_total_usd1'] = summa_out.total_usd_out;
+        data['due_total_usd'] =
+          Math.floor(Number(data.total_amount_usd)) -
+          Math.floor(Number(summa_out.total_usd_out));
         return data;
       }),
     );
