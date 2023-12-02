@@ -488,8 +488,8 @@ export class ReportService {
           Math.floor(Number(data.total_amount)) -
           Math.floor(Number(summa_out.total_sum_out));
         data['due_total_usd'] =
-          Math.floor(Number(data.total_amount_usd)) -
-          Math.floor(Number(summa_out.total_usd_out));
+          Math.round(Number(data.total_amount_usd)) -
+          Math.round(Number(summa_out.total_usd_out));
         return data;
       }),
     );
