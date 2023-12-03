@@ -14,13 +14,10 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:5173',
-      // 'https://fuylar.uz',
-      // 'https://api.fuylar.uz',
+      'https://fuylar.uz',
       'https://oxy.brainsmart.uz',
-      // 'https://oxygenhouse.uz',
-      // 'https://api.oxygenhouse.uz',
-      // 'https://afsona-sales.uz',
-      // 'https://api.afsona-sales.uz',
+      'https://oxygenhouse.uz',
+      'https://afsona-sales.uz',
     ],
     credentials: true,
     exposedHeaders: ['set-cookie'],
