@@ -16,7 +16,7 @@ async function bootstrap() {
       'http://localhost:5173',
       // 'https://fuylar.uz',
       // 'https://api.fuylar.uz',
-      'https:/oxygenhome.brainsmart.uz',
+      'https://oxy.brainsmart.uz',
       // 'https://oxygenhouse.uz',
       // 'https://api.oxygenhouse.uz',
       // 'https://afsona-sales.uz',
