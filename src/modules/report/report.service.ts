@@ -566,6 +566,7 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
+        'SUM(apartments.room_space) as room_space',
         'SUM(orders.total_amount) as total_amount',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
