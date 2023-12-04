@@ -559,11 +559,11 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .leftJoinAndSelect(
-        'orders.payments',
-        'payments',
-        'orders.id=payments.order_id',
-      )
+      // .leftJoinAndSelect(
+      //   'orders.payments',
+      //   'payments',
+      //   'orders.id=payments.order_id',
+      // )
       .select([
         'buildings.id as build_id',
         'towns.name as townname',
