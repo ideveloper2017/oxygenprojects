@@ -860,8 +860,8 @@ export class ReportService {
       //   caisher_type: Caishertype.OUT,
       // })
       //.andWhere('orders.is_deleted= :isDelete', { isDelete: true })
-      // .groupBy('towns.id')
-      // .addGroupBy('buildings.id')
+      .groupBy('towns.id')
+      .addGroupBy('buildings.id')
       .getRawMany();
 
     result = await Promise.all(
