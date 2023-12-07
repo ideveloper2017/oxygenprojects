@@ -841,7 +841,7 @@ export class ReportService {
         'entrance.buildings',
         'buildings',
         'buildings.id=entrance.building_id',
-      )``
+      )
       .leftJoin(
         'buildings.towns',
         'towns',
@@ -859,7 +859,7 @@ export class ReportService {
       .andWhere('payments.caisher_type=:caisher_type', {
         caisher_type: Caishertype.OUT,
       })
-    //  .andWhere('orders.is_deleted= :isDelete', { isDelete: true })
+      //.andWhere('orders.is_deleted= :isDelete', { isDelete: true })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .getRawMany();
