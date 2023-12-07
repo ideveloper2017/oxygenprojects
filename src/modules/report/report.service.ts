@@ -854,7 +854,7 @@ export class ReportService {
       )
       .select(['buildings.id as build_id', 'buildings.name as buildingname'])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.INACTIVE],
+        orderStatus: [OrderStatus.INACTIVE, OrderStatus.REFUNDED],
       })
       // .andWhere('payments.caisher_type=:caisher_type', {
       //   caisher_type: Caishertype.OUT,
