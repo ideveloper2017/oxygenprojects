@@ -812,11 +812,7 @@ export class ReportService {
     const clients = [];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
-      .leftJoin(
-        'orders.clients',
-        'clients',
-        'clients.id=orders.client_id',
-      )
+      .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
       .leftJoin(
         'orders.orderItems',
         'orderitems',
@@ -827,34 +823,22 @@ export class ReportService {
         'apartments',
         'apartments.id=orderitems.apartment_id',
       )
-      .leftJoin(
-        'apartments.floor',
-        'floor',
-        'floor.id=apartments.floor_id',
-      )
-      .leftJoin(
-        'floor.entrance',
-        'entrance',
-        'entrance.id=floor.entrance_id',
-      )
+      .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+      .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
       .leftJoin(
         'entrance.buildings',
         'buildings',
         'buildings.id=entrance.building_id',
       )
-      .leftJoin(
-        'buildings.towns',
-        'towns',
-        'towns.id=buildings.town_id',
-      )
-      .leftJoin(
-        'orders.payments',
-        'payments',
-        'orders.id=payments.order_id',
-      )
-      .select(['buildings.id as build_id','towns.name as townname', 'buildings.name as buildingname'])
+      .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+      .leftJoin('orders.payments', 'payments', 'orders.id=payments.order_id')
+      .select([
+        'buildings.id as build_id',
+        'towns.name as townname',
+        'buildings.name as buildingname',
+      ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.REFUNDED],
+        orderStatus: [OrderStatus.INACTIVE, OrderStatus.REFUNDED],
       })
       .andWhere('payments.caisher_type=:caisher_type', {
         caisher_type: Caishertype.OUT,
@@ -879,6 +863,11 @@ export class ReportService {
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
+        'orders.payments',
+        'payments',
+        'orders.id=payments.order_id',
+      )
+      .leftJoinAndSelect(
         'orders.clients',
         'clients',
         'clients.id=orders.client_id',
@@ -914,7 +903,9 @@ export class ReportService {
         'towns.id=buildings.town_id',
       )
       .select([
+        'apartments.id as apartment_id',
         'apartments.room_number',
+        "to_char(payments.payment_date,'MM-YYYY') as payment_date",
         'clients.id as client_id',
         'clients.first_name',
         'clients.last_name',
@@ -922,10 +913,24 @@ export class ReportService {
         'clients.contact_number',
       ])
       .where('buildings.id= :building_id', { building_id: building_id })
+      .groupBy('clients.id')
+      .addGroupBy('apartments.id')
+      .addGroupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
-        data['payments'] = await this.returnPayment(data.client_id);
+        data['payments_cash'] = await this.returnPayment(
+          data.apartment_id,
+          data.client_id,
+          [Paymentmethods.CASH, Paymentmethods.CARD, Paymentmethods.USD],
+          data.payment_date,
+        );
+        data['payments_bank'] = await this.returnPayment(
+          data.apartment_id,
+          data.client_id,
+          [Paymentmethods.USD, Paymentmethods.BANK],
+          data.payment_date,
+        );
         return data;
       }),
     );
@@ -933,7 +938,12 @@ export class ReportService {
     return result;
   }
 
-  async returnPayment(client_id: number) {
+  async returnPayment(
+    apartment_id: number,
+    client_id: number,
+    paymentMethod: Paymentmethods[],
+    pay_data: string,
+  ) {
     let result: any;
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
@@ -948,6 +958,36 @@ export class ReportService {
         'orders.id=payments.order_id',
       )
       .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderitems',
+        'orderitems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderitems.apartments',
+        'apartments',
+        'apartments.id=orderitems.apartment_id',
+      )
+      // .leftJoinAndSelect(
+      //   'apartments.floor',
+      //   'floor',
+      //   'floor.id=apartments.floor_id',
+      // )
+      // .leftJoinAndSelect(
+      //   'floor.entrance',
+      //   'entrance',
+      //   'entrance.id=floor.entrance_id',
+      // )
+      // .leftJoinAndSelect(
+      //   'entrance.buildings',
+      //   'buildings',
+      //   'buildings.id=entrance.building_id',
+      // )
+      // .leftJoinAndSelect(
+      //   'buildings.towns',
+      //   'towns',
+      //   'towns.id=buildings.town_id',
+      // )
+      .leftJoinAndSelect(
         'orders.clients',
         'clients',
         'clients.id=orders.client_id',
@@ -958,7 +998,14 @@ export class ReportService {
         'SUM(payments.amount_usd) as amount_usd',
       ])
       .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      .andWhere('payments.paymentmethods IN(:...method)', {
+        method: paymentMethod,
+      })
       .andWhere('clients.id= :client_id', { client_id: client_id })
+      .andWhere('apartments.id= :apartment_id', { apartment_id })
+      .andWhere("to_char(payments.payment_date,'MM-YYYY')= :pay_date", {
+        pay_date:pay_data,
+      })
       .groupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
     return result;

@@ -46,7 +46,6 @@ export class PaymentsService {
         newPay = await this.doPayment(newPaymentDto)
       }
 
-      console.log(newPaymentDto);
       if (newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.IN) {
         await Orders.update({ id: newPaymentDto.order_id }, { order_status: OrderStatus.COMPLETED })
       } else if (newPaymentDto.is_completed && newPaymentDto.caishertype === Caishertype.OUT) {
@@ -270,7 +269,7 @@ export class PaymentsService {
       payment.amount = amountToUzs
       payment.amount_usd = amountToUsd
       payment.currency_value = payDto.currency_value;
-      payment.payment_date = new Date();
+      payment.payment_date = payDto.payment_date;
       payment.paymentmethods = payDto.paymentmethods;
       payment.caishers = await Caisher.findOne({ where: { id: payDto.caisher_id }, });
       payment.caisher_type = payDto.caishertype;
