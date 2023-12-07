@@ -841,7 +841,7 @@ export class ReportService {
         'entrance.buildings',
         'buildings',
         'buildings.id=entrance.building_id',
-      )
+      )``
       .leftJoin(
         'buildings.towns',
         'towns',
@@ -854,7 +854,7 @@ export class ReportService {
       )
       .select(['buildings.id as build_id','towns.name as townname', 'buildings.name as buildingname'])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.INACTIVE, OrderStatus.REFUNDED],
+        orderStatus: [OrderStatus.INACTIVE],
       })
       .andWhere('payments.caisher_type=:caisher_type', {
         caisher_type: Caishertype.OUT,
