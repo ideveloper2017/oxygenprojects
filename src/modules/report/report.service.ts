@@ -586,31 +586,30 @@ export class ReportService {
     result = await Promise.all(
       res.map(async (data) => {
         let summa, summabank, summacard;
-        summa = await this.allSummaryPayment(
-          data.build_id,
+        summa = await this.allSummaryPayment(data.build_id, [
           Paymentmethods.CASH,
-        ).then((data) => {
+        ]).then((data) => {
           return data;
         });
-        summabank = await this.allSummaryPayment(
-          data.build_id,
+        summabank = await this.allSummaryPayment(data.build_id, [
           Paymentmethods.BANK,
-        ).then((data) => {
+        ]).then((data) => {
           return data;
         });
 
-        summacard = await this.allSummaryPayment(
-          data.build_id,
+        summacard = await this.allSummaryPayment(data.build_id, [
           Paymentmethods.CARD,
-        ).then((data) => {
+        ]).then((data) => {
           return data;
         });
         data['total_sum_cash'] =
           Number(summa.total_sum) + Number(summacard.total_sum);
         data['total_sum_bank'] = Number(summabank.total_sum);
         data['total_sum_due'] =
-          Number(data.total_amount) -
-          (Number(summabank.total_sum) + Number(summa.total_sum));
+          Number(summabank.total_sum) + Number(summa.total_sum)
+            ? Number(data.total_amount) -
+              (Number(summabank.total_sum) + Number(summa.total_sum))
+            : 0;
         return data;
       }),
     );
@@ -618,7 +617,7 @@ export class ReportService {
     return result;
   }
 
-  async allSummaryPayment(build_id: number, paymentMethod: Paymentmethods) {
+  async allSummaryPayment(build_id: number, paymentMethod: Paymentmethods[]) {
     const sumResults = {
       total_sum: 0,
       total_usd: 0,
@@ -674,8 +673,11 @@ export class ReportService {
 
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere('buildings.id= :id', { id: build_id })
-      .andWhere('payments.paymentmethods=:paymethod', {
+      .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
+      })
+      .where('orders.order_status IN(:...orderStatus)', {
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       // .andWhere('caishers.id= :caisher_id', { caisher_id: caisher_id })
       // .andWhere(
@@ -744,26 +746,24 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        "TO_CHAR(orders.order_date,'MONTH-YYYY') as order_date",
+        'apartments.room_space as room_space',
+        'buildings.mk_price as mk_price',
+        "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [
-          OrderStatus.ACTIVE,
-          OrderStatus.INACTIVE,
-          OrderStatus.REFUNDED,
-          OrderStatus.COMPLETED,
-        ],
+        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
-      .groupBy('towns.id')
-      .addGroupBy('buildings.id')
-      .addGroupBy("TO_CHAR(orders.order_date,'MONTH-YYYY')")
+      // .groupBy('towns.id')
+      // .addGroupBy('buildings.id')
+      // .addGroupBy("TO_CHAR(orders.order_date,'MONTH-YYYY')")
       .orderBy('buildings.id', 'ASC')
       .addOrderBy('order_date', 'DESC')
       .getRawMany();
     result = await Promise.all(
       res.map(async (data) => {
         let summa, summabank, initial_sum, return_sum;
+
         summa = await this.allSaleSummaryPayment(
           data.build_id,
           Paymentmethods.CASH,
@@ -797,10 +797,37 @@ export class ReportService {
             total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_return: Number(return_sum.total_sum),
+            total_sum_due:
+              Number(summa.total_sum) + Number(summabank.total_sum),
           },
         ];
-
+        const { sum } = await this.orderRepo.manager
+          .getRepository(Apartments)
+          .createQueryBuilder('apartments')
+         .leftJoinAndSelect(
+            'apartments.floor',
+            'floor',
+            'floor.id=apartments.floor_id',
+          )
+          .leftJoinAndSelect(
+            'floor.entrance',
+            'entrance',
+            'entrance.id=floor.entrance_id',
+          )
+          .leftJoinAndSelect(
+            'entrance.buildings',
+            'buildings',
+            'buildings.id=entrance.building_id',
+          )
+          .leftJoinAndSelect(
+            'buildings.towns',
+            'towns',
+            'towns.id=buildings.town_id',
+          )
+          .select('SUM(apartments.room_space)', 'sum')
+          .where('buildings.id = :id', { id: data.build_id })
+          .getRawOne();
+        data['all_room_space'] = sum;
         return data;
       }),
     );
@@ -1004,7 +1031,7 @@ export class ReportService {
       .andWhere('clients.id= :client_id', { client_id: client_id })
       .andWhere('apartments.id= :apartment_id', { apartment_id })
       .andWhere("to_char(payments.payment_date,'MM-YYYY')= :pay_date", {
-        pay_date:pay_data,
+        pay_date: pay_data,
       })
       .groupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
@@ -1169,7 +1196,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods=:paymethod', {
         paymethod: paymentMethod,
       })
-      .andWhere("TO_CHAR(orders.order_date,'MONTH-YYYY')=:date", { date })
+      .andWhere("TO_CHAR(orders.order_date,'DD.MM.YYYY')=:date", { date })
       .getRawMany();
 
     result.forEach((item) => {
