@@ -812,42 +812,42 @@ export class ReportService {
     const clients = [];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
-      .leftJoinAndSelect(
+      .leftJoin(
         'orders.clients',
         'clients',
         'clients.id=orders.client_id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'orders.orderItems',
         'orderitems',
         'orderitems.order_id=orders.id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'orderitems.apartments',
         'apartments',
         'apartments.id=orderitems.apartment_id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'apartments.floor',
         'floor',
         'floor.id=apartments.floor_id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'floor.entrance',
         'entrance',
         'entrance.id=floor.entrance_id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'entrance.buildings',
         'buildings',
         'buildings.id=entrance.building_id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'buildings.towns',
         'towns',
         'towns.id=buildings.town_id',
       )
-      .leftJoinAndSelect(
+      .leftJoin(
         'orders.payments',
         'payments',
         'orders.id=payments.order_id',
