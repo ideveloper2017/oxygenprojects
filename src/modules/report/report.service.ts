@@ -852,7 +852,7 @@ export class ReportService {
         'payments',
         'orders.id=payments.order_id',
       )
-      .select(['buildings.id as build_id', 'buildings.name as buildingname'])
+      .select(['buildings.id as build_id','towns.name as townname', 'buildings.name as buildingname'])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.INACTIVE, OrderStatus.REFUNDED],
       })
