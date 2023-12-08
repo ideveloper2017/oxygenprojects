@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { OrdersService } from '../orders/orders.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Orders } from '../orders/entities/order.entity';
-import { Repository } from 'typeorm';
-import { OrderStatus } from '../../common/enums/order-status';
-import { Payments } from '../payments/entities/payment.entity';
-import { Caishertype } from '../../common/enums/caishertype';
-import { ApartmentStatus } from '../../common/enums/apartment-status';
-import { Paymentmethods } from '../../common/enums/paymentmethod';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { Apartments } from '../apartments/entities/apartment.entity';
+import {Injectable} from '@nestjs/common';
+import {OrdersService} from '../orders/orders.service';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Orders} from '../orders/entities/order.entity';
+import {Repository} from 'typeorm';
+import {OrderStatus} from '../../common/enums/order-status';
+import {Payments} from '../payments/entities/payment.entity';
+import {Caishertype} from '../../common/enums/caishertype';
+import {ApartmentStatus} from '../../common/enums/apartment-status';
+import {Paymentmethods} from '../../common/enums/paymentmethod';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
+import {Apartments} from '../apartments/entities/apartment.entity';
 
 @Injectable()
 export class ReportService {
@@ -455,17 +455,21 @@ export class ReportService {
       )
       .select([
         'orders.id as order_id',
-        'clients.id',
+        'clients.id as client_id',
         'clients.first_name',
         'clients.last_name',
         'clients.middle_name',
+        'clients.contact_number as phone',
+        'orders.id as order_number',
         'orders.total_amount as total_amount',
         'orders.total_amount_usd as total_amount_usd',
+        'orderitems.price as price',
+        'orderitems.price_usd as price_usd',
         'towns.name as townname',
         'buildings.name as buildingname',
         'entrance.entrance_number',
         'floor.floor_number',
-        'apartments.cells',
+        'apartments.cells as room_cells',
         'apartments.room_number',
         'apartments.room_space',
         'buildings.mk_price',
@@ -473,30 +477,37 @@ export class ReportService {
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
-      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
+      // .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .orderBy('orders.id', 'DESC')
       .getRawMany();
 
     updatedRes = await Promise.all(
       res.map(async (data) => {
-        let summa_out;
-        summa_out = await this.clientPayment(data.order_id).then((response) => {
+        let summa_out,summa_cash,summa_bank;
+        summa_out = await this.clientPayment(data.order_number,data.client_id,[Paymentmethods.CARD,Paymentmethods.CASH,Paymentmethods.BANK]).then((response) => {
+          return response;
+        });
+        summa_cash = await this.clientPayment(data.order_number,data.client_id,[Paymentmethods.CASH,Paymentmethods.CARD]).then((response) => {
+          return response;
+        });
+        summa_bank = await this.clientPayment(data.order_number,data.client_id,[Paymentmethods.BANK]).then((response) => {
           return response;
         });
         data['total_sum_out'] = summa_out.total_sum_out;
         data['total_sum_out_usd'] = summa_out.total_usd_out;
-        data['due_total_sum'] =
-          Number(data.total_amount) - Number(summa_out.total_sum_out);
-        data['due_total_usd'] =
-          Number(data.total_amount_usd) - Number(summa_out.total_usd_out);
+        data['total_sum_cash'] = summa_cash.total_sum_out;
+        data['total_sum_cash_usd'] = summa_cash.total_usd_out;
+        data['total_bank'] = Number(summa_bank.total_sum_out);
+        data['total_bank_usd'] = Number(summa_bank.total_usd_out);
+        data['due_total_sum'] = Number(data.total_amount) - Number(summa_out.total_sum_out);
+        data['due_total_usd'] = Number(data.total_amount_usd) - Number(summa_out.total_usd_out);
         return data;
       }),
     );
-
     return updatedRes;
   }
 
-  async clientPayment(order_id: number) {
+  async clientPayment(order_id: number,client_id:number,paymentmethods:Paymentmethods[]) {
     const sumResults = {
       total_sum_out: 0,
       total_usd_out: 0,
@@ -504,14 +515,19 @@ export class ReportService {
     let result;
     result = await this.orderRepo.manager
       .createQueryBuilder(Payments, 'payments')
+        .leftJoinAndSelect('payments.orders','orders','orders.id=payments.order_id')
+        .leftJoinAndSelect('orders.clients','clients','clients.id=orders.client_id')
       .select([
         'SUM(payments.amount) AS total_sum',
         'SUM(payments.amount_usd) AS total_usd',
       ])
-      .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .where('payments.order_id= :order_id', { order_id })
+      .where('payments.paymentmethods IN(:...paymethods)', { paymethods:paymentmethods })
+      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .andWhere('payments.order_id= :order_id', { order_id })
+      .andWhere('orders.client_id= :client_id', { client_id })
       .getRawMany();
 
+    console.log(result);
     result.forEach((item) => {
       sumResults.total_sum_out = +item.total_sum;
       sumResults.total_usd_out = +item.total_usd;
@@ -602,8 +618,7 @@ export class ReportService {
         ]).then((data) => {
           return data;
         });
-        data['total_sum_cash'] =
-          Number(summa.total_sum) + Number(summacard.total_sum);
+        data['total_sum_cash'] = Number(summa.total_sum) + Number(summacard.total_sum);
         data['total_sum_bank'] = Number(summabank.total_sum);
         data['total_sum_due'] =
           Number(summabank.total_sum) + Number(summa.total_sum)
@@ -1094,6 +1109,7 @@ export class ReportService {
         "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
         'users.first_name as ufrist_name',
         'users.last_name as ulast_name',
+        'clients.id as client_id',
         'clients.first_name as cfirst_name',
         'clients.last_name as flast_name',
         'clients.middle_name as fmiddle_name',
@@ -1117,7 +1133,7 @@ export class ReportService {
     result = await Promise.all(
       res.map(async (data) => {
         let payment, credit_table;
-        payment = await this.clientPayment(data.order_id);
+        payment = await this.clientPayment(data.order_id,data.client_id,[Paymentmethods.CASH,Paymentmethods.CARD]);
         credit_table = await this.getCreditTable(data.order_id);
         data['payment'] = payment;
         data['payment_months'] = credit_table;
