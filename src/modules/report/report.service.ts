@@ -603,7 +603,7 @@ export class ReportService {
       res.map(async (data) => {
         let summa, summabank, summacard;
         summa = await this.allSummaryPayment(data.build_id, [
-          Paymentmethods.CASH,
+          Paymentmethods.CASH
         ]).then((data) => {
           return data;
         });
@@ -880,7 +880,7 @@ export class ReportService {
         'buildings.name as buildingname',
       ])
       .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.INACTIVE, OrderStatus.REFUNDED],
+        orderStatus: [OrderStatus.REFUNDED],
       })
       .andWhere('payments.caisher_type=:caisher_type', {
         caisher_type: Caishertype.OUT,
