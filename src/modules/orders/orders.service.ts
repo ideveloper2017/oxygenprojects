@@ -74,9 +74,7 @@ export class OrdersService {
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
-      kv_price_usd = Math.round(
-        Number(createOrderDto.price / usdRate.rate_value),
-      );
+      kv_price_usd = Math.round(Number(createOrderDto.price) / Number(usdRate.rate_value));
       kv_price = createOrderDto.price;
     }
 
@@ -143,19 +141,10 @@ export class OrdersService {
         installment.due_amount = oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount =
-          installment.due_amount / usdRate.rate_value;
+        installment.usd_due_amount = installment.due_amount / usdRate.rate_value;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
-
-        console.log(
-          total +
-            '-' +
-            createOrderDto.initial_pay +
-            '/' +
-            createOrderDto.installment_month,
-        );
       }
 
       schedule = await CreditTable.save(creditSchedule);

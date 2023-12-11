@@ -156,14 +156,12 @@ export class ReportService {
           endDate,
         },
       )
-
-      .groupBy('payments.payment_date')
+      .groupBy('TO_CHAR(payments.payment_date,\'DD.MM.YYYY\')')
       .addGroupBy('caishers.id')
       .addGroupBy('towns.id')
-
       .addGroupBy('payments.paymentmethods')
       .getRawMany();
-    console.log(startDate + ' ' + endDate);
+
     updatedRes = await Promise.all(
       res.map(async (data) => {
         let summa_out;
@@ -175,14 +173,10 @@ export class ReportService {
         ).then((response) => {
           return response;
         });
-        data['total_sum_out'] = Number(summa_out.total_sum_out);
-        data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-        data['grand_total_sum'] = Number(
-          data.total_sum - summa_out.total_sum_out,
-        );
-        data['grand_total_usd'] = Number(
-          data.total_usd - summa_out.total_usd_out,
-        );
+        data['total_sum_out'] = Math.round(Number(summa_out.total_sum_out));
+        data['total_sum_out_usd'] =Math.round(Number(summa_out.total_usd_out));
+        data['grand_total_sum'] = Math.round(Number(data.total_sum)) - Math.round(Number(summa_out.total_sum_out));
+        data['grand_total_usd'] = Math.round(Number(data.total_usd)) - Math.round(Number(summa_out.total_usd_out));
         return data;
       }),
     );
@@ -310,6 +304,7 @@ export class ReportService {
       .select('users.*')
       .addSelect('caishers.caisher_name')
       .addSelect('caishers.id')
+      .addSelect('payments.paymentmethods as paymentmethods')
       .addSelect('SUM(payments.amount)', 'total_sum')
       .addSelect('SUM(payments.amount_usd)', 'total_usd')
       .where('payments.caisher_type= :cash', { cash: Caishertype.IN })
@@ -322,13 +317,14 @@ export class ReportService {
       )
       .groupBy('users.id')
       .addGroupBy('caishers.id')
+      .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
     updatedRes = await Promise.all(
       res.map(async (data) => {
         let summa_out;
         summa_out = await this.allCaisher_Out(
-          data.payments_paymentmethods,
+          data.paymentmethods,
           data.caishers_id,
           startDate,
           endDate,
@@ -336,13 +332,9 @@ export class ReportService {
           return response;
         });
         data['total_sum_out'] = Number(summa_out.total_sum_out);
-        data['total_sum_out_usd'] = Number(summa_out.total_usd_out);
-        data['grand_total_sum'] = Number(
-          data.total_sum - summa_out.total_sum_out,
-        );
-        data['grand_total_usd'] = Number(
-          data.total_usd - summa_out.total_usd_out,
-        );
+        data['total_sum_out_usd'] = Math.round(Number(summa_out.total_usd_out));
+        data['grand_total_sum'] = Number(data.total_sum) - Number(summa_out.total_sum_out);
+        data['grand_total_usd'] = Math.round(Number(data.total_usd)) - Math.round(Number(summa_out.total_usd_out));
         return data;
       }),
     );
@@ -406,6 +398,7 @@ export class ReportService {
       // .addGroupBy('payments.paymentmethods')
       .getRawMany();
 
+    console.log(result);
     result.forEach((item) => {
       sumResults.total_sum_out = item.total_sum;
       sumResults.total_usd_out = item.total_usd;
@@ -855,45 +848,39 @@ export class ReportService {
     const clients = [];
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
-      .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
-      .leftJoin(
+      // .leftJoin('orders.payments', 'payments', 'orders.id=payments.order_id')
+      .innerJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
+      .innerJoin(
         'orders.orderItems',
         'orderitems',
         'orderitems.order_id=orders.id',
       )
-      .leftJoin(
+      .innerJoin(
         'orderitems.apartments',
         'apartments',
         'apartments.id=orderitems.apartment_id',
       )
-      .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-      .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-      .leftJoin(
+      .innerJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+      .innerJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+      .innerJoin(
         'entrance.buildings',
         'buildings',
         'buildings.id=entrance.building_id',
       )
-      .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
-      .leftJoin('orders.payments', 'payments', 'orders.id=payments.order_id')
+      .innerJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+
       .select([
+        'apartments.id as apartment_id',
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
       ])
-      .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.REFUNDED],
-      })
-      .andWhere('payments.caisher_type=:caisher_type', {
-        caisher_type: Caishertype.OUT,
-      })
-      //.andWhere('orders.is_deleted= :isDelete', { isDelete: true })
-      .groupBy('towns.id')
-      .addGroupBy('buildings.id')
+      .where('orders.order_status= :orderStatus', {orderStatus: OrderStatus.REFUNDED})
       .getRawMany();
 
     result = await Promise.all(
       res.map(async (data) => {
-        data['apartment'] = await this.getApartment(data.build_id);
+        data['apartment'] = await this.getApartment(data.build_id,data.apartment_id);
         return data;
       }),
     );
@@ -901,7 +888,7 @@ export class ReportService {
     return result;
   }
 
-  async getApartment(building_id: number) {
+  async getApartment(building_id: number,apartment_id:number) {
     let result, res;
     res = await this.orderRepo.manager
       .createQueryBuilder(Orders, 'orders')
@@ -956,10 +943,13 @@ export class ReportService {
         'clients.contact_number',
       ])
       .where('buildings.id= :building_id', { building_id: building_id })
+      .andWhere('apartment_id= :apartment_id', { aparment_id: apartment_id })
+      .andWhere('orders.order_status= :ord_status',{ ord_status:OrderStatus.REFUNDED })
       .groupBy('clients.id')
       .addGroupBy('apartments.id')
       .addGroupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
+
     result = await Promise.all(
       res.map(async (data) => {
         data['payments_cash'] = await this.returnPayment(

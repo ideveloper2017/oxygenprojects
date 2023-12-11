@@ -66,7 +66,7 @@ export class WordexportController {
       .where('order_id= :order_id', { order_id: client_id })
       .select([
         "TO_CHAR(due_date,'DD.MM.YYYY') as due_date",
-        "TO_CHAR(usd_due_amount,'fm999999') as usd_due_amount",
+        "ROUND(usd_due_amount) as usd_due_amount",
       ])
       .getRawMany();
 
@@ -85,7 +85,7 @@ export class WordexportController {
       .getRawOne();
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
-    initial_pay_usd = Math.floor(order.initial_pay / usdRate.rate_value);
+    initial_pay_usd = Math.round(Number(order.initial_pay) /Number(usdRate.rate_value));
     percent = order?.percent;
     const file_id = order?.orderItems?.map((data) => {
       return data.apartments.file_id;
@@ -138,7 +138,7 @@ export class WordexportController {
         credits_usd: credits_usd,
         count_month: credits.length,
         initalpay: Number(order.initial_pay),
-        initial_pay_usd: initial_pay_usd,
+        initial_pay_usd: Math.round(initial_pay_usd),
         delevery_time:
           order?.delivery_time +
           ' (' +
