@@ -460,6 +460,7 @@ export class ReportService {
         'clients.last_name',
         'clients.middle_name',
         'clients.contact_number as phone',
+        'clients.description as description',
         'orders.id as order_number',
         'orders.total_amount as total_amount',
         'orders.total_amount_usd as total_amount_usd',

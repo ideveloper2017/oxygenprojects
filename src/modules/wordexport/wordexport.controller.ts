@@ -91,7 +91,7 @@ export class WordexportController {
       return data.apartments.file_id;
     });
 
-    const file = await this.fileService.getFileById(file_id[0]);
+    const file = await this.fileService.getFileById(file_id?file_id[0]:0);
     const fileobj = {
       _type: 'image',
       source: existsSync(file.path) ? fs.readFileSync(file.path) : '',
@@ -145,7 +145,7 @@ export class WordexportController {
           this.numberToWords(order?.delivery_time) +
           ')',
         percent: percent,
-        apartment_image: fileobj?:fileobj:'',
+        apartment_image: fileobj,
         total_sum: (summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay)),
         totalsum: (summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay)),
         totalsum_usd: Math.round((Number((summa_usd ? summa_usd.summa : 0)) + Number(initial_pay_usd))),
