@@ -812,27 +812,27 @@ export class ReportService {
         summa = await this.allSaleSummaryPayment(
           data.build_id,
           Paymentmethods.CASH,
-          data.order_date,
+          data.order_id,
         ).then((data) => {
           return data;
         });
         summabank = await this.allSaleSummaryPayment(
           data.build_id,
           Paymentmethods.BANK,
-          data.order_date,
+          data.order_id,,
         ).then((data) => {
           return data;
         });
         initial_sum = await this.summaryInitial(
           data.build_id,
-          data.order_date,
+          data.order_id,
         ).then((data) => {
           return data;
         });
 
         return_sum = await this.allReturnPayment(
           data.build_id,
-          data.order_date,
+          data.order_id,
         ).then((data) => {
           return data;
         });
