@@ -754,11 +754,11 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .leftJoinAndSelect(
-        'orders.payments',
-        'payments',
-        'orders.id=payments.order_id',
-      )
+      // .leftJoinAndSelect(
+      //   'orders.payments',
+      //   'payments',
+      //   'orders.id=payments.order_id',
+      // )
       .select([
         'orders.id as order_id',
         'buildings.id as build_id',
@@ -842,8 +842,7 @@ export class ReportService {
            // total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_due:
-              Number(summa.total_sum) + Number(summabank.total_sum),
+            total_sum_due:  Number(summa.total_sum) + Number(summabank.total_sum),
           },
         ];
 
