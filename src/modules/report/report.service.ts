@@ -1127,8 +1127,8 @@ export class ReportService {
         'paymentMethods.id=orders.payment_method_id',
       )
       .select([
-         'orders.id as order_id',
-        // "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
+        'orders.id as order_id',
+        "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
         'users.first_name as ufrist_name',
         'users.last_name as ulast_name',
         'clients.id as client_id',
