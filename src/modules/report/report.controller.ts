@@ -108,22 +108,23 @@ export class ReportController {
       });
   }
 
-
-    @Get('/summary-detail-report')
-    public getSummaryDetailReport() {
-        return this.reportService
-            .getSaleSummaryReport()
-            .then((data) => {
-                if (data) {
-                    return { success: true, data: data, message: 'fetch all data!!!' };
-                } else {
-                    return { success: true, message: 'not record data!!!' };
-                }
-            })
-            .catch((error) => {
-                return { success: false, message: error.message };
-            });
-    }
+  @Get('/summary-detail-report')
+  public getSummaryDetailReport() {
+    return this.reportService
+      .getSaleSummaryReport()
+      .then((data) => {
+        return data;
+        // if (data) {
+        // return { success: true, data, message: 'fetch all data!!!' };
+        // return { success: true, data, message: 'fetch all data!!!' };
+        // } else {
+        //   return { success: true, message: 'not record data!!!' };
+        // }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
+  }
 
   @Get('/sale-summary-report')
   public getSaleSummaryReport() {
