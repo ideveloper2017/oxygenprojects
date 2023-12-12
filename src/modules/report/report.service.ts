@@ -1240,7 +1240,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymethod', {
         paymethod: paymentMethod,
       })
-      .andWhere("TO_CHAR(orders.order_date,'DD.MM.YYYY')=:date", { date })
+      // .andWhere("TO_CHAR(orders.order_date,'DD.MM.YYYY')=:date", { date })
       .getRawMany();
 
     result.forEach((item) => {
