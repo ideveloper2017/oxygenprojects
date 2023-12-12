@@ -767,15 +767,15 @@ export class ReportService {
         'towns.name as townname',
         'buildings.name as buildingname',
         'SUM(apartments.room_space) as room_space',
-        'buildings.mk_price as mk_price',
+        'orderitems.price as mk_price',
         "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
-      .groupBy('towns.id')
-      .addGroupBy('buildings.id')
-      .addGroupBy("TO_CHAR(orders.order_date,'DD.MM.YYYY')")
+      // .groupBy('towns.id')
+      .groupBy('buildings.id')
+      // .addGroupBy("TO_CHAR(orders.order_date,'DD.MM.YYYY')")
       .orderBy('buildings.id', 'ASC')
       .addOrderBy('order_date', 'DESC')
       .getRawMany();

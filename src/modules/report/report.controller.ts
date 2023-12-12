@@ -114,12 +114,6 @@ export class ReportController {
       .getSaleSummaryReport()
       .then((data) => {
         return data;
-        // if (data) {
-        // return { success: true, data, message: 'fetch all data!!!' };
-        // return { success: true, data, message: 'fetch all data!!!' };
-        // } else {
-        //   return { success: true, message: 'not record data!!!' };
-        // }
       })
       .catch((error) => {
         return { success: false, message: error.message };
