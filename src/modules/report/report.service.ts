@@ -486,21 +486,21 @@ export class ReportService {
       res.map(async (data) => {
         let summa_out, summa_cash, summa_bank;
         summa_out = await this.clientPayment(
-          data.order_number,
+          data.order_id,
           data.client_id,
           [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
         ).then((response) => {
           return response;
         });
         summa_cash = await this.clientPayment(
-          data.order_number,
+          data.order_id,
           data.client_id,
           [Paymentmethods.CASH, Paymentmethods.CARD],
         ).then((response) => {
           return response;
         });
         summa_bank = await this.clientPayment(
-          data.order_number,
+          data.order_id,
           data.client_id,
           [Paymentmethods.BANK],
         ).then((response) => {
@@ -523,7 +523,7 @@ export class ReportService {
   }
 
   async clientPayment(
-    order_date: string,
+    order_id: number,
     client_id: number,
     paymentmethods: Paymentmethods[],
   ) {
@@ -553,6 +553,7 @@ export class ReportService {
       })
       .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
       //   .andWhere('orders.order_date= :order_date', { order_date })
+        .andWhere('orders.id= :order_id',{order_id})
       .andWhere('orders.client_id= :client_id', { client_id })
       .getRawMany();
 
@@ -765,13 +766,13 @@ export class ReportService {
         'towns.name as townname',
         'buildings.name as buildingname',
         'SUM(apartments.room_space) as room_space',
-        'buildings.mk_price as mk_price',
+        'SUM(orderitems.price) as mk_price',
+        'SUM(orderitems.price_usd) as mk_price_usd',
         "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
-      .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
       .groupBy('towns.id')
       .addGroupBy('buildings.id')
       .addGroupBy("TO_CHAR(orders.order_date,'DD.MM.YYYY')")
