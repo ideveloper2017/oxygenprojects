@@ -1054,7 +1054,7 @@ export class ReportService {
         method: paymentMethod,
       })
       .andWhere('clients.id= :client_id', { client_id: client_id })
-      .andWhere('apartments.id= :apartment_id', { apartment_id })
+      // .andWhere('apartments.id= :apartment_id', { apartment_id })
       // .andWhere("to_char(payments.payment_date,'MM-YYYY')= :pay_date", {
       //   pay_date: pay_data,
       // })
