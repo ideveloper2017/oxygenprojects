@@ -819,27 +819,27 @@ export class ReportService {
         summabank = await this.allSaleSummaryPayment(
           data.build_id,
           Paymentmethods.BANK,
-          data.order_id,,
-        ).then((data) => {
-          return data;
-        });
-        initial_sum = await this.summaryInitial(
-          data.build_id,
           data.order_id,
         ).then((data) => {
           return data;
         });
-
-        return_sum = await this.allReturnPayment(
-          data.build_id,
-          data.order_id,
-        ).then((data) => {
-          return data;
-        });
+        // initial_sum = await this.summaryInitial(
+        //   data.build_id,
+        //   data.order_id,
+        // ).then((data) => {
+        //   return data;
+        // });
+        //
+        // return_sum = await this.allReturnPayment(
+        //   data.build_id,
+        //   data.order_id,
+        // ).then((data) => {
+        //   return data;
+        // });
 
         data['data_month'] = [
           {
-            total_initial_sum: initial_sum,
+           // total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
             total_sum_due:
