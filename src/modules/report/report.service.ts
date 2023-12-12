@@ -1147,7 +1147,7 @@ export class ReportService {
       //   caisher_type: Caishertype.IN,
       // })
       .groupBy("to_char(orders.order_date,'DD.MM.YYYY')")
-      // .addGroupBy('orders.id')
+      .addGroupBy('orders.id')
       .addGroupBy('users.id')
       .addGroupBy('clients.id')
       // .addGroupBy('buildings.id')
