@@ -533,10 +533,11 @@ export class ReportService {
     };
     let result;
     result = await this.orderRepo.manager
-      .createQueryBuilder(Payments, 'payments')
+      // .createQueryBuilder(Payments, 'payments')
+      .createQueryBuilder(Orders, 'orders')
       .leftJoinAndSelect(
-        'payments.orders',
-        'orders',
+        'orders.payments',
+        'payments',
         'orders.id=payments.order_id',
       )
       .leftJoinAndSelect(
