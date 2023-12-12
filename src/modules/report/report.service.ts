@@ -767,7 +767,7 @@ export class ReportService {
         'towns.name as townname',
         'buildings.name as buildingname',
         'SUM(apartments.room_space) as room_space',
-        'buildings.price as mk_price',
+        'buildings.mk_price as mk_price',
         "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
       ])
       .where('orders.order_status IN(:...orderStatus)', {
