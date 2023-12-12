@@ -1238,7 +1238,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymethod', {
         paymethod: paymentMethod,
       })
-      .andWhere('orders.id= :date', { order_id })
+      .andWhere('orders.id= :order_id', { order_id })
       .getRawMany();
 
     result.forEach((item) => {
