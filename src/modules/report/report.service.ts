@@ -485,25 +485,22 @@ export class ReportService {
     updatedRes = await Promise.all(
       res.map(async (data) => {
         let summa_out, summa_cash, summa_bank;
-        summa_out = await this.clientPayment(
-          data.order_id,
-          data.client_id,
-          [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
-        ).then((response) => {
+        summa_out = await this.clientPayment(data.order_id, data.client_id, [
+          Paymentmethods.CARD,
+          Paymentmethods.CASH,
+          Paymentmethods.BANK,
+        ]).then((response) => {
           return response;
         });
-        summa_cash = await this.clientPayment(
-          data.order_id,
-          data.client_id,
-          [Paymentmethods.CASH, Paymentmethods.CARD],
-        ).then((response) => {
+        summa_cash = await this.clientPayment(data.order_id, data.client_id, [
+          Paymentmethods.CASH,
+          Paymentmethods.CARD,
+        ]).then((response) => {
           return response;
         });
-        summa_bank = await this.clientPayment(
-          data.order_id,
-          data.client_id,
-          [Paymentmethods.BANK],
-        ).then((response) => {
+        summa_bank = await this.clientPayment(data.order_id, data.client_id, [
+          Paymentmethods.BANK,
+        ]).then((response) => {
           return response;
         });
         data['total_sum_out'] = summa_out.total_sum_out;
@@ -554,7 +551,7 @@ export class ReportService {
       })
       .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
       //   .andWhere('orders.order_date= :order_date', { order_date })
-        .andWhere('orders.id= :order_id',{order_id})
+      .andWhere('orders.id= :order_id', { order_id })
       .andWhere('orders.client_id= :client_id', { client_id })
       .getRawMany();
 
@@ -763,6 +760,7 @@ export class ReportService {
         'orders.id=payments.order_id',
       )
       .select([
+        'orders.id as order_id',
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
@@ -1180,7 +1178,7 @@ export class ReportService {
   async allSaleSummaryPayment(
     build_id: number,
     paymentMethod: Paymentmethods,
-    date: string,
+    order_id: number,
   ) {
     const sumResults = {
       total_sum: 0,
@@ -1240,7 +1238,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods= :paymethod', {
         paymethod: paymentMethod,
       })
-      // .andWhere("TO_CHAR(orders.order_date,'DD.MM.YYYY')=:date", { date })
+      .andWhere('orders.id= :date', { order_id })
       .getRawMany();
 
     result.forEach((item) => {
