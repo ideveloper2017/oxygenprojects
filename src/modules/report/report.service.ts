@@ -766,7 +766,7 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'SUM(apartments.room_space) as room_space',
+        'apartments.room_space as room_space',
         'orderitems.price as mk_price',
         "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
       ])
@@ -774,7 +774,7 @@ export class ReportService {
         orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       // .groupBy('towns.id')
-      .groupBy('buildings.id')
+      // .groupBy('buildings.id')
       // .addGroupBy("TO_CHAR(orders.order_date,'DD.MM.YYYY')")
       .orderBy('buildings.id', 'ASC')
       .addOrderBy('order_date', 'DESC')
