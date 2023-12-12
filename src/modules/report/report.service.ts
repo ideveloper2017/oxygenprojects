@@ -1058,7 +1058,7 @@ export class ReportService {
       // .andWhere("to_char(payments.payment_date,'MM-YYYY')= :pay_date", {
       //   pay_date: pay_data,
       // })
-      // .groupBy("to_char(payments.payment_date,'MM-YYYY')")
+      .groupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
     return result;
   }
