@@ -1127,8 +1127,8 @@ export class ReportService {
         'paymentMethods.id=orders.payment_method_id',
       )
       .select([
-        // 'orders.id as order_id',
-        "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
+         'orders.id as order_id',
+        // "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
         'users.first_name as ufrist_name',
         'users.last_name as ulast_name',
         'clients.id as client_id',
@@ -1159,7 +1159,7 @@ export class ReportService {
     result = await Promise.all(
       res.map(async (data) => {
         let payment, credit_table;
-        payment = await this.clientPayment(data.order_date, data.client_id, [
+        payment = await this.clientPayment(data.order_id, data.client_id, [
           Paymentmethods.CASH,
           Paymentmethods.CARD,
         ]);
