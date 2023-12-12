@@ -754,11 +754,6 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      // .leftJoinAndSelect(
-      //   'orders.payments',
-      //   'payments',
-      //   'orders.id=payments.order_id',
-      // )
       .select([
         'orders.id as order_id',
         'buildings.id as build_id',
@@ -839,14 +834,11 @@ export class ReportService {
 
         data['data_month'] = [
           {
-           // total_initial_sum: initial_sum,
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
             total_sum_due:  Number(summa.total_sum) + Number(summabank.total_sum),
           },
         ];
-
-        // data['all_room_space'] = sum;
         return data;
       }),
     );
@@ -1063,9 +1055,9 @@ export class ReportService {
       })
       .andWhere('clients.id= :client_id', { client_id: client_id })
       .andWhere('apartments.id= :apartment_id', { apartment_id })
-      .andWhere("to_char(payments.payment_date,'MM-YYYY')= :pay_date", {
-        pay_date: pay_data,
-      })
+      // .andWhere("to_char(payments.payment_date,'MM-YYYY')= :pay_date", {
+      //   pay_date: pay_data,
+      // })
       .groupBy("to_char(payments.payment_date,'MM-YYYY')")
       .getRawMany();
     return result;
