@@ -437,10 +437,11 @@ export class ReportService {
 
     updateRes = await Promise.all(
       res.map(async (data) => {
+        let summa_out, summa_cash, summa_bank;
         let apartments;
         apartments = await this.orderRepo.manager
           .createQueryBuilder(Apartments, 'apartments')
-          .leftJoinAndSelect(
+            .leftJoinAndSelect(
             'apartments.floor',
             'floor',
             'floor.id=apartments.floor_id',
@@ -455,8 +456,74 @@ export class ReportService {
             'buildings',
             'buildings.id=entrance.building_id',
           )
-         .getRawMany();
+          .leftJoinAndSelect('apartments.orderItems','orderItems','orderItems.apartment_id=apartments.id')
+          .leftJoinAndSelect('orderItems.orders','orders','orders.id=orderItems.order_id')
+          .leftJoinAndSelect('orders.clients','clients','clients.id=orders.client_id')
+          .select([
+            'orders.id as order_id',
+            'clients.id as client_id',
+            'clients.first_name',
+            'clients.last_name',
+            'clients.middle_name',
+            'clients.contact_number as phone',
+            'clients.description as description',
+            'orders.id as order_number',
+            'orders.total_amount as total_amount',
+            'orders.total_amount_usd as total_amount_usd',
+            'orderItems.price as price',
+            'orderItems.price_usd as price_usd',
+            'buildings.name as buildingname',
+            'entrance.entrance_number as entrance_number',
+            'floor.floor_number as floor_number',
+            'apartments.cells as room_cells',
+            'apartments.room_number as room_number',
+            'apartments.room_space as room_space',
+            'buildings.mk_price as mk_price',
+            'buildings.id as building_id',
+            'buildings.apartment_number as apartment_number',
+            'orderItems.price as price',
+            'orderItems.price_usd as price_usd'
+          ])
+          .where('buildings.id= :building_id', { building_id: data.building_id })
+          .orderBy('entrance_number','ASC')
+          .orderBy('floor_number','ASC')
+          .orderBy('room_number','ASC')
+          .getRawMany();
+
+        = await Promise.all(apartments.map(async(data)=>{
+          summa_out = await this.clientPayment(data.order_id, data.client_id, [
+            Paymentmethods.CARD,
+            Paymentmethods.CASH,
+            Paymentmethods.BANK,
+          ]).then((response) => {
+            return response;
+          });
+          summa_cash = await this.clientPayment(data.order_id, data.client_id, [
+            Paymentmethods.CASH,
+            Paymentmethods.CARD,
+          ]).then((response) => {
+            return response;
+          });
+          summa_bank = await this.clientPayment(data.order_id, data.client_id, [
+            Paymentmethods.BANK,
+          ]).then((response) => {
+            return response;
+          });
+          data['total_sum_out'] = summa_out.total_sum_out;
+          data['total_sum_out_usd'] = summa_out.total_usd_out;
+          data['total_sum_cash'] = summa_cash.total_sum_out;
+          data['total_sum_cash_usd'] = summa_cash.total_usd_out;
+          data['total_bank'] = Number(summa_bank.total_sum_out);
+          data['total_bank_usd'] = Number(summa_bank.total_usd_out);
+          data['due_total_sum'] =
+              Number(data.total_amount) - Number(summa_out.total_sum_out);
+          data['due_total_usd'] =
+              Number(data.total_amount_usd) - Number(summa_out.total_usd_out);
+          return data;
+        }));
+
         data['apartments'] = apartments;
+
         return data;
       }),
     );
