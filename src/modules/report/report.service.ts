@@ -415,7 +415,7 @@ export class ReportService {
   }
 
   public async getClientByApartment() {
-    let res, updateRes;
+    let res, updateRes,subRes;
 
     res = await this.orderRepo.manager
       .createQueryBuilder(Buildings, 'buildings')
@@ -486,11 +486,11 @@ export class ReportService {
           ])
           .where('buildings.id= :building_id', { building_id: data.building_id })
           .orderBy('entrance_number','ASC')
-          .orderBy('floor_number','ASC')
-          .orderBy('room_number','ASC')
+          .orderBy('floor_number','DESC')
+          .orderBy('room_number','DESC')
           .getRawMany();
 
-        = await Promise.all(apartments.map(async(data)=>{
+        subRes= await Promise.all(apartments.map(async(data)=>{
           summa_out = await this.clientPayment(data.order_id, data.client_id, [
             Paymentmethods.CARD,
             Paymentmethods.CASH,
