@@ -10,6 +10,7 @@ import { ApartmentStatus } from '../../common/enums/apartment-status';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
 import { CreditTable } from '../credit-table/entities/credit-table.entity';
 import { Apartments } from '../apartments/entities/apartment.entity';
+import { Buildings } from '../buildings/entities/building.entity';
 
 @Injectable()
 export class ReportService {
@@ -414,110 +415,157 @@ export class ReportService {
   }
 
   public async getClientByApartment() {
-    let res;
-    let updatedRes;
+    let res, updateRes;
+
     res = await this.orderRepo.manager
-      .createQueryBuilder(Orders, 'orders')
-      .leftJoinAndSelect(
-        'orders.clients',
-        'clients',
-        'clients.id=orders.client_id',
-      )
-      .leftJoinAndSelect(
-        'orders.orderItems',
-        'orderitems',
-        'orderitems.order_id=orders.id',
-      )
-      .leftJoinAndSelect(
-        'orderitems.apartments',
-        'apartments',
-        'apartments.id=orderitems.apartment_id',
-      )
-      .leftJoinAndSelect(
-        'apartments.floor',
-        'floor',
-        'floor.id=apartments.floor_id',
-      )
-      .leftJoinAndSelect(
-        'floor.entrance',
-        'entrance',
-        'entrance.id=floor.entrance_id',
-      )
-      .leftJoinAndSelect(
-        'entrance.buildings',
-        'buildings',
-        'buildings.id=entrance.building_id',
-      )
+      .createQueryBuilder(Buildings, 'buildings')
       .leftJoinAndSelect(
         'buildings.towns',
         'towns',
         'towns.id=buildings.town_id',
       )
       .select([
-        'orders.id as order_id',
-        'clients.id as client_id',
-        'clients.first_name',
-        'clients.last_name',
-        'clients.middle_name',
-        'clients.contact_number as phone',
-        'clients.description as description',
-        'orders.id as order_number',
-        'orders.total_amount as total_amount',
-        'orders.total_amount_usd as total_amount_usd',
-        'orderitems.price as price',
-        'orderitems.price_usd as price_usd',
+        'buildings.id as building_id',
+        'buildings.entrance_number as entrance_number',
+        'buildings.floor_number as floor_number',
+        'buildings.apartment_number as apartment_number',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'entrance.entrance_number',
-        'floor.floor_number',
-        'apartments.cells as room_cells',
-        'apartments.room_number',
-        'apartments.room_space',
         'buildings.mk_price',
       ])
-      .where('orders.order_status IN(:...orderStatus)', {
-        orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
-      })
-      // .andWhere('orders.is_deleted= :isDelete', { isDelete: false })
-      .orderBy('orders.id', 'DESC')
       .getRawMany();
 
-    updatedRes = await Promise.all(
+    updateRes = await Promise.all(
       res.map(async (data) => {
-        let summa_out, summa_cash, summa_bank;
-        summa_out = await this.clientPayment(data.order_id, data.client_id, [
-          Paymentmethods.CARD,
-          Paymentmethods.CASH,
-          Paymentmethods.BANK,
-        ]).then((response) => {
-          return response;
-        });
-        summa_cash = await this.clientPayment(data.order_id, data.client_id, [
-          Paymentmethods.CASH,
-          Paymentmethods.CARD,
-        ]).then((response) => {
-          return response;
-        });
-        summa_bank = await this.clientPayment(data.order_id, data.client_id, [
-          Paymentmethods.BANK,
-        ]).then((response) => {
-          return response;
-        });
-        data['total_sum_out'] = summa_out.total_sum_out;
-        data['total_sum_out_usd'] = summa_out.total_usd_out;
-        data['total_sum_cash'] = summa_cash.total_sum_out;
-        data['total_sum_cash_usd'] = summa_cash.total_usd_out;
-        data['total_bank'] = Number(summa_bank.total_sum_out);
-        data['total_bank_usd'] = Number(summa_bank.total_usd_out);
-        data['due_total_sum'] =
-          Number(data.total_amount) - Number(summa_out.total_sum_out);
-        data['due_total_usd'] =
-          Number(data.total_amount_usd) - Number(summa_out.total_usd_out);
+        let apartments;
+        apartments = await this.orderRepo.manager
+          .createQueryBuilder(Apartments, 'apartments')
+          .leftJoinAndSelect(
+            'apartments.floor',
+            'floor',
+            'floor.id=apartments.floor_id',
+          )
+          .leftJoinAndSelect(
+            'floor.entrance',
+            'entrance',
+            'entrance.id=floor.entrance_id',
+          )
+          .leftJoinAndSelect(
+            'entrance.buildings',
+            'buildings',
+            'buildings.id=entrance.building_id',
+          )
+         .getRawMany();
+        data['apartments'] = apartments;
         return data;
       }),
     );
-    return updatedRes;
+    return updateRes;
   }
+  // public async getClientByApartment() {
+  //   let res;
+  //   let updatedRes;
+  //   res = await this.orderRepo.manager
+  //     .createQueryBuilder(Orders, 'orders')
+  //     .leftJoinAndSelect(
+  //       'orders.clients',
+  //       'clients',
+  //       'clients.id=orders.client_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'orders.orderItems',
+  //       'orderitems',
+  //       'orderitems.order_id=orders.id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'orderitems.apartments',
+  //       'apartments',
+  //       'apartments.id=orderitems.apartment_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'apartments.floor',
+  //       'floor',
+  //       'floor.id=apartments.floor_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'floor.entrance',
+  //       'entrance',
+  //       'entrance.id=floor.entrance_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'entrance.buildings',
+  //       'buildings',
+  //       'buildings.id=entrance.building_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'buildings.towns',
+  //       'towns',
+  //       'towns.id=buildings.town_id',
+  //     )
+  //     .select([
+  //       'orders.id as order_id',
+  //       'clients.id as client_id',
+  //       'clients.first_name',
+  //       'clients.last_name',
+  //       'clients.middle_name',
+  //       'clients.contact_number as phone',
+  //       'clients.description as description',
+  //       'orders.id as order_number',
+  //       'orders.total_amount as total_amount',
+  //       'orders.total_amount_usd as total_amount_usd',
+  //       'orderitems.price as price',
+  //       'orderitems.price_usd as price_usd',
+  //       'towns.name as townname',
+  //       'buildings.name as buildingname',
+  //       'entrance.entrance_number',
+  //       'floor.floor_number',
+  //       'apartments.cells as room_cells',
+  //       'apartments.room_number',
+  //       'apartments.room_space',
+  //       'buildings.mk_price',
+  //     ])
+  //     .where('orders.order_status IN(:...orderStatus)', {
+  //       orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+  //     })
+  //      .orderBy('orders.id', 'DESC')
+  //     .getRawMany();
+  //
+  //   updatedRes = await Promise.all(
+  //     res.map(async (data) => {
+  //       let summa_out, summa_cash, summa_bank;
+  //       summa_out = await this.clientPayment(data.order_id, data.client_id, [
+  //         Paymentmethods.CARD,
+  //         Paymentmethods.CASH,
+  //         Paymentmethods.BANK,
+  //       ]).then((response) => {
+  //         return response;
+  //       });
+  //       summa_cash = await this.clientPayment(data.order_id, data.client_id, [
+  //         Paymentmethods.CASH,
+  //         Paymentmethods.CARD,
+  //       ]).then((response) => {
+  //         return response;
+  //       });
+  //       summa_bank = await this.clientPayment(data.order_id, data.client_id, [
+  //         Paymentmethods.BANK,
+  //       ]).then((response) => {
+  //         return response;
+  //       });
+  //       data['total_sum_out'] = summa_out.total_sum_out;
+  //       data['total_sum_out_usd'] = summa_out.total_usd_out;
+  //       data['total_sum_cash'] = summa_cash.total_sum_out;
+  //       data['total_sum_cash_usd'] = summa_cash.total_usd_out;
+  //       data['total_bank'] = Number(summa_bank.total_sum_out);
+  //       data['total_bank_usd'] = Number(summa_bank.total_usd_out);
+  //       data['due_total_sum'] =
+  //         Number(data.total_amount) - Number(summa_out.total_sum_out);
+  //       data['due_total_usd'] =
+  //         Number(data.total_amount_usd) - Number(summa_out.total_usd_out);
+  //       return data;
+  //     }),
+  //   );
+  //   return updatedRes;
+  // }
 
   async clientPayment(
     order_id: number,
@@ -836,7 +884,8 @@ export class ReportService {
           {
             total_sum_cahs: Number(summa.total_sum),
             total_sum_bank: Number(summabank.total_sum),
-            total_sum_due:  Number(summa.total_sum) + Number(summabank.total_sum),
+            total_sum_due:
+              Number(summa.total_sum) + Number(summabank.total_sum),
           },
         ];
         return data;
