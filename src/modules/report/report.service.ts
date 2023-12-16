@@ -615,6 +615,7 @@ export class ReportService {
       .where('buildings.id= :building_id', {
         building_id: data.building_id,
       })
+   //   .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED,OrderStatus.INACTIVE]})
       .orderBy('entrance_number', 'ASC')
       .orderBy('floor_number', 'DESC')
       .orderBy('room_number', 'DESC')
@@ -654,6 +655,7 @@ export class ReportService {
         data['total_bank_usd'] =Number(summa_bank.total_usd_out);
         data['due_total_sum'] =Number(data.total_amount) - Number(summa_out.total_sum_out);
         data['due_total_usd'] =Math.round(Number(data.total_amount_usd))-Math.round(Number(summa_out.total_usd_out));
+        console.log(data);
         return data;
       }),
     );
@@ -702,9 +704,10 @@ export class ReportService {
         paymethods: paymentmethods,
       })
       .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .andWhere('orders.order_status IN(:...status)', { status: [OrderStatus.ACTIVE,OrderStatus.COMPLETED] })
       //   .andWhere('orders.order_date= :order_date', { order_date })
-      // .andWhere('orders.id= :order_id', { order_id })
-      //  .andWhere('orders.client_id= :client_id', { client_id })
+      .andWhere('orders.id= :order_id', { order_id })
+      .andWhere('orders.client_id= :client_id', { client_id })
       .andWhere('apartments.id= :apartment_id', { apartment_id })
       .getRawMany();
 
