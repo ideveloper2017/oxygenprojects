@@ -522,7 +522,7 @@ export class ReportService {
           return data;
         }));
 
-        data['apartments'] = apartments;
+        data['apartments'] = subRes;
 
         return data;
       }),
