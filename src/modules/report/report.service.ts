@@ -1218,7 +1218,7 @@ export class ReportService {
               'towns.id=buildings.town_id',
             )
             .select('SUM(apartments.room_space)', 'sum')
-            // .where('buildings.id = :id', { id: data.build_id })
+            .where('buildings.id = :id', { id: data.build_id })
             .getRawOne();
 
           const resultpay = await Promise.all(
