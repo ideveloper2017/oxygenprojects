@@ -104,7 +104,7 @@ export class ReportController {
         }
       })
       .catch((error) => {
-        return { status: error.code, message: error.message };
+        return { status: error.status, message: error.message };
       });
   }
 
