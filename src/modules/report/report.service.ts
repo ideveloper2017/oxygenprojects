@@ -1087,7 +1087,6 @@ export class ReportService {
   async getSaleSummaryReport() {
     try {
       let result;
-
       // Use TypeORM QueryBuilder to fetch data
       const res = await this.orderRepo.manager
         .createQueryBuilder(Orders, 'orders')
