@@ -774,11 +774,6 @@ export class ReportService {
           return data;
         });
 
-        // summacard = await this.allSummaryPayment(data.build_id, [
-        //   Paymentmethods.CARD,
-        // ]).then((data) => {
-        //   return data;
-        // });
         const { all_room_space } = await this.orderRepo.manager
           .createQueryBuilder(Apartments, 'apartments')
           .leftJoinAndSelect(
@@ -828,23 +823,21 @@ export class ReportService {
         let summa_real = 0;
         order_apartments.forEach((data) => {
           const real_price = Number(data.price) - Number(buildin_price);
-          console.log(real_price * data.room_space);
           summa_real += Number(real_price) * Number(data.room_space);
-          // console.log(Number(data.orderItems_price)-Number(buildin_price));
-          // console.log(Number(data.orderItems_price)+' '+Number(buildin_price));
         });
 
-         console.log('Itogo: '+summa_real);
         const order_apartment = await this.orderAllApartment(data.build_id);
         data['all_room_space'] = all_room_space;
-        data['total_room_price'] =(Number(all_room_space) * Number(data.mk_price))+summa_real;
+        data['total_room_price'] =
+          Number(all_room_space) * Number(data.mk_price) + summa_real;
         data['order_room_space'] = order_apartment.room_space;
         data['order_all_price'] = order_apartment.total_amount;
         data['total_sum_cash'] = Number(summa.total_sum);
         data['total_sum_bank'] = Number(summabank.total_sum);
         data['total_sum_due'] =
           Number(summabank.total_sum) + Number(summa.total_sum)
-            ? ((Number(all_room_space) * Number(data.mk_price))+summa_real) -
+            ? Number(all_room_space) * Number(data.mk_price) +
+              summa_real -
               (Number(summabank.total_sum) + Number(summa.total_sum))
             : 0;
         return data;
@@ -900,7 +893,6 @@ export class ReportService {
       })
       .where('buildings.id= :build_id', { build_id: build_id })
       .groupBy('buildings.id')
-
       .getRawOne();
     return res;
   }

@@ -103,9 +103,9 @@ export class ReportController {
           return { success: true, message: 'not record data!!!' };
         }
       })
-      // .catch((error) => {
-      //   return { success: false, message: error.message };
-      // });
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
   }
 
   @Get('/summary-detail-report')
