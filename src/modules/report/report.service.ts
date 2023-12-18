@@ -742,9 +742,9 @@ export class ReportService {
   }
 
   async clientPaymentOut(
-      order_id: number,
-      client_id: number,
-      paymentmethods: Paymentmethods[],
+    order_id: number,
+    client_id: number,
+    paymentmethods: Paymentmethods[],
   ) {
     const sumResults = {
       total_sum_out: 0,
@@ -752,45 +752,45 @@ export class ReportService {
     };
     let result;
     result = await this.orderRepo.manager
-        // .createQueryBuilder(Payments, 'payments')
-        .createQueryBuilder(Orders, 'orders')
-        .leftJoinAndSelect(
-            'orders.orderItems',
-            'orderItems',
-            'orderItems.order_id=orders.id',
-        )
-        .leftJoinAndSelect(
-            'orderItems.apartments',
-            'apartments',
-            'apartments.id=orderItems.apartment_id',
-        )
-        .leftJoinAndSelect(
-            'orders.payments',
-            'payments',
-            'orders.id=payments.order_id',
-        )
-        .leftJoinAndSelect(
-            'orders.clients',
-            'clients',
-            'clients.id=orders.client_id',
-        )
+      // .createQueryBuilder(Payments, 'payments')
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderItems',
+        'orderItems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderItems.apartments',
+        'apartments',
+        'apartments.id=orderItems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'orders.payments',
+        'payments',
+        'orders.id=payments.order_id',
+      )
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
 
-        .select([
-          'SUM(payments.amount) AS total_sum',
-          'SUM(payments.amount_usd) AS total_usd',
-        ])
-        .where('payments.paymentmethods IN(:...paymethods)', {
-          paymethods: paymentmethods,
-        })
-        .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-        // .andWhere('orders.order_status IN(:...status)', {
-        //   status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
-        // })
-        //   .andWhere('orders.order_date= :order_date', { order_date })
-        // .andWhere('orders.id= :order_id', { order_id })
-        .andWhere('orders.client_id= :client_id', { client_id })
-        // .andWhere('apartments.id= :apartment_id', { apartment_id })
-        .getRawMany();
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+      .where('payments.paymentmethods IN(:...paymethods)', {
+        paymethods: paymentmethods,
+      })
+      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      // .andWhere('orders.order_status IN(:...status)', {
+      //   status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      // })
+      //   .andWhere('orders.order_date= :order_date', { order_date })
+      // .andWhere('orders.id= :order_id', { order_id })
+      .andWhere('orders.client_id= :client_id', { client_id })
+      // .andWhere('apartments.id= :apartment_id', { apartment_id })
+      .getRawMany();
 
     result.forEach((item) => {
       sumResults.total_sum_out = +item.total_sum;
@@ -885,7 +885,8 @@ export class ReportService {
         });
         const order_apartment = await this.orderAllApartment(data.build_id);
         data['all_room_space'] = all_room_space;
-        data['total_room_price'] = (Number(all_room_space) * Number(data.mk_price)) + summa_real;
+        data['total_room_price'] =
+          Number(all_room_space) * Number(data.mk_price) + summa_real;
         data['order_room_space'] = order_apartment?.room_space;
         data['order_all_price'] = order_apartment?.total_amount;
         data['total_sum_cash'] = Number(summa.total_sum);
@@ -1748,15 +1749,13 @@ export class ReportService {
       .orderBy('order_date', 'DESC')
       .getRawMany();
 
-
     result = await Promise.all(
       res.map(async (data) => {
         let payment, credit_table;
-        payment = await this.clientPaymentOut(
-          data.order_id,
-          data.client_id,
-          [Paymentmethods.CASH, Paymentmethods.CARD],
-        );
+        payment = await this.clientPaymentOut(data.order_id, data.client_id, [
+          Paymentmethods.CASH,
+          Paymentmethods.CARD,
+        ]);
         //  credit_table = await this.getCreditTable(data.order_id);
         data['payment'] = payment;
         // data['payment_months'] = credit_table;
