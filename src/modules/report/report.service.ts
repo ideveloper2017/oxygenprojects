@@ -1145,7 +1145,7 @@ export class ReportService {
         'SUM(payments.amount_usd) AS total_usd',
       ])
       .where('buildings.id= :build_id', { build_id: build_id })
-      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
       })
@@ -1199,7 +1199,7 @@ export class ReportService {
           'SUM(payments.amount_usd) AS total_usd',
         ])
         .where('buildings.id= :build_id', { build_id: build_id })
-        .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+        .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
         .andWhere('payments.paymentmethods IN(:...paymethod)', {
           paymethod: paymentMethod,
         })
