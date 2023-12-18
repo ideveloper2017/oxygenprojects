@@ -838,13 +838,13 @@ export class ReportService {
           return data;
         });
 
-        summa_out = await this.allSummaryPayment(data.build_id, [
+        summa_out = await this.allSummaryPaymentOut(data.build_id, [
           Paymentmethods.CASH,
           Paymentmethods.CARD,
         ]).then((data) => {
           return data;
         });
-        summabank_out = await this.allSummaryPayment(data.build_id, [
+        summabank_out = await this.allSummaryPaymentOut(data.build_id, [
           Paymentmethods.BANK,
         ]).then((data) => {
           return data;
