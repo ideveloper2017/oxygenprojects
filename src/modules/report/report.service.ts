@@ -805,7 +805,7 @@ export class ReportService {
     return sumResults;
   }
 
-  public async summaryReport() {
+   async summaryReport() {
     let result, res;
     let summa_real = 0;
     res = await this.orderRepo.manager
@@ -824,100 +824,154 @@ export class ReportService {
       .orderBy('buildings.id', 'ASC')
       .getRawMany();
 
-    result = await Promise.all(
-      res.map(async (data) => {
-        let summa, summabank, summacard,summa_out,summabank_out;
-        summa = await this.allSummaryPayment(data.build_id, [
-          Paymentmethods.CASH,
-          Paymentmethods.CARD,
-        ]).then((data) => {
-          return data;
-        });
-        summabank = await this.allSummaryPayment(data.build_id, [
-          Paymentmethods.BANK,
-        ]).then((data) => {
-          return data;
-        });
+     result = await Promise.all(
+         res.map(async (data) => {
+           try {
+             const [summa, summabank, summa_out, summabank_out] = await Promise.all([
+               this.allSummaryPayment(data.build_id, [Paymentmethods.CASH, Paymentmethods.CARD]),
+               this.allSummaryPayment(data.build_id, [Paymentmethods.BANK]),
+               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.CASH, Paymentmethods.CARD]),
+               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.BANK]),
+             ]);
 
-        summa_out = await this.allSummaryPaymentOut(data.build_id, [
-          Paymentmethods.CASH,
-          Paymentmethods.CARD,
-        ]).then((data) => {
-          return data;
-        });
-        summabank_out = await this.allSummaryPaymentOut(data.build_id, [
-          Paymentmethods.BANK,
-        ]).then((data) => {
-          return data;
-        });
+             const { all_room_space } = await this.orderRepo.manager
+                 .createQueryBuilder(Apartments, 'apartments')
+                 .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+                 .leftJoinAndSelect('floor.entrance', 'entrances', 'entrances.id=floor.entrance_id')
+                 .leftJoinAndSelect('entrances.buildings', 'buildings', 'buildings.id=entrances.building_id')
+                 .where('buildings.id= :building_id', { building_id: data.build_id })
+                 .select('SUM(apartments.room_space)', 'all_room_space')
+                 .getRawOne();
 
-        const { all_room_space } = await this.orderRepo.manager
-          .createQueryBuilder(Apartments, 'apartments')
-          .leftJoinAndSelect(
-            'apartments.floor',
-            'floor',
-            'floor.id=apartments.floor_id',
-          )
-          .leftJoinAndSelect(
-            'floor.entrance',
-            'entrances',
-            'entrances.id=floor.entrance_id',
-          )
-          .leftJoinAndSelect(
-            'entrances.buildings',
-            'buildings',
-            'buildings.id=entrances.building_id',
-          )
-          .where('buildings.id= :building_id', { building_id: data.build_id })
-          .select('SUM(apartments.room_space)', 'all_room_space')
-          .getRawOne();
+             const order_apartments = await this.orderRepo.manager
+                 .createQueryBuilder(OrderItems, 'orderItems')
+                 .leftJoin('orderItems.apartments', 'apartments', 'apartments.id=orderItems.apartment_id')
+                 .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+                 .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+                 .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+                 .select(['orderItems.price as price', 'apartments.room_space as room_space'])
+                 .where('buildings.id= :build_id', { build_id: data.build_id })
+                 .getRawMany();
 
-        const order_apartments = await this.orderRepo.manager
-          .createQueryBuilder(OrderItems, 'orderItems')
-          .leftJoin(
-            'orderItems.apartments',
-            'apartments',
-            'apartments.id=orderItems.apartment_id',
-          )
-          .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-          .leftJoin(
-            'floor.entrance',
-            'entrance',
-            'entrance.id=floor.entrance_id',
-          )
-          .leftJoin(
-            'entrance.buildings',
-            'buildings',
-            'buildings.id=entrance.building_id',
-          )
-          .select([
-            'orderItems.price as price',
-            'apartments.room_space as room_space',
-          ])
-          .where('buildings.id= :build_id', { build_id: data.build_id })
-          .getRawMany();
-        const buildin_price = data.mk_price;
+             let summa_real = 0;
 
-        order_apartments.forEach((data) => {
-          const real_price = Number(data.price) - Number(buildin_price);
-          summa_real += Number(real_price) * Number(data.room_space);
-        });
-        const order_apartment = await this.orderAllApartment(data.build_id);
-        data['all_room_space'] = all_room_space;
-        data['total_room_price'] = Number(all_room_space) * Number(data.mk_price) + summa_real;
-        data['order_room_space'] = order_apartment?.room_space;
-        data['order_all_price'] = order_apartment?.total_amount;
-        data['total_sum_cash'] = Number(summa.total_sum)-Number(summa_out.total_sum);
-        data['total_sum_bank'] = Number(summabank.total_sum)-Number(summabank_out.total_sum);
-        data['total_sum_due'] =
-          Number(summabank.total_sum) + Number(summa.total_sum)
-            ? Number(all_room_space) * Number(data.mk_price) +
-              summa_real -
-              ((Number(summabank.total_sum)-Number(summabank_out.total_sum)) + (Number(summa.total_sum)-Number(summa_out.total_sum)))
-            : 0;
-        return data;
-      }),
-    );
+             order_apartments.forEach((orderData) => {
+               const real_price = Number(orderData.price) - Number(data.mk_price);
+               summa_real += Number(real_price) * Number(orderData.room_space);
+             });
+
+             const order_apartment = await this.orderAllApartment(data.build_id);
+
+             data['all_room_space'] = all_room_space;
+             data['total_room_price'] = Number(all_room_space) * Number(data.mk_price) + summa_real;
+             data['order_room_space'] = order_apartment?.room_space;
+             data['order_all_price'] = order_apartment?.total_amount;
+             data['total_sum_cash'] = Number(summa.total_sum) - Number(summa_out.total_sum);
+             data['total_sum_bank'] = Number(summabank.total_sum) - Number(summabank_out.total_sum);
+             data['total_sum_due'] =
+                 Number(summabank.total_sum) + Number(summa.total_sum) -
+                 ((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
+
+             return data;
+           } catch (error) {
+             console.error("Error in processing data:", error);
+           }
+         }),
+     );
+    // result = await Promise.all(
+    //   res.map(async (data) => {
+    //     let summa, summabank, summacard,summa_out,summabank_out;
+    //     summa = await this.allSummaryPayment(data.build_id, [
+    //       Paymentmethods.CASH,
+    //       Paymentmethods.CARD,
+    //     ]).then((data) => {
+    //       return data;
+    //     });
+    //     summabank = await this.allSummaryPayment(data.build_id, [
+    //       Paymentmethods.BANK,
+    //     ]).then((data) => {
+    //       return data;
+    //     });
+    //
+    //     summa_out = await this.allSummaryPaymentOut(data.build_id, [
+    //       Paymentmethods.CASH,
+    //       Paymentmethods.CARD,
+    //     ]).then((data) => {
+    //       return data;
+    //     });
+    //     summabank_out = await this.allSummaryPaymentOut(data.build_id, [
+    //       Paymentmethods.BANK,
+    //     ]).then((data) => {
+    //       return data;
+    //     });
+    //
+    //     const { all_room_space } = await this.orderRepo.manager
+    //       .createQueryBuilder(Apartments, 'apartments')
+    //       .leftJoinAndSelect(
+    //         'apartments.floor',
+    //         'floor',
+    //         'floor.id=apartments.floor_id',
+    //       )
+    //       .leftJoinAndSelect(
+    //         'floor.entrance',
+    //         'entrances',
+    //         'entrances.id=floor.entrance_id',
+    //       )
+    //       .leftJoinAndSelect(
+    //         'entrances.buildings',
+    //         'buildings',
+    //         'buildings.id=entrances.building_id',
+    //       )
+    //       .where('buildings.id= :building_id', { building_id: data.build_id })
+    //       .select('SUM(apartments.room_space)', 'all_room_space')
+    //       .getRawOne();
+    //
+    //     const order_apartments = await this.orderRepo.manager
+    //       .createQueryBuilder(OrderItems, 'orderItems')
+    //       .leftJoin(
+    //         'orderItems.apartments',
+    //         'apartments',
+    //         'apartments.id=orderItems.apartment_id',
+    //       )
+    //       .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+    //       .leftJoin(
+    //         'floor.entrance',
+    //         'entrance',
+    //         'entrance.id=floor.entrance_id',
+    //       )
+    //       .leftJoin(
+    //         'entrance.buildings',
+    //         'buildings',
+    //         'buildings.id=entrance.building_id',
+    //       )
+    //       .select([
+    //         'orderItems.price as price',
+    //         'apartments.room_space as room_space',
+    //       ])
+    //       .where('buildings.id= :build_id', { build_id: data.build_id })
+    //       .getRawMany();
+    //     const buildin_price = data.mk_price;
+    //
+    //     order_apartments.forEach((data) => {
+    //       const real_price = Number(data.price) - Number(buildin_price);
+    //       summa_real += Number(real_price) * Number(data.room_space);
+    //     });
+    //     const order_apartment = await this.orderAllApartment(data.build_id);
+    //     data['all_room_space'] = all_room_space;
+    //     data['total_room_price'] = Number(all_room_space) * Number(data.mk_price) + summa_real;
+    //     data['order_room_space'] = order_apartment?.room_space;
+    //     data['order_all_price'] = order_apartment?.total_amount;
+    //     data['total_sum_cash'] = Number(summa.total_sum)-Number(summa_out.total_sum);
+    //     data['total_sum_bank'] = Number(summabank.total_sum)-Number(summabank_out.total_sum);
+    //     data['total_sum_due'] =
+    //       Number(summabank.total_sum) + Number(summa.total_sum)
+    //         ? Number(all_room_space) * Number(data.mk_price) +
+    //           summa_real -
+    //           ((Number(summabank.total_sum)-Number(summabank_out.total_sum)) + (Number(summa.total_sum)-Number(summa_out.total_sum)))
+    //         : 0;
+    //     return data;
+    //   }),
+    // );
     return result;
   }
   async orderAllApartment(build_id: number) {
