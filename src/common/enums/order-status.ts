@@ -2,5 +2,6 @@ export enum OrderStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   COMPLETED = 'completed',
-  REFUNDED = 'refunded'
+  REFUNDED = 'refunded',
+  NULL = 'null'
 }
