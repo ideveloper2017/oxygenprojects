@@ -1692,6 +1692,7 @@ export class ReportService {
       .orderBy('order_date', 'DESC')
       .getRawMany();
 
+
     result = await Promise.all(
       res.map(async (data) => {
         let payment, credit_table;
