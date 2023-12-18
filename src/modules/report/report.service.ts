@@ -912,7 +912,7 @@ export class ReportService {
           Number(summabank.total_sum) + Number(summa.total_sum)
             ? Number(all_room_space) * Number(data.mk_price) +
               summa_real -
-              (Number(summabank.total_sum) + Number(summa.total_sum))
+              ((Number(summabank.total_sum)-Number(summabank_out.total_sum)) + (Number(summa.total_sum)-Number(summa_out.total_sum)))
             : 0;
         return data;
       }),
