@@ -556,76 +556,49 @@ export class ReportService {
 
   async clientOrder(data: any) {
     try {
-      let apartments, subRes;
+      let  subRes;
 
       // Retrieve apartment data using TypeORM QueryBuilder
-      apartments = await this.orderRepo.manager
-        .createQueryBuilder(Apartments, 'apartments')
-        .leftJoinAndSelect(
-          'apartments.floor',
-          'floor',
-          'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-          'floor.entrance',
-          'entrance',
-          'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-          'entrance.buildings',
-          'buildings',
-          'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-          'apartments.orderItems',
-          'orderItems',
-          'orderItems.apartment_id=apartments.id',
-        )
-        .leftJoinAndSelect(
-          'orderItems.orders',
-          'orders',
-          'orders.id=orderItems.order_id',
-        )
-        .leftJoinAndSelect(
-          'orders.clients',
-          'clients',
-          'clients.id=orders.client_id',
-        )
-        .select([
-          'orders.id as order_id',
-          'clients.id as client_id',
-          'clients.first_name',
-          'clients.last_name',
-          'clients.middle_name',
-          'clients.contact_number as phone',
-          'clients.description as description',
-          'orders.id as order_number',
-          'orders.total_amount as total_amount',
-          'orders.total_amount_usd as total_amount_usd',
-          'orderItems.price as price',
-          'orderItems.price_usd as price_usd',
-          'buildings.name as buildingname',
-          'entrance.entrance_number as entrance_number',
-          'floor.floor_number as floor_number',
-          'apartments.id as apartment_id',
-          'apartments.cells as room_cells',
-          'apartments.room_number as room_number',
-          'apartments.room_space as room_space',
-          'buildings.mk_price as mk_price',
-          'buildings.id as building_id',
-          'buildings.apartment_number as apartment_number',
-          'orderItems.price as price',
-          'orderItems.price_usd as price_usd',
-        ])
-        .where('buildings.id = :building_id', { building_id: data.building_id })
-        //.andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED,null]})
-        .having('orders.order_status=:status', {
-          status: Not(OrderStatus.REFUNDED),
-        })
-        .orderBy('entrance_number', 'ASC')
-        .orderBy('floor_number', 'DESC')
-        .orderBy('room_number', 'DESC')
-        .getRawMany();
+      const apartments = await this.orderRepo.manager
+          .createQueryBuilder(Apartments, 'apartments')
+          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
+          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
+          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
+          .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
+          .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
+          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
+          .select([
+            'orders.id as order_id',
+            'clients.id as client_id',
+            'clients.first_name',
+            'clients.last_name',
+            'clients.middle_name',
+            'clients.contact_number as phone',
+            'clients.description as description',
+            'orders.id as order_number',
+            'orders.total_amount as total_amount',
+            'orders.total_amount_usd as total_amount_usd',
+            'orderItems.price as price',
+            'orderItems.price_usd as price_usd',
+            'buildings.name as buildingname',
+            'entrance.entrance_number as entrance_number',
+            'floor.floor_number as floor_number',
+            'apartments.id as apartment_id',
+            'apartments.cells as room_cells',
+            'apartments.room_number as room_number',
+            'apartments.room_space as room_space',
+            'buildings.mk_price as mk_price',
+            'buildings.id as building_id',
+            'buildings.apartment_number as apartment_number',
+          ])
+          .where('buildings.id = :building_id', { building_id: data.building_id })
+          .andWhere('orders.order_status IN (:...status)', {
+            status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED, null],
+          })
+          .orderBy('entrance_number', 'ASC')
+          .orderBy('floor_number', 'DESC')
+          .orderBy('room_number', 'DESC')
+          .getRawMany();
 
       // Use Promise.all to execute clientPayment for each apartment in parallel
       subRes = await Promise.all(
