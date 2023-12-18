@@ -825,7 +825,7 @@ export class ReportService {
 
     result = await Promise.all(
       res.map(async (data) => {
-        let summa, summabank, summacard;
+        let summa, summabank, summacard,summa_out,summabank_out;
         summa = await this.allSummaryPayment(data.build_id, [
           Paymentmethods.CASH,
           Paymentmethods.CARD,
@@ -833,6 +833,18 @@ export class ReportService {
           return data;
         });
         summabank = await this.allSummaryPayment(data.build_id, [
+          Paymentmethods.BANK,
+        ]).then((data) => {
+          return data;
+        });
+
+        summa_out = await this.allSummaryPayment(data.build_id, [
+          Paymentmethods.CASH,
+          Paymentmethods.CARD,
+        ]).then((data) => {
+          return data;
+        });
+        summabank_out = await this.allSummaryPayment(data.build_id, [
           Paymentmethods.BANK,
         ]).then((data) => {
           return data;
@@ -891,12 +903,11 @@ export class ReportService {
         });
         const order_apartment = await this.orderAllApartment(data.build_id);
         data['all_room_space'] = all_room_space;
-        data['total_room_price'] =
-          Number(all_room_space) * Number(data.mk_price) + summa_real;
+        data['total_room_price'] = Number(all_room_space) * Number(data.mk_price) + summa_real;
         data['order_room_space'] = order_apartment?.room_space;
         data['order_all_price'] = order_apartment?.total_amount;
-        data['total_sum_cash'] = Number(summa.total_sum);
-        data['total_sum_bank'] = Number(summabank.total_sum);
+        data['total_sum_cash'] = Number(summa.total_sum)-Number(summa_out);
+        data['total_sum_bank'] = Number(summabank.total_sum)-Number(summabank_out);
         data['total_sum_due'] =
           Number(summabank.total_sum) + Number(summa.total_sum)
             ? Number(all_room_space) * Number(data.mk_price) +
@@ -1134,7 +1145,7 @@ export class ReportService {
         'SUM(payments.amount_usd) AS total_usd',
       ])
       .where('buildings.id= :build_id', { build_id: build_id })
-      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
       })
@@ -1147,6 +1158,59 @@ export class ReportService {
     return sumResults;
   }
 
+  async allSummaryPaymentOut(build_id: number, paymentMethod: Paymentmethods[]) {
+    const sumResults = {
+      total_sum: 0,
+      total_usd: 0,
+    };
+    let result;
+
+    result = await this.orderRepo.manager
+        .createQueryBuilder(Apartments, 'apartments')
+        .leftJoinAndSelect(
+            'apartments.floor',
+            'floor',
+            'floor.id=apartments.floor_id',
+        )
+        .leftJoinAndSelect(
+            'floor.entrance',
+            'entrance',
+            'entrance.id=floor.entrance_id',
+        )
+        .leftJoinAndSelect(
+            'entrance.buildings',
+            'buildings',
+            'buildings.id=entrance.building_id',
+        )
+        .leftJoinAndSelect(
+            'buildings.towns',
+            'towns',
+            'towns.id=buildings.town_id',
+        )
+        .leftJoin(
+            'apartments.orderItems',
+            'orderItems',
+            'orderItems.apartment_id=apartments.id',
+        )
+        .leftJoin('orderItems.orders', 'orders', 'orders.id=orderItems.order_id')
+        .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
+        .select([
+          'SUM(payments.amount) AS total_sum',
+          'SUM(payments.amount_usd) AS total_usd',
+        ])
+        .where('buildings.id= :build_id', { build_id: build_id })
+        .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+        .andWhere('payments.paymentmethods IN(:...paymethod)', {
+          paymethod: paymentMethod,
+        })
+        .getRawMany();
+
+    result.forEach((item) => {
+      sumResults.total_sum = item.total_sum;
+      sumResults.total_usd = item.total_usd;
+    });
+    return sumResults;
+  }
   async getSaleSummaryReport() {
     try {
       let result;
