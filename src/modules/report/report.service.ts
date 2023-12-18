@@ -619,7 +619,6 @@ export class ReportService {
         ])
         .where('buildings.id = :building_id', { building_id: data.building_id })
         .andWhere('orders.order_status <> :status',{status:IsNull()})
-          .orWhere('orders.order_status = :status',{status:Not(IsNull())})
         .orderBy('entrance_number', 'ASC')
         .orderBy('floor_number', 'DESC')
         .orderBy('room_number', 'DESC')
