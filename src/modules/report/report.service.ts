@@ -787,7 +787,7 @@ export class ReportService {
       //   status: [OrderStatus.REFUNDED],
       // })
       //   .andWhere('orders.order_date= :order_date', { order_date })
-      // .andWhere('orders.id= :order_id', { order_id })
+      .andWhere('orders.id= :order_id', { order_id })
       // .andWhere('orders.client_id= :client_id', { client_id })
       // .andWhere('apartments.id= :apartment_id', { apartment_id })
       .getRawMany();
