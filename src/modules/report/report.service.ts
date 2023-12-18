@@ -1661,6 +1661,7 @@ export class ReportService {
         'paymentMethods.id=orders.payment_method_id',
       )
       .select([
+        'apartments.id as apartment_id',
         'orders.id as order_id',
         "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
         'users.first_name as ufrist_name',
@@ -1682,6 +1683,7 @@ export class ReportService {
       // })
       .groupBy("to_char(orders.order_date,'DD.MM.YYYY')")
       .addGroupBy('orders.id')
+      .addGroupBy('apartments.id')
       .addGroupBy('users.id')
       .addGroupBy('clients.id')
       // .addGroupBy('buildings.id')
@@ -1697,7 +1699,7 @@ export class ReportService {
           data.order_id,
           data.client_id,
           [Paymentmethods.CASH, Paymentmethods.CARD],
-          0,
+          data.apartment_id,
         );
         //  credit_table = await this.getCreditTable(data.order_id);
         data['payment'] = payment;
