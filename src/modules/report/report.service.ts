@@ -741,6 +741,64 @@ export class ReportService {
     return sumResults;
   }
 
+  async clientPaymentOut(
+      order_id: number,
+      client_id: number,
+      paymentmethods: Paymentmethods[],
+  ) {
+    const sumResults = {
+      total_sum_out: 0,
+      total_usd_out: 0,
+    };
+    let result;
+    result = await this.orderRepo.manager
+        // .createQueryBuilder(Payments, 'payments')
+        .createQueryBuilder(Orders, 'orders')
+        .leftJoinAndSelect(
+            'orders.orderItems',
+            'orderItems',
+            'orderItems.order_id=orders.id',
+        )
+        .leftJoinAndSelect(
+            'orderItems.apartments',
+            'apartments',
+            'apartments.id=orderItems.apartment_id',
+        )
+        .leftJoinAndSelect(
+            'orders.payments',
+            'payments',
+            'orders.id=payments.order_id',
+        )
+        .leftJoinAndSelect(
+            'orders.clients',
+            'clients',
+            'clients.id=orders.client_id',
+        )
+
+        .select([
+          'SUM(payments.amount) AS total_sum',
+          'SUM(payments.amount_usd) AS total_usd',
+        ])
+        .where('payments.paymentmethods IN(:...paymethods)', {
+          paymethods: paymentmethods,
+        })
+        .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+        .andWhere('orders.order_status IN(:...status)', {
+          status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+        })
+        //   .andWhere('orders.order_date= :order_date', { order_date })
+        .andWhere('orders.id= :order_id', { order_id })
+        .andWhere('orders.client_id= :client_id', { client_id })
+        // .andWhere('apartments.id= :apartment_id', { apartment_id })
+        .getRawMany();
+
+    result.forEach((item) => {
+      sumResults.total_sum_out = +item.total_sum;
+      sumResults.total_usd_out = +item.total_usd;
+    });
+    return sumResults;
+  }
+
   public async summaryReport() {
     let result, res;
     res = await this.orderRepo.manager
@@ -1661,7 +1719,6 @@ export class ReportService {
         'paymentMethods.id=orders.payment_method_id',
       )
       .select([
-        'apartments.id as apartment_id',
         'orders.id as order_id',
         "to_char(orders.order_date,'DD.MM.YYYY') as order_date",
         'users.first_name as ufrist_name',
@@ -1683,7 +1740,6 @@ export class ReportService {
       // })
       .groupBy("to_char(orders.order_date,'DD.MM.YYYY')")
       .addGroupBy('orders.id')
-      .addGroupBy('apartments.id')
       .addGroupBy('users.id')
       .addGroupBy('clients.id')
       // .addGroupBy('buildings.id')
@@ -1696,11 +1752,10 @@ export class ReportService {
     result = await Promise.all(
       res.map(async (data) => {
         let payment, credit_table;
-        payment = await this.clientPayment(
+        payment = await this.clientPaymentOut(
           data.order_id,
           data.client_id,
           [Paymentmethods.CASH, Paymentmethods.CARD],
-          data.apartment_id,
         );
         //  credit_table = await this.getCreditTable(data.order_id);
         data['payment'] = payment;
