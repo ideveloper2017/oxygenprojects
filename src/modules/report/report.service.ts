@@ -618,7 +618,7 @@ export class ReportService {
           'orderItems.price_usd as price_usd',
         ])
         .where('buildings.id = :building_id', { building_id: data.building_id })
-          .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
+        .andWhere('orders.order_status <> :status)',{status:[OrderStatus.INACTIVE]})
         .orderBy('entrance_number', 'ASC')
         .orderBy('floor_number', 'DESC')
         .orderBy('room_number', 'DESC')
