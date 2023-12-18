@@ -797,7 +797,7 @@ export class ReportService {
       .andWhere('orders.client_id= :client_id', { client_id })
       // .andWhere('apartments.id= :apartment_id', { apartment_id })
       .getRawMany();
-    console.log(result);
+    console.log(order_id+' '+client_id);
     result.forEach((item) => {
       sumResults.total_sum_out = +item.total_sum;
       sumResults.total_usd_out = +item.total_usd;
