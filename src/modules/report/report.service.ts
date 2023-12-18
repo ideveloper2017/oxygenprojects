@@ -753,28 +753,34 @@ export class ReportService {
     let result;
     result = await this.orderRepo.manager
       // .createQueryBuilder(Payments, 'payments')
-      .createQueryBuilder(Orders, 'orders')
-      .leftJoinAndSelect(
-        'orders.orderItems',
-        'orderItems',
-        'orderItems.order_id=orders.id',
-      )
-      .leftJoinAndSelect(
-        'orderItems.apartments',
-        'apartments',
-        'apartments.id=orderItems.apartment_id',
-      )
-      .leftJoinAndSelect(
-        'orders.payments',
-        'payments',
-        'orders.id=payments.order_id',
-      )
-      .leftJoinAndSelect(
-        'orders.clients',
-        'clients',
-        'clients.id=orders.client_id',
-      )
-
+      // .createQueryBuilder(Orders, 'orders')
+      // .leftJoinAndSelect(
+      //   'orders.orderItems',
+      //   'orderItems',
+      //   'orderItems.order_id=orders.id',
+      // )
+      // .leftJoinAndSelect(
+      //   'orderItems.apartments',
+      //   'apartments',
+      //   'apartments.id=orderItems.apartment_id',
+      // )
+      // .leftJoinAndSelect(
+      //   'orders.payments',
+      //   'payments',
+      //   'orders.id=payments.order_id',
+      // )
+      // .leftJoinAndSelect(
+      //   'orders.clients',
+      //   'clients',
+      //   'clients.id=orders.client_id',
+      // )
+        .createQueryBuilder(Payments,'payments')
+        .leftJoinAndSelect(
+            'payments.orders',
+            'orders',
+            'orders.id=payments.order_id',
+        )
+        .leftJoin('orders.clients','clients','clients.id=orders.client_id')
       .select([
         'SUM(payments.amount) AS total_sum',
         'SUM(payments.amount_usd) AS total_usd',
@@ -788,7 +794,7 @@ export class ReportService {
       // })
       //   .andWhere('orders.order_date= :order_date', { order_date })
       .andWhere('orders.id= :order_id', { order_id })
-      // .andWhere('orders.client_id= :client_id', { client_id })
+      .andWhere('orders.client_id= :client_id', { client_id })
       // .andWhere('apartments.id= :apartment_id', { apartment_id })
       .getRawMany();
     console.log(result);
