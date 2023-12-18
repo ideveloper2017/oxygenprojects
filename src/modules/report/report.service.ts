@@ -807,6 +807,7 @@ export class ReportService {
 
   public async summaryReport() {
     let result, res;
+    let summa_real = 0;
     res = await this.orderRepo.manager
       .createQueryBuilder(Buildings, 'buildings')
       .leftJoinAndSelect(
@@ -896,7 +897,7 @@ export class ReportService {
           .where('buildings.id= :build_id', { build_id: data.build_id })
           .getRawMany();
         const buildin_price = data.mk_price;
-        let summa_real = 0;
+
         order_apartments.forEach((data) => {
           const real_price = Number(data.price) - Number(buildin_price);
           summa_real += Number(real_price) * Number(data.room_space);
@@ -906,8 +907,7 @@ export class ReportService {
         data['total_room_price'] = Number(all_room_space) * Number(data.mk_price) + summa_real;
         data['order_room_space'] = order_apartment?.room_space;
         data['order_all_price'] = order_apartment?.total_amount;
-        data['total_sum_cash'] = Number(summa.total_sum);
-            // -Number(summa_out.total_sum);
+        data['total_sum_cash'] = Number(summa.total_sum)-Number(summa_out.total_sum);
         data['total_sum_bank'] = Number(summabank.total_sum)-Number(summabank_out.total_sum);
         data['total_sum_due'] =
           Number(summabank.total_sum) + Number(summa.total_sum)
