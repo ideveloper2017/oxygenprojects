@@ -783,9 +783,9 @@ export class ReportService {
         paymethods: paymentmethods,
       })
       .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-      // .andWhere('orders.order_status IN(:...status)', {
-      //   status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
-      // })
+      .andWhere('orders.order_status IN(:...status)', {
+        status: [OrderStatus.REFUNDED],
+      })
       //   .andWhere('orders.order_date= :order_date', { order_date })
       // .andWhere('orders.id= :order_id', { order_id })
       .andWhere('orders.client_id= :client_id', { client_id })
