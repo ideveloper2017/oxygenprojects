@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
-import { Repository } from 'typeorm';
+import {IsNull, Repository} from 'typeorm';
 import { OrderStatus } from '../../common/enums/order-status';
 import { Payments } from '../payments/entities/payment.entity';
 import { Caishertype } from '../../common/enums/caishertype';
@@ -618,7 +618,7 @@ export class ReportService {
           'orderItems.price_usd as price_usd',
         ])
         .where('buildings.id = :building_id', { building_id: data.building_id })
-        // .andWhere('orders.order_status <> :status',{status:})
+        .andWhere('orders.order_status <> :status or orders.order_status = :status',{status:IsNull()})
         .orderBy('entrance_number', 'ASC')
         .orderBy('floor_number', 'DESC')
         .orderBy('room_number', 'DESC')
