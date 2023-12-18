@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
-import {IsNull, Not, Repository} from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { OrderStatus } from '../../common/enums/order-status';
 import { Payments } from '../payments/entities/payment.entity';
 import { Caishertype } from '../../common/enums/caishertype';
@@ -618,7 +618,10 @@ export class ReportService {
           'orderItems.price_usd as price_usd',
         ])
         .where('buildings.id = :building_id', { building_id: data.building_id })
-        .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED,null]})
+        //.andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED,null]})
+        .having('orders.order_status=:status', {
+          status: Not(OrderStatus.REFUNDED),
+        })
         .orderBy('entrance_number', 'ASC')
         .orderBy('floor_number', 'DESC')
         .orderBy('room_number', 'DESC')
@@ -775,13 +778,13 @@ export class ReportService {
       //   'clients',
       //   'clients.id=orders.client_id',
       // )
-        .createQueryBuilder(Payments,'payments')
-        .leftJoinAndSelect(
-            'payments.orders',
-            'orders',
-            'orders.id=payments.order_id',
-        )
-        .leftJoin('orders.clients','clients','clients.id=orders.client_id')
+      .createQueryBuilder(Payments, 'payments')
+      .leftJoinAndSelect(
+        'payments.orders',
+        'orders',
+        'orders.id=payments.order_id',
+      )
+      .leftJoin('orders.clients', 'clients', 'clients.id=orders.client_id')
       .select([
         'SUM(payments.amount) AS total_sum',
         'SUM(payments.amount_usd) AS total_usd',
@@ -791,14 +794,14 @@ export class ReportService {
       })
       .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
       .andWhere('orders.order_status IN(:...status)', {
-        status: [OrderStatus.ACTIVE,OrderStatus.COMPLETED],
+        status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
       })
       //   .andWhere('orders.order_date= :order_date', { order_date })
       .andWhere('orders.id= :order_id', { order_id })
       .andWhere('orders.client_id= :client_id', { client_id })
       // .andWhere('apartments.id= :apartment_id', { apartment_id })
       .getRawMany();
-    console.log(order_id+' '+client_id);
+    console.log(order_id + ' ' + client_id);
     result.forEach((item) => {
       sumResults.total_sum_out = +item.total_sum;
       sumResults.total_usd_out = +item.total_usd;
@@ -806,9 +809,9 @@ export class ReportService {
     return sumResults;
   }
 
-   async summaryReport() {
+  async summaryReport() {
     let result, res;
-    let summa_real = 0;
+    const summa_real = 0;
     res = await this.orderRepo.manager
       .createQueryBuilder(Buildings, 'buildings')
       .leftJoinAndSelect(
@@ -825,64 +828,107 @@ export class ReportService {
       .orderBy('buildings.id', 'ASC')
       .getRawMany();
 
-     result = await Promise.all(
-         res.map(async (data) => {
-           try {
-             const [summa, summabank, summa_out, summabank_out] = await Promise.all([
-               this.allSummaryPayment(data.build_id, [Paymentmethods.CASH, Paymentmethods.CARD]),
-               this.allSummaryPayment(data.build_id, [Paymentmethods.BANK]),
-               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.CASH, Paymentmethods.CARD]),
-               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.BANK]),
-             ]);
+    result = await Promise.all(
+      res.map(async (data) => {
+        try {
+          const [summa, summabank, summa_out, summabank_out] =
+            await Promise.all([
+              this.allSummaryPayment(data.build_id, [
+                Paymentmethods.CASH,
+                Paymentmethods.CARD,
+              ]),
+              this.allSummaryPayment(data.build_id, [Paymentmethods.BANK]),
+              this.allSummaryPaymentOut(data.build_id, [
+                Paymentmethods.CASH,
+                Paymentmethods.CARD,
+              ]),
+              this.allSummaryPaymentOut(data.build_id, [Paymentmethods.BANK]),
+            ]);
 
-             const { all_room_space } = await this.orderRepo.manager
-                 .createQueryBuilder(Apartments, 'apartments')
-                 .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-                 .leftJoinAndSelect('floor.entrance', 'entrances', 'entrances.id=floor.entrance_id')
-                 .leftJoinAndSelect('entrances.buildings', 'buildings', 'buildings.id=entrances.building_id')
-                 .where('buildings.id= :building_id', { building_id: data.build_id })
-                 .select('SUM(apartments.room_space)', 'all_room_space')
-                 .getRawOne();
+          const { all_room_space } = await this.orderRepo.manager
+            .createQueryBuilder(Apartments, 'apartments')
+            .leftJoinAndSelect(
+              'apartments.floor',
+              'floor',
+              'floor.id=apartments.floor_id',
+            )
+            .leftJoinAndSelect(
+              'floor.entrance',
+              'entrances',
+              'entrances.id=floor.entrance_id',
+            )
+            .leftJoinAndSelect(
+              'entrances.buildings',
+              'buildings',
+              'buildings.id=entrances.building_id',
+            )
+            .where('buildings.id= :building_id', { building_id: data.build_id })
+            .select('SUM(apartments.room_space)', 'all_room_space')
+            .getRawOne();
 
-             const order_apartments = await this.orderRepo.manager
-                 .createQueryBuilder(OrderItems, 'orderItems')
-                 .leftJoin('orderItems.apartments', 'apartments', 'apartments.id=orderItems.apartment_id')
-                 .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
-                 .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
-                 .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
-                 .select(['orderItems.price as price', 'apartments.room_space as room_space'])
-                 .where('buildings.id= :build_id', { build_id: data.build_id })
-                 .getRawMany();
+          const order_apartments = await this.orderRepo.manager
+            .createQueryBuilder(OrderItems, 'orderItems')
+            .leftJoin(
+              'orderItems.apartments',
+              'apartments',
+              'apartments.id=orderItems.apartment_id',
+            )
+            .leftJoin(
+              'apartments.floor',
+              'floor',
+              'floor.id=apartments.floor_id',
+            )
+            .leftJoin(
+              'floor.entrance',
+              'entrance',
+              'entrance.id=floor.entrance_id',
+            )
+            .leftJoin(
+              'entrance.buildings',
+              'buildings',
+              'buildings.id=entrance.building_id',
+            )
+            .select([
+              'orderItems.price as price',
+              'apartments.room_space as room_space',
+            ])
+            .where('buildings.id= :build_id', { build_id: data.build_id })
+            .getRawMany();
 
-             let summa_real = 0;
+          let summa_real = 0;
 
-             order_apartments.forEach((orderData) => {
-               const real_price = Number(orderData.price) - Number(data.mk_price);
-               summa_real += Number(real_price) * Number(orderData.room_space);
-             });
+          order_apartments.forEach((orderData) => {
+            const real_price = Number(orderData.price) - Number(data.mk_price);
+            summa_real += Number(real_price) * Number(orderData.room_space);
+          });
 
-             const order_apartment = await this.orderAllApartment(data.build_id);
+          const order_apartment = await this.orderAllApartment(data.build_id);
 
-             data['all_room_space'] = all_room_space;
-             data['total_room_price'] = Number(all_room_space) * Number(data.mk_price) + summa_real;
-             data['order_room_space'] = order_apartment?.room_space;
-             data['order_all_price'] = order_apartment?.total_amount;
-             data['total_sum_cash'] = Number(summa.total_sum) - Number(summa_out.total_sum);
-             data['total_sum_bank'] = Number(summabank.total_sum) - Number(summabank_out.total_sum);
-             data['total_sum_due'] =
-                 Number(summabank.total_sum) + Number(summa.total_sum)
-                     ? Number(all_room_space) * Number(data.mk_price) +
-                     summa_real -
-                     ((Number(summabank.total_sum)-Number(summabank_out.total_sum)) + (Number(summa.total_sum)-Number(summa_out.total_sum)))
-                     : 0;
-             // data['total_sum_due'] =Number(summabank.total_sum) + Number(summa.total_sum) -((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
+          data['all_room_space'] = all_room_space;
+          data['total_room_price'] =
+            Number(all_room_space) * Number(data.mk_price) + summa_real;
+          data['order_room_space'] = order_apartment?.room_space;
+          data['order_all_price'] = order_apartment?.total_amount;
+          data['total_sum_cash'] =
+            Number(summa.total_sum) - Number(summa_out.total_sum);
+          data['total_sum_bank'] =
+            Number(summabank.total_sum) - Number(summabank_out.total_sum);
+          data['total_sum_due'] =
+            Number(summabank.total_sum) + Number(summa.total_sum)
+              ? Number(all_room_space) * Number(data.mk_price) +
+                summa_real -
+                (Number(summabank.total_sum) -
+                  Number(summabank_out.total_sum) +
+                  (Number(summa.total_sum) - Number(summa_out.total_sum)))
+              : 0;
+          // data['total_sum_due'] =Number(summabank.total_sum) + Number(summa.total_sum) -((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
 
-             return data;
-           } catch (error) {
-             console.error("Error in processing data:", error);
-           }
-         }),
-     );
+          return data;
+        } catch (error) {
+          console.error('Error in processing data:', error);
+        }
+      }),
+    );
     // result = await Promise.all(
     //   res.map(async (data) => {
     //     let summa, summabank, summacard,summa_out,summabank_out;
@@ -1218,7 +1264,10 @@ export class ReportService {
     return sumResults;
   }
 
-  async allSummaryPaymentOut(build_id: number, paymentMethod: Paymentmethods[]) {
+  async allSummaryPaymentOut(
+    build_id: number,
+    paymentMethod: Paymentmethods[],
+  ) {
     const sumResults = {
       total_sum: 0,
       total_usd: 0,
@@ -1226,44 +1275,44 @@ export class ReportService {
     let result;
 
     result = await this.orderRepo.manager
-        .createQueryBuilder(Apartments, 'apartments')
-        .leftJoinAndSelect(
-            'apartments.floor',
-            'floor',
-            'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-            'floor.entrance',
-            'entrance',
-            'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-            'entrance.buildings',
-            'buildings',
-            'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-            'buildings.towns',
-            'towns',
-            'towns.id=buildings.town_id',
-        )
-        .leftJoin(
-            'apartments.orderItems',
-            'orderItems',
-            'orderItems.apartment_id=apartments.id',
-        )
-        .leftJoin('orderItems.orders', 'orders', 'orders.id=orderItems.order_id')
-        .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
-        .select([
-          'SUM(payments.amount) AS total_sum',
-          'SUM(payments.amount_usd) AS total_usd',
-        ])
-        .where('buildings.id= :build_id', { build_id: build_id })
-        .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-        .andWhere('payments.paymentmethods IN(:...paymethod)', {
-          paymethod: paymentMethod,
-        })
-        .getRawMany();
+      .createQueryBuilder(Apartments, 'apartments')
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+      .leftJoin(
+        'apartments.orderItems',
+        'orderItems',
+        'orderItems.apartment_id=apartments.id',
+      )
+      .leftJoin('orderItems.orders', 'orders', 'orders.id=orderItems.order_id')
+      .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+      .where('buildings.id= :build_id', { build_id: build_id })
+      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+      .andWhere('payments.paymentmethods IN(:...paymethod)', {
+        paymethod: paymentMethod,
+      })
+      .getRawMany();
 
     result.forEach((item) => {
       sumResults.total_sum = item.total_sum;
