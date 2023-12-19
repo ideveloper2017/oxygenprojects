@@ -946,13 +946,13 @@ export class ReportService {
 
             order_apartments_out.forEach((retdata)=>{
                 const real_price = Number(retdata.price) - Number(data.mk_price);
-                summa_real_out =real_price;
+                summa_real_out =real_price+Number(data.mk_price);
                     //Number(real_price+retdata.price)* Number(retdata.room_space);
             })
 
           order_apartments.forEach((orderData) => {
             const real_price = Number(orderData.price) - Number(data.mk_price);
-            summa_real += Number(real_price) * Number(orderData.room_space);
+            summa_real += Number(real_price+) * Number(orderData.room_space);
           });
 
           const order_apartment = await this.orderAllApartment(data.build_id);
