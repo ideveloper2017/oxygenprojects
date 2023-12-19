@@ -1247,12 +1247,12 @@ export class ReportService {
         'towns',
         'towns.id=buildings.town_id',
       )
-      .leftJoin(
+      .leftJoinAndSelect(
         'apartments.orderItems',
         'orderItems',
         'orderItems.apartment_id=apartments.id',
       )
-        .leftJoin(
+        .leftJoinAndSelect(
             'orderItems.orders',
             'orders',
             'orders.id=orderItems.order_id',
