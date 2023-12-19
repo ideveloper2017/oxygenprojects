@@ -610,8 +610,8 @@ export class ReportService {
           } = apartmentData;
 
           // Call clientPayment with different payment methods
-            const clientApartmentData= this.clientByApartMenClient(apartment_id);
-            apartmentData['client']=clientApartmentData;
+            apartmentData['client']= this.clientByApartMenClient(apartment_id);
+            console.log(apartmentData['client']);
           return apartmentData;
         }),
       );
@@ -645,25 +645,6 @@ export class ReportService {
           .where('apartments.id= :apartment_id',{apartment_id})
           .getRawOne()
 
-      const datass=await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
-          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
-          .leftJoinAndSelect('orders.orderItems', 'orderItems', 'orders.id = orderItems.order_id')
-          .leftJoinAndSelect('orderItems.apartments','apartments','orderItems.apartment_id=apartments.id')
-          .select(['orders.id as order_id',
-              'clients.id as client_id',
-              'clients.first_name',
-              'clients.last_name',
-              'clients.middle_name',
-              'clients.contact_number as phone',
-              'clients.description as description',
-              'orders.id as order_number',
-              'orders.total_amount as total_amount',
-              'orders.total_amount_usd as total_amount_usd',
-              'orderItems.price as price',
-              'orderItems.price_usd as price_usd'])
-          .where('apartments.id= :apartment_id',{apartment_id})
-          .getRawOne()
-      console.log(datass);
 
       const [summa_out, summa_cash, summa_bank] = await Promise.all([
           this.clientPayment(
