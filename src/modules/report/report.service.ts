@@ -959,13 +959,12 @@ export class ReportService {
           data['total_sum_bank'] =
             Number(summabank.total_sum) - Number(summabank_out.total_sum);
           data['total_sum_due'] =
-            Number(summabank.total_sum) + Number(summa.total_sum)
-              ? Number(all_room_space) * Number(data.mk_price) +
-                summa_real -
-                (Number(summabank.total_sum) -
-                  Number(summabank_out.total_sum) +
-                  (Number(summa.total_sum) - Number(summa_out.total_sum)))
-              : 0;
+            Number(all_room_space) * Number(data.mk_price) +
+            summa_real -
+            (Number(summabank.total_sum) -
+              Number(summabank_out.total_sum) +
+              (Number(summa.total_sum) - Number(summa_out.total_sum)));
+
           // data['total_sum_due'] =Number(summabank.total_sum) + Number(summa.total_sum) -((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
 
           return data;
