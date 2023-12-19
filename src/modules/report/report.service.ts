@@ -1252,6 +1252,11 @@ export class ReportService {
         'orderItems',
         'orderItems.apartment_id=apartments.id',
       )
+        .leftJoin(
+            'orderItems.orders',
+            'orders',
+            'orderItems.order_id=orders.id',
+        )
       .leftJoin('orderItems.orders', 'orders', 'orders.id=orderItems.order_id')
       .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
       .select([
@@ -1263,6 +1268,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
       })
+        .andWhere('orders.orders_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
       .getRawMany();
 
     result.forEach((item) => {
