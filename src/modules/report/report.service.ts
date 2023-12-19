@@ -592,7 +592,8 @@ export class ReportService {
             'buildings.apartment_number as apartment_number',
           ])
           .where('buildings.id = :building_id', { building_id: data.building_id })
-          .andWhere('orders.id IS NULL').andWhere('orders.order_status IN (:...status)',{status: [OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
+          // .andWhere('orders.id ')
+          // .andWhere('orders.order_status IN (:...status)',{status: [OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
           .orderBy('entrance_number', 'ASC')
           .orderBy('floor_number', 'DESC')
           .orderBy('room_number', 'DESC')
