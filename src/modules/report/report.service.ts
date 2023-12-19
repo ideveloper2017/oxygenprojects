@@ -917,7 +917,7 @@ export class ReportService {
             Number(all_room_space) * Number(data.mk_price) + summa_real;
           data['order_room_space'] = order_apartment?.room_space;
           data['order_all_price'] = order_apartment?.total_amount;
-          data['total_sum_cash'] =Math.abs(Number(summa.total_sum) - Number(summa_out.total_sum));
+          data['total_sum_cash'] =Number(summa.total_sum) - Number(summa_out.total_sum);
           data['total_sum_bank'] = Number(summabank.total_sum) - Number(summabank_out.total_sum);
           data['total_sum_due'] =
             Number(summabank.total_sum) + Number(summa.total_sum)
@@ -925,7 +925,7 @@ export class ReportService {
                 summa_real -
                 (Number(summabank.total_sum) -
                   Number(summabank_out.total_sum) +
-                  (Math.abs(Number(summa.total_sum) - Number(summa_out.total_sum))))
+                  (Number(summa.total_sum) - Number(summa_out.total_sum)))
               : 0;
           // data['total_sum_due'] =Number(summabank.total_sum) + Number(summa.total_sum) -((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
 
