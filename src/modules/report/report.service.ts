@@ -658,7 +658,6 @@ export class ReportService {
     }
   }
   async clientByApartMenClient(apartment_id:number){
-      const data=[];
 
       const orders=await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
            .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
@@ -679,10 +678,8 @@ export class ReportService {
           .where('apartments.id= :apartment_id',{apartment_id})
           .getRawOne()
 
-      const {order_id,client_id,total_amount, total_amount_usd}=orders;
 
-      data['clients']=orders;
-      return data;
+      return orders;
   }
   async clientPayment(
     order_id: number,
