@@ -1225,52 +1225,25 @@ export class ReportService {
     };
     let result;
 
-    result = await this.orderRepo.manager
-      .createQueryBuilder(Apartments, 'apartments')
-      .leftJoinAndSelect(
-        'apartments.floor',
-        'floor',
-        'floor.id=apartments.floor_id',
-      )
-      .leftJoinAndSelect(
-        'floor.entrance',
-        'entrance',
-        'entrance.id=floor.entrance_id',
-      )
-      .leftJoinAndSelect(
-        'entrance.buildings',
-        'buildings',
-        'buildings.id=entrance.building_id',
-      )
-      .leftJoinAndSelect(
-        'buildings.towns',
-        'towns',
-        'towns.id=buildings.town_id',
-      )
-      .leftJoinAndSelect(
-        'apartments.orderItems',
-        'orderItems',
-        'orderItems.apartment_id=apartments.id',
-      )
-        .leftJoinAndSelect(
-            'orderItems.orders',
-            'orders',
-            'orders.id=orderItems.order_id',
-        )
-
-        .leftJoin('orderItems.orders', 'orders', 'orders.id=orderItems.order_id')
-      .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
-      .select([
-        'SUM(payments.amount) AS total_sum',
-        'SUM(payments.amount_usd) AS total_usd',
-      ])
-      .where('buildings.id= :build_id', { build_id: build_id })
-      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .andWhere('payments.paymentmethods IN(:...paymethod)', {
-        paymethod: paymentMethod,
-      })
-        .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
-      .getRawMany();
+      result = await this.orderRepo.manager
+          .createQueryBuilder(Apartments, 'apartments')
+          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
+          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
+          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
+          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id = buildings.town_id')
+          .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
+          .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
+          .leftJoin('orderItems.orders', 'ordersLeftJoin', 'ordersLeftJoin.id = orderItems.order_id')
+          .leftJoin('orders.payments', 'payments', 'payments.order_id = orders.id')
+          .select([
+              'SUM(payments.amount) AS total_sum',
+              'SUM(payments.amount_usd) AS total_usd',
+          ])
+          .where('buildings.id = :build_id', { build_id: build_id })
+          .andWhere('payments.caisher_type = :cash', { cash: Caishertype.IN })
+          .andWhere('payments.paymentmethods IN (:...paymethod)', { paymethod: paymentMethod })
+          .andWhere('orders.order_status IN (:...status)', { status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED] })
+          .getRawMany();
 
     result.forEach((item) => {
       sumResults.total_sum = item.total_sum;
