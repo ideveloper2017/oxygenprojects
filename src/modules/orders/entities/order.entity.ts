@@ -15,6 +15,9 @@ export class Orders extends Model {
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 
+  @Column()
+  client_id: number;
+
   @ManyToOne((type) => Users, (users) => users.orders)
   @JoinColumn({ name: 'user_id' })
   users: Users;

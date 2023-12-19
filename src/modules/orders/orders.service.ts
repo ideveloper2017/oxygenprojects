@@ -82,9 +82,10 @@ export class OrdersService {
     const initial_floored = initial_pay;
 
     const order = new Orders();
-    order.clients = await Clients.findOne({
-      where: { id: +createOrderDto.client_id },
-    });
+    // order.clients = await Clients.findOne({
+    //   where: { id: +createOrderDto.client_id },
+    // });
+    order.client_id=createOrderDto.client_id;
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.percent = createOrderDto.percent;
