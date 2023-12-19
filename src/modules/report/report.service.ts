@@ -556,46 +556,58 @@ export class ReportService {
 
   async clientOrder(data: any) {
     try {
-      let  subRes;
+      let subRes;
 
       // Retrieve apartment data using TypeORM QueryBuilder
       const apartments = await this.orderRepo.manager
-          .createQueryBuilder(Apartments, 'apartments')
-          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
-          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
-          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
-          // .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
-          // .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
-          // .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
-          .select([
-            // 'orders.id as order_id',
-            // 'clients.id as client_id',
-            // 'clients.first_name',
-            // 'clients.last_name',
-            // 'clients.middle_name',
-            // 'clients.contact_number as phone',
-            // 'clients.description as description',
-            // 'orders.id as order_number',
-            // 'orders.total_amount as total_amount',
-            // 'orders.total_amount_usd as total_amount_usd',
-            // 'orderItems.price as price',
-            // 'orderItems.price_usd as price_usd',
-            'buildings.name as buildingname',
-            'entrance.entrance_number as entrance_number',
-            'floor.floor_number as floor_number',
-            'apartments.id as apartment_id',
-            'apartments.cells as room_cells',
-            'apartments.room_number as room_number',
-            'apartments.room_space as room_space',
-            'buildings.mk_price as mk_price',
-            'buildings.id as building_id',
-            'buildings.apartment_number as apartment_number',
-          ])
-          .where('buildings.id = :building_id', { building_id: data.building_id })
-           .orderBy('entrance_number', 'ASC')
-          .orderBy('floor_number', 'DESC')
-          .orderBy('room_number', 'DESC')
-          .getRawMany();
+        .createQueryBuilder(Apartments, 'apartments')
+        .leftJoinAndSelect(
+          'apartments.floor',
+          'floor',
+          'floor.id = apartments.floor_id',
+        )
+        .leftJoinAndSelect(
+          'floor.entrance',
+          'entrance',
+          'entrance.id = floor.entrance_id',
+        )
+        .leftJoinAndSelect(
+          'entrance.buildings',
+          'buildings',
+          'buildings.id = entrance.building_id',
+        )
+        // .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
+        // .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
+        // .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
+        .select([
+          // 'orders.id as order_id',
+          // 'clients.id as client_id',
+          // 'clients.first_name',
+          // 'clients.last_name',
+          // 'clients.middle_name',
+          // 'clients.contact_number as phone',
+          // 'clients.description as description',
+          // 'orders.id as order_number',
+          // 'orders.total_amount as total_amount',
+          // 'orders.total_amount_usd as total_amount_usd',
+          // 'orderItems.price as price',
+          // 'orderItems.price_usd as price_usd',
+          'buildings.name as buildingname',
+          'entrance.entrance_number as entrance_number',
+          'floor.floor_number as floor_number',
+          'apartments.id as apartment_id',
+          'apartments.cells as room_cells',
+          'apartments.room_number as room_number',
+          'apartments.room_space as room_space',
+          'buildings.mk_price as mk_price',
+          'buildings.id as building_id',
+          'buildings.apartment_number as apartment_number',
+        ])
+        .where('buildings.id = :building_id', { building_id: data.building_id })
+        .orderBy('entrance_number', 'ASC')
+        .orderBy('floor_number', 'DESC')
+        .orderBy('room_number', 'DESC')
+        .getRawMany();
 
       // Use Promise.all to execute clientPayment for each apartment in parallel
       subRes = await Promise.all(
@@ -610,46 +622,54 @@ export class ReportService {
           } = apartmentData;
 
           // Call clientPayment with different payment methods
-            const orders= await this.clientByApartMenClient(apartment_id);
+          const orders = await this.clientByApartMenClient(apartment_id);
 
-            const [summa_out, summa_cash, summa_bank] = await Promise.all([
-                this.clientPayment(
-                    orders?orders.order_id:0,
-                    orders?orders.client_id:0,
-                    [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
-                    apartment_id,
-                ),
-                this.clientPayment(
-                    orders?orders.order_id:0,
-                    orders?orders.client_id:0,
-                    [Paymentmethods.CASH, Paymentmethods.CARD],
-                    apartment_id,
-                ),
-                this.clientPayment(
-                    orders?orders.order_id:0,
-                    orders?orders.client_id:0,
-                    [Paymentmethods.BANK],
-                    apartment_id,
-                ),
-            ]);
+          const [summa_out, summa_cash, summa_bank] = await Promise.all([
+            this.clientPayment(
+              orders ? orders.order_id : 0,
+              orders ? orders.client_id : 0,
+              [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
+              apartment_id,
+            ),
+            this.clientPayment(
+              orders ? orders.order_id : 0,
+              orders ? orders.client_id : 0,
+              [Paymentmethods.CASH, Paymentmethods.CARD],
+              apartment_id,
+            ),
+            this.clientPayment(
+              orders ? orders.order_id : 0,
+              orders ? orders.client_id : 0,
+              [Paymentmethods.BANK],
+              apartment_id,
+            ),
+          ]);
 
-            // Calculate and assign values to the apartmentData object
-            apartmentData['clients_first_name']=orders?orders.clients_first_name:'';
-            apartmentData['clients_last_name']=orders?orders.clients_last_name:'';
-            apartmentData['clients_middle_name']=orders?orders.clients_middle_name:'';
-            apartmentData['order_number']=orders?orders.order_number:'';
-            apartmentData['phone']=orders?orders.phone:'';
-            apartmentData['total_sum_out'] = summa_out.total_sum_out;
-            apartmentData['total_sum_out_usd'] = summa_out.total_usd_out;
-            apartmentData['total_sum_cash'] = summa_cash.total_sum_out;
-            apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
-            apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
-            apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
-            const total_amount=orders?orders.total_amount:0;
-            apartmentData['due_total_sum'] =Number(summa_out.total_sum_out)?Number(total_amount) - Number(summa_out.total_sum_out):0;
-            apartmentData['due_total_usd'] =
-                Math.round(Number(orders?orders.total_amount_usd:0)) -
-                Math.round(Number(summa_out.total_usd_out));
+          // Calculate and assign values to the apartmentData object
+          apartmentData['clients_first_name'] = orders
+            ? orders.clients_first_name
+            : '';
+          apartmentData['clients_last_name'] = orders
+            ? orders.clients_last_name
+            : '';
+          apartmentData['clients_middle_name'] = orders
+            ? orders.clients_middle_name
+            : '';
+          apartmentData['order_number'] = orders ? orders.order_number : '';
+          apartmentData['phone'] = orders ? orders.phone : '';
+          apartmentData['total_sum_out'] = summa_out.total_sum_out;
+          apartmentData['total_sum_out_usd'] = summa_out.total_usd_out;
+          apartmentData['total_sum_cash'] = summa_cash.total_sum_out;
+          apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
+          apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
+          apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
+          const total_amount = orders ? orders.total_amount : 0;
+          apartmentData['due_total_sum'] = Number(summa_out.total_sum_out)
+            ? Number(total_amount) - Number(summa_out.total_sum_out)
+            : 0;
+          apartmentData['due_total_usd'] =
+            Math.round(Number(orders ? orders.total_amount_usd : 0)) -
+            Math.round(Number(summa_out.total_usd_out));
 
           return apartmentData;
         }),
@@ -662,30 +682,45 @@ export class ReportService {
       throw error;
     }
   }
-  async clientByApartMenClient(apartment_id:number){
+  async clientByApartMenClient(apartment_id: number) {
+    const orders = await this.orderRepo.manager
+      .createQueryBuilder(Orders, 'orders')
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id = orders.client_id',
+      )
+      .leftJoinAndSelect(
+        'orders.orderItems',
+        'orderItems',
+        'orders.id = orderItems.order_id',
+      )
+      .leftJoinAndSelect(
+        'orderItems.apartments',
+        'apartments',
+        'orderItems.apartment_id=apartments.id',
+      )
+      .select([
+        'orders.id as order_id',
+        'clients.id as client_id',
+        'clients.first_name',
+        'clients.last_name',
+        'clients.middle_name',
+        'clients.contact_number as phone',
+        'clients.description as description',
+        'orders.id as order_number',
+        'orders.total_amount as total_amount',
+        'orders.total_amount_usd as total_amount_usd',
+        'orderItems.price as price',
+        'orderItems.price_usd as price_usd',
+      ])
+      .where('apartments.id= :apartment_id', { apartment_id })
+      .andWhere('orders.order_status IN(:...status)', {
+        status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      })
+      .getRawOne();
 
-      const orders=await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
-           .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
-           .leftJoinAndSelect('orders.orderItems', 'orderItems', 'orders.id = orderItems.order_id')
-          .leftJoinAndSelect('orderItems.apartments','apartments','orderItems.apartment_id=apartments.id')
-          .select(['orders.id as order_id',
-              'clients.id as client_id',
-              'clients.first_name',
-              'clients.last_name',
-              'clients.middle_name',
-              'clients.contact_number as phone',
-              'clients.description as description',
-              'orders.id as order_number',
-              'orders.total_amount as total_amount',
-              'orders.total_amount_usd as total_amount_usd',
-              'orderItems.price as price',
-              'orderItems.price_usd as price_usd'])
-          .where('apartments.id= :apartment_id',{apartment_id})
-          .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
-          .getRawOne()
-
-
-      return orders;
+    return orders;
   }
   async clientPayment(
     order_id: number,
@@ -869,16 +904,16 @@ export class ReportService {
 
           const order_apartments = await this.orderRepo.manager
             .createQueryBuilder(OrderItems, 'orderItems')
-              .leftJoin(
-                  'orderItems.apartments',
-                  'apartments',
-                  'apartments.id=orderItems.apartment_id',
-              )
-              .leftJoin(
-                  'orderItems.orders',
-                  'orders',
-                  'orders.id=orderItems.order_id',
-              )
+            .leftJoin(
+              'orderItems.apartments',
+              'apartments',
+              'apartments.id=orderItems.apartment_id',
+            )
+            .leftJoin(
+              'orderItems.orders',
+              'orders',
+              'orders.id=orderItems.order_id',
+            )
 
             .leftJoin(
               'apartments.floor',
@@ -900,55 +935,13 @@ export class ReportService {
               'apartments.room_space as room_space',
             ])
             .where('buildings.id= :build_id', { build_id: data.build_id })
-            .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
+            .andWhere('orders.order_status IN(:...status)', {
+              status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+            })
             .getRawMany();
 
-
-
-            // const order_apartments_out = await this.orderRepo.manager
-            //     .createQueryBuilder(OrderItems, 'orderItems')
-            //     .leftJoin(
-            //         'orderItems.apartments',
-            //         'apartments',
-            //         'apartments.id=orderItems.apartment_id',
-            //     )
-            //     .leftJoin(
-            //         'orderItems.orders',
-            //         'orders',
-            //         'orders.id=orderItems.order_id',
-            //     )
-            //
-            //     .leftJoin(
-            //         'apartments.floor',
-            //         'floor',
-            //         'floor.id=apartments.floor_id',
-            //     )
-            //     .leftJoin(
-            //         'floor.entrance',
-            //         'entrance',
-            //         'entrance.id=floor.entrance_id',
-            //     )
-            //     .leftJoin(
-            //         'entrance.buildings',
-            //         'buildings',
-            //         'buildings.id=entrance.building_id',
-            //     )
-            //     .select([
-            //         'orderItems.price as price',
-            //         'apartments.room_space as room_space',
-            //     ])
-            //     .where('buildings.id= :build_id', { build_id: data.build_id })
-            //     .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.COMPLETED]})
-            //     .getRawMany();
-
           let summa_real = 0;
-          // let summa_real_out = 0;
-          //
-          //   order_apartments_out.forEach((retdata)=>{
-          //       const real_price = Number(retdata.price) - Number(data.mk_price);
-          //        summa_real_out =(real_price+Number(data.mk_price))*Number(retdata.room_space);
-          //   })
-          //
+
           order_apartments.forEach((orderData) => {
             const real_price = Number(orderData.price) - Number(data.mk_price);
             summa_real += Number(real_price) * Number(orderData.room_space);
@@ -957,15 +950,21 @@ export class ReportService {
           const order_apartment = await this.orderAllApartment(data.build_id);
 
           data['all_room_space'] = all_room_space;
-          data['total_room_price'] =Number(all_room_space) * Number(data.mk_price) + (summa_real);
+          data['total_room_price'] =
+            Number(all_room_space) * Number(data.mk_price) + summa_real;
           data['order_room_space'] = order_apartment?.room_space;
           data['order_all_price'] = order_apartment?.total_amount;
-          data['total_sum_cash'] =Number(summa.total_sum) - Number(summa_out.total_sum);
-          data['total_sum_bank'] = Number(summabank.total_sum) - Number(summabank_out.total_sum);
+          data['total_sum_cash'] =
+            Number(summa.total_sum) - Number(summa_out.total_sum);
+          data['total_sum_bank'] =
+            Number(summabank.total_sum) - Number(summabank_out.total_sum);
           data['total_sum_due'] =
             Number(summabank.total_sum) + Number(summa.total_sum)
               ? Number(all_room_space) * Number(data.mk_price) +
-                summa_real -(Number(summabank.total_sum) - Number(summabank_out.total_sum) +(Number(summa.total_sum) - Number(summa_out.total_sum)))
+                summa_real -
+                (Number(summabank.total_sum) -
+                  Number(summabank_out.total_sum) +
+                  (Number(summa.total_sum) - Number(summa_out.total_sum)))
               : 0;
           // data['total_sum_due'] =Number(summabank.total_sum) + Number(summa.total_sum) -((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
 
@@ -1263,25 +1262,57 @@ export class ReportService {
     };
     let result;
 
-      result = await this.orderRepo.manager
-          .createQueryBuilder(Apartments, 'apartments')
-          .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
-          .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
-          .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
-          .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id = buildings.town_id')
-          .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
-          .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
-          .leftJoin('orderItems.orders', 'ordersLeftJoin', 'ordersLeftJoin.id = orderItems.order_id')
-          .leftJoin('orders.payments', 'payments', 'payments.order_id = orders.id')
-          .select([
-              'SUM(payments.amount) AS total_sum',
-              'SUM(payments.amount_usd) AS total_usd',
-          ])
-          .where('buildings.id = :build_id', { build_id: build_id })
-          .andWhere('payments.caisher_type = :cash', { cash: Caishertype.IN })
-          .andWhere('payments.paymentmethods IN (:...paymethod)', { paymethod: paymentMethod })
-          .andWhere('orders.order_status IN (:...status)', { status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED] })
-          .getRawMany();
+    result = await this.orderRepo.manager
+      .createQueryBuilder(Apartments, 'apartments')
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id = apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id = floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id = entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id = buildings.town_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.orderItems',
+        'orderItems',
+        'orderItems.apartment_id = apartments.id',
+      )
+      .leftJoinAndSelect(
+        'orderItems.orders',
+        'orders',
+        'orders.id = orderItems.order_id',
+      )
+      .leftJoin(
+        'orderItems.orders',
+        'ordersLeftJoin',
+        'ordersLeftJoin.id = orderItems.order_id',
+      )
+      .leftJoin('orders.payments', 'payments', 'payments.order_id = orders.id')
+      .select([
+        'SUM(payments.amount) AS total_sum',
+        'SUM(payments.amount_usd) AS total_usd',
+      ])
+      .where('buildings.id = :build_id', { build_id: build_id })
+      .andWhere('payments.caisher_type = :cash', { cash: Caishertype.IN })
+      .andWhere('payments.paymentmethods IN (:...paymethod)', {
+        paymethod: paymentMethod,
+      })
+      // .andWhere('orders.order_status IN (:...status)', {
+      //   status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+      // })
+      .getRawMany();
 
     result.forEach((item) => {
       sumResults.total_sum = item.total_sum;
@@ -1338,7 +1369,9 @@ export class ReportService {
       .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
       })
-        .andWhere('orders.order_status= :status',{status:OrderStatus.REFUNDED})
+      .andWhere('orders.order_status= :status', {
+        status: OrderStatus.REFUNDED,
+      })
       .getRawMany();
 
     result.forEach((item) => {
