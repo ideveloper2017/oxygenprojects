@@ -645,7 +645,7 @@ export class ReportService {
           .where('apartments.id= :apartment_id',{apartment_id})
           .getRawOne()
 
-      console.log({order_id,client_id,total_amount, total_amount_usd})
+
       const [summa_out, summa_cash, summa_bank] = await Promise.all([
           this.clientPayment(
               order_id,
@@ -678,7 +678,7 @@ export class ReportService {
       data['due_total_usd'] =
           Math.round(Number(total_amount_usd)) -
           Math.round(Number(summa_out.total_usd_out));
-
+      console.log({order_id,client_id,total_amount, total_amount_usd,data});
       return data;
   }
   async clientPayment(
