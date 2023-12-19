@@ -610,7 +610,7 @@ export class ReportService {
           } = apartmentData;
 
           // Call clientPayment with different payment methods
-            const clientApartmentData=await this.clientByApartMenClient(apartment_id);
+            const clientApartmentData= this.clientByApartMenClient(apartment_id);
             apartmentData['client']=clientApartmentData;
           return apartmentData;
         }),
