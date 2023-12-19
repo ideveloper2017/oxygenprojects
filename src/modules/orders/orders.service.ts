@@ -257,16 +257,16 @@ export class OrdersService {
 
   async findOrderByApartmentID(id: number) {
     const order = await this.ordersRepository
-      .createQueryBuilder('order')
-      .leftJoin('order.orderItems', 'orderItem')
-      .leftJoinAndSelect('orderItem.apartments', 'apartment')
-      .leftJoinAndSelect('order.clients', 'clients')
-      .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
-      .leftJoinAndSelect('order.payments', 'payment')
-      .leftJoinAndSelect('order.users', 'users')
-      .where('apartment.id = :id', { id })
-        .andWhere('order.order_status<> :status',{status:OrderStatus.INACTIVE})
-      .getOne();
+        .createQueryBuilder('order')
+        .leftJoin('order.orderItems', 'orderItem')
+        .leftJoinAndSelect('orderItem.apartments', 'apartment')
+        .leftJoinAndSelect('order.clients', 'clients')
+        .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
+        .leftJoinAndSelect('order.payments', 'payment')
+        .leftJoinAndSelect('order.users', 'users')
+        .where('apartment.id = :id', { id })
+        .andWhere('order.order_status <> :status', { status: OrderStatus.INACTIVE })
+        .getOne();
 
     if (order) {
       const sumOfPayments = order.payments.reduce(
