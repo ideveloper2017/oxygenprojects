@@ -681,6 +681,7 @@ export class ReportService {
               'orderItems.price as price',
               'orderItems.price_usd as price_usd'])
           .where('apartments.id= :apartment_id',{apartment_id})
+          .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
           .getRawOne()
 
 
