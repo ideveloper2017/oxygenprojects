@@ -1295,6 +1295,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
       })
+        .andWhere('orders.order_status= :status',{status:OrderStatus.REFUNDED})
       .getRawMany();
 
     result.forEach((item) => {
