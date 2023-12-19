@@ -46,18 +46,7 @@ export class CreditTableService {
       order: { creditTables: { due_date: 'ASC' } },
     });
 
-    
-    // const sum = order['payments'].reduce(
-    //   (accumulator, currentValue) => {
-    //     if (currentValue.caisher_type === Caishertype.IN) {
-    //       return accumulator + Number(currentValue.amount);
-    //     }
-    //     return accumulator;
-    //   },
-    //   0
-    // );
-    // order['sumOfpayments'] = sum;
-    
+
     const { incomingSum, outgoingSum } = order['payments'].reduce(
       (accumulator, currentValue) => {
         currentValue.caisher_type === Caishertype.IN
@@ -69,15 +58,6 @@ export class CreditTableService {
       );
       
       order['sumOfpayments'] = incomingSum - outgoingSum;
-
-    // const sum = creditTable.creditTables.reduce((accumulator, currentValue) => accumulator + currentValue.due_amount, 0)
-
-    //  const payment = await Payments.createQueryBuilder('payment')
-    //    .select('SUM(payment.amount)', 'sum')
-    //    .where('payment.order_id = :order_id', { order_id })
-    //    .getRawOne();
-    //
-    // // creditTable.payments = payment;
 
     return order;
   }
