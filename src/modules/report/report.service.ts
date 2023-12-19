@@ -869,11 +869,17 @@ export class ReportService {
 
           const order_apartments = await this.orderRepo.manager
             .createQueryBuilder(OrderItems, 'orderItems')
-            .leftJoin(
-              'orderItems.apartments',
-              'apartments',
-              'apartments.id=orderItems.apartment_id',
-            )
+              .leftJoin(
+                  'orderItems.apartments',
+                  'apartments',
+                  'apartments.id=orderItems.apartment_id',
+              )
+              .leftJoin(
+                  'orderItems.orders',
+                  'orders',
+                  'orders.id=orderItems.order_id',
+              )
+
             .leftJoin(
               'apartments.floor',
               'floor',
@@ -894,6 +900,7 @@ export class ReportService {
               'apartments.room_space as room_space',
             ])
             .where('buildings.id= :build_id', { build_id: data.build_id })
+              .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
             .getRawMany();
 
           let summa_real = 0;
