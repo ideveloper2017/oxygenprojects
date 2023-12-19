@@ -645,7 +645,7 @@ export class ReportService {
             apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
             apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
             apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
-            const total_amount=orders?.orders.total_amount:0;
+            const total_amount=orders?orders.total_amount:0;
             apartmentData['due_total_sum'] =Number(summa_out.total_sum_out)?Number(total_amount) - Number(summa_out.total_sum_out):0;
             apartmentData['due_total_usd'] =
                 Math.round(Number(orders?orders.total_amount_usd:0)) -
