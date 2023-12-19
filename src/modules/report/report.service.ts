@@ -1268,7 +1268,7 @@ export class ReportService {
       .andWhere('payments.paymentmethods IN(:...paymethod)', {
         paymethod: paymentMethod,
       })
-        .andWhere('orders.orders_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
+        .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
       .getRawMany();
 
     result.forEach((item) => {
