@@ -614,20 +614,20 @@ export class ReportService {
 
             const [summa_out, summa_cash, summa_bank] = await Promise.all([
                 this.clientPayment(
-                    orders.order_id,
-                    orders.client_id,
+                    orders?orders.order_id:0,
+                    orders?orders.client_id:0,
                     [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
                     apartment_id,
                 ),
                 this.clientPayment(
-                    orders.order_id,
-                    orders.client_id,
+                    orders?orders.order_id:0,
+                    orders?orders.client_id:0,
                     [Paymentmethods.CASH, Paymentmethods.CARD],
                     apartment_id,
                 ),
                 this.clientPayment(
-                    orders.order_id,
-                    orders.client_id,
+                    orders?orders.order_id:0,
+                    orders?orders.client_id:0,
                     [Paymentmethods.BANK],
                     apartment_id,
                 ),
