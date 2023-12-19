@@ -1255,7 +1255,7 @@ export class ReportService {
         .leftJoin(
             'orderItems.orders',
             'orders',
-            'orderItems.order_id=orders.id',
+            'orders.id=orderItems.order_id',
         )
       .leftJoin('orderItems.orders', 'orders', 'orders.id=orderItems.order_id')
       .leftJoin('orders.payments', 'payments', 'payments.order_id=orders.id')
