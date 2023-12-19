@@ -634,10 +634,10 @@ export class ReportService {
             ]);
 
             // Calculate and assign values to the apartmentData object
-            apartmentData['clients_first_name']=orders.clients_first_name;
-            apartmentData['clients_last_name']=orders.clients_last_name;
-            apartmentData['clients_middle_name']=orders.clients_middle_name;
-            apartmentData['order_number']=orders.order_number;
+            apartmentData['clients_first_name']=orders?orders.clients_first_name:'';
+            apartmentData['clients_last_name']=orders?orders.clients_last_name:'';
+            apartmentData['clients_middle_name']=orders?orders.clients_middle_name:'';
+            apartmentData['order_number']=orders?orders.order_number:'';
             apartmentData['phone']=orders.phone;
             apartmentData['phone']=orders.phone;
             apartmentData['total_sum_out'] = summa_out.total_sum_out;
