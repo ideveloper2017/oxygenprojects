@@ -629,7 +629,7 @@ export class ReportService {
       const {order_id,client_id,total_amount, total_amount_usd,}=await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
            .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
            .leftJoinAndSelect('orders.orderItems', 'orderItems', 'orders.id = orderItems.order_id')
-          .leftJoinAndSelect('orderItesm.apartments','apartments','orderItems.apartment_id=apartments.id')
+          .leftJoinAndSelect('orderItems.apartments','apartments','orderItems.apartment_id=apartments.id')
           .select(['orders.id as order_id',
               'clients.id as client_id',
               'clients.first_name',
