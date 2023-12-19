@@ -564,22 +564,22 @@ export class ReportService {
           .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
           .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
           .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
-          .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
-          .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
-          .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
+          // .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
+          // .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
+          // .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
           .select([
-            'orders.id as order_id',
-            'clients.id as client_id',
-            'clients.first_name',
-            'clients.last_name',
-            'clients.middle_name',
-            'clients.contact_number as phone',
-            'clients.description as description',
-            'orders.id as order_number',
-            'orders.total_amount as total_amount',
-            'orders.total_amount_usd as total_amount_usd',
-            'orderItems.price as price',
-            'orderItems.price_usd as price_usd',
+            // 'orders.id as order_id',
+            // 'clients.id as client_id',
+            // 'clients.first_name',
+            // 'clients.last_name',
+            // 'clients.middle_name',
+            // 'clients.contact_number as phone',
+            // 'clients.description as description',
+            // 'orders.id as order_number',
+            // 'orders.total_amount as total_amount',
+            // 'orders.total_amount_usd as total_amount_usd',
+            // 'orderItems.price as price',
+            // 'orderItems.price_usd as price_usd',
             'buildings.name as buildingname',
             'entrance.entrance_number as entrance_number',
             'floor.floor_number as floor_number',
@@ -592,9 +592,7 @@ export class ReportService {
             'buildings.apartment_number as apartment_number',
           ])
           .where('buildings.id = :building_id', { building_id: data.building_id })
-          // .andWhere('orders.id ')
-          // .andWhere('orders.order_status IN (:...status)',{status: [OrderStatus.ACTIVE,OrderStatus.COMPLETED]})
-          .orderBy('entrance_number', 'ASC')
+           .orderBy('entrance_number', 'ASC')
           .orderBy('floor_number', 'DESC')
           .orderBy('room_number', 'DESC')
           .getRawMany();
@@ -604,48 +602,16 @@ export class ReportService {
         apartments.map(async (apartmentData) => {
           // Destructure relevant data from the apartment
           const {
-            order_id,
-            client_id,
+            // order_id,
+            // client_id,
             apartment_id,
-            total_amount,
-            total_amount_usd,
+            // total_amount,
+            // total_amount_usd,
           } = apartmentData;
 
           // Call clientPayment with different payment methods
-          const [summa_out, summa_cash, summa_bank] = await Promise.all([
-            this.clientPayment(
-              order_id,
-              client_id,
-              [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
-              apartment_id,
-            ),
-            this.clientPayment(
-              order_id,
-              client_id,
-              [Paymentmethods.CASH, Paymentmethods.CARD],
-              apartment_id,
-            ),
-            this.clientPayment(
-              order_id,
-              client_id,
-              [Paymentmethods.BANK],
-              apartment_id,
-            ),
-          ]);
-
-          // Calculate and assign values to the apartmentData object
-          apartmentData['total_sum_out'] = summa_out.total_sum_out;
-          apartmentData['total_sum_out_usd'] = summa_out.total_usd_out;
-          apartmentData['total_sum_cash'] = summa_cash.total_sum_out;
-          apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
-          apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
-          apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
-          apartmentData['due_total_sum'] =Number(summa_out.total_sum_out)?Number(total_amount) - Number(summa_out.total_sum_out):0;
-          apartmentData['due_total_usd'] =
-            Math.round(Number(total_amount_usd)) -
-            Math.round(Number(summa_out.total_usd_out));
-
-          console.log(apartmentData);
+            const clientApartmentData=await this.clientByApartMenClient(apartment_id);
+          apartments['client']=clientApartmentData;
           return apartmentData;
         }),
       );
@@ -656,6 +622,62 @@ export class ReportService {
       console.error('Error in clientOrder:', error);
       throw error;
     }
+  }
+  async clientByApartMenClient(apartment_id:number){
+      const data=[];
+
+      const {order_id,client_id,total_amount, total_amount_usd,}=await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
+           .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
+           .leftJoinAndSelect('orders.orderItems', 'orderItems', 'orders.id = orderItems.order_id')
+          .leftJoinAndSelect('orderItesm.apartments','apartments','orderItems.apartment_id=apartments.id')
+          .select(['orders.id as order_id',
+              'clients.id as client_id',
+              'clients.first_name',
+              'clients.last_name',
+              'clients.middle_name',
+              'clients.contact_number as phone',
+              'clients.description as description',
+              'orders.id as order_number',
+              'orders.total_amount as total_amount',
+              'orders.total_amount_usd as total_amount_usd',
+              'orderItems.price as price',
+              'orderItems.price_usd as price_usd'])
+          .where('apartments.id= :apartment_id',{apartment_id})
+          .getRawOne()
+      const [summa_out, summa_cash, summa_bank] = await Promise.all([
+          this.clientPayment(
+              order_id,
+              client_id,
+              [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
+              apartment_id,
+          ),
+          this.clientPayment(
+              order_id,
+              client_id,
+              [Paymentmethods.CASH, Paymentmethods.CARD],
+              apartment_id,
+          ),
+          this.clientPayment(
+              order_id,
+              client_id,
+              [Paymentmethods.BANK],
+              apartment_id,
+          ),
+      ]);
+
+      // Calculate and assign values to the apartmentData object
+      data['total_sum_out'] = summa_out.total_sum_out;
+      data['total_sum_out_usd'] = summa_out.total_usd_out;
+      data['total_sum_cash'] = summa_cash.total_sum_out;
+      data['total_sum_cash_usd'] = summa_cash.total_usd_out;
+      data['total_bank'] = Number(summa_bank.total_sum_out);
+      data['total_bank_usd'] = Number(summa_bank.total_usd_out);
+      data['due_total_sum'] =Number(summa_out.total_sum_out)?Number(total_amount) - Number(summa_out.total_sum_out):0;
+      data['due_total_usd'] =
+          Math.round(Number(total_amount_usd)) -
+          Math.round(Number(summa_out.total_usd_out));
+
+      return data;
   }
   async clientPayment(
     order_id: number,
