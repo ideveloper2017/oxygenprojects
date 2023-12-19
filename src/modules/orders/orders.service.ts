@@ -265,7 +265,7 @@ export class OrdersService {
       .leftJoinAndSelect('order.payments', 'payment')
       .leftJoinAndSelect('order.users', 'users')
       .where('apartment.id = :id', { id })
-        .andWhere('orders.order_status<> :status',{status:OrderStatus.INACTIVE})
+        .andWhere('order.order_status<> :status',{status:OrderStatus.INACTIVE})
       .getOne();
 
     if (order) {
