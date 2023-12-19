@@ -645,7 +645,7 @@ export class ReportService {
           .where('apartments.id= :apartment_id',{apartment_id})
           .getRawOne()
 
-      console.log(await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
+      const data=await this.orderRepo.manager.createQueryBuilder(Orders,'orders')
           .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
           .leftJoinAndSelect('orders.orderItems', 'orderItems', 'orders.id = orderItems.order_id')
           .leftJoinAndSelect('orderItems.apartments','apartments','orderItems.apartment_id=apartments.id')
@@ -662,7 +662,8 @@ export class ReportService {
               'orderItems.price as price',
               'orderItems.price_usd as price_usd'])
           .where('apartments.id= :apartment_id',{apartment_id})
-          .getRawOne())
+          .getRawOne()
+      console.log(data);
 
       const [summa_out, summa_cash, summa_bank] = await Promise.all([
           this.clientPayment(
@@ -696,7 +697,7 @@ export class ReportService {
       data['due_total_usd'] =
           Math.round(Number(total_amount_usd)) -
           Math.round(Number(summa_out.total_usd_out));
-      console.log({order_id,client_id,total_amount, total_amount_usd,data});
+      // console.log({order_id,client_id,total_amount, total_amount_usd,data});
       return data;
   }
   async clientPayment(
