@@ -925,7 +925,7 @@ export class ReportService {
                 summa_real -
                 (Number(summabank.total_sum) -
                   Number(summabank_out.total_sum) +
-                  (Number(summa.total_sum) - Number(summa_out.total_sum)))
+                  (Math.abs(Number(summa.total_sum) - Number(summa_out.total_sum))))
               : 0;
           // data['total_sum_due'] =Number(summabank.total_sum) + Number(summa.total_sum) -((Number(summabank_out.total_sum) + Number(summa_out.total_sum)));
 
