@@ -645,9 +645,9 @@ export class ReportService {
             apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
             apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
             apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
-            apartmentData['due_total_sum'] =Number(summa_out.total_sum_out)?Number(orders.total_amount) - Number(summa_out.total_sum_out):0;
+            apartmentData['due_total_sum'] =Number(summa_out.total_sum_out)?Number(orders?.orders.total_amount:0) - Number(summa_out.total_sum_out):0;
             apartmentData['due_total_usd'] =
-                Math.round(Number(orders.total_amount_usd)) -
+                Math.round(Number(orders?orders.total_amount_usd:0)) -
                 Math.round(Number(summa_out.total_usd_out));
 
           return apartmentData;
