@@ -610,8 +610,42 @@ export class ReportService {
           } = apartmentData;
 
           // Call clientPayment with different payment methods
-            apartmentData['client']= await this.clientByApartMenClient(apartment_id);
-            console.log(apartmentData['client']);
+            const orders= await this.clientByApartMenClient(apartment_id);
+            console.log(orders);
+            apartmentData['clients']=orders;
+            // const [summa_out, summa_cash, summa_bank] = await Promise.all([
+            //     this.clientPayment(
+            //         order_id,
+            //         client_id,
+            //         [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
+            //         apartment_id,
+            //     ),
+            //     this.clientPayment(
+            //         order_id,
+            //         client_id,
+            //         [Paymentmethods.CASH, Paymentmethods.CARD],
+            //         apartment_id,
+            //     ),
+            //     this.clientPayment(
+            //         order_id,
+            //         client_id,
+            //         [Paymentmethods.BANK],
+            //         apartment_id,
+            //     ),
+            // ]);
+            //
+            // // Calculate and assign values to the apartmentData object
+            // apartmentData['total_sum_out'] = summa_out.total_sum_out;
+            // apartmentData['total_sum_out_usd'] = summa_out.total_usd_out;
+            // apartmentData['total_sum_cash'] = summa_cash.total_sum_out;
+            // apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
+            // apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
+            // apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
+            // apartmentData['due_total_sum'] =Number(summa_out.total_sum_out)?Number(total_amount) - Number(summa_out.total_sum_out):0;
+            // apartmentData['due_total_usd'] =
+            //     Math.round(Number(total_amount_usd)) -
+            //     Math.round(Number(summa_out.total_usd_out));
+
           return apartmentData;
         }),
       );
@@ -646,39 +680,7 @@ export class ReportService {
           .getRawOne()
 
       const {order_id,client_id,total_amount, total_amount_usd}=orders;
-      const [summa_out, summa_cash, summa_bank] = await Promise.all([
-          this.clientPayment(
-              order_id,
-              client_id,
-              [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
-              apartment_id,
-          ),
-          this.clientPayment(
-              order_id,
-              client_id,
-              [Paymentmethods.CASH, Paymentmethods.CARD],
-              apartment_id,
-          ),
-          this.clientPayment(
-              order_id,
-              client_id,
-              [Paymentmethods.BANK],
-              apartment_id,
-          ),
-      ]);
 
-      // Calculate and assign values to the apartmentData object
-      data['total_sum_out'] = summa_out.total_sum_out;
-      data['total_sum_out_usd'] = summa_out.total_usd_out;
-      data['total_sum_cash'] = summa_cash.total_sum_out;
-      data['total_sum_cash_usd'] = summa_cash.total_usd_out;
-      data['total_bank'] = Number(summa_bank.total_sum_out);
-      data['total_bank_usd'] = Number(summa_bank.total_usd_out);
-      data['due_total_sum'] =Number(summa_out.total_sum_out)?Number(total_amount) - Number(summa_out.total_sum_out):0;
-      data['due_total_usd'] =
-          Math.round(Number(total_amount_usd)) -
-          Math.round(Number(summa_out.total_usd_out));
-      // console.log({order_id,client_id,total_amount, total_amount_usd,data});
       data['clients']=orders;
       return data;
   }
