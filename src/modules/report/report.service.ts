@@ -938,7 +938,7 @@ export class ReportService {
                     'apartments.room_space as room_space',
                 ])
                 .where('buildings.id= :build_id', { build_id: data.build_id })
-                .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.INACTIVE,OrderStatus.COMPLETED]})
+                .andWhere('orders.order_status IN(:...status)',{status:[OrderStatus.COMPLETED]})
                 .getRawMany();
 
           let summa_real = 0;
