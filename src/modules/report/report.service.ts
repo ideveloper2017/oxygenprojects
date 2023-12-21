@@ -1386,6 +1386,8 @@ export class ReportService {
        // .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
+      console.log(res);
+
       // No need for Promise.all here, but keeping it in case of future changes
       result = await Promise.all(
         res.map(async (data) => {
