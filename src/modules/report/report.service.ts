@@ -930,7 +930,7 @@ export class ReportService {
               'buildings.id=entrances.building_id',
             )
             .where('buildings.id= :building_id', { building_id: data.build_id })
-            .select('SUM(apartments.room_space * apartments.mk_price) as all_room_space')
+            .select('SUM(apartments.room_space) as all_room_space')
             .getRawOne();
 
           const order_apartments = await this.orderRepo.manager
