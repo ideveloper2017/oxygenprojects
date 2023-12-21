@@ -1373,7 +1373,7 @@ export class ReportService {
           'buildingItems.building_id = buildings.id',
         )
         .select([
-          'buildingItems.building_id as building_id',
+          'buildings.id as building_id',
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
