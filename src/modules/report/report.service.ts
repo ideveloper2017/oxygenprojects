@@ -912,7 +912,7 @@ export class ReportService {
               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.BANK]),
             ]);
 
-          const { all_room_space } = await this.orderRepo.manager
+          const  all_room_space  = await this.orderRepo.manager
             .createQueryBuilder(Apartments, 'apartments')
             .leftJoinAndSelect(
               'apartments.floor',
@@ -930,7 +930,8 @@ export class ReportService {
               'buildings.id=entrances.building_id',
             )
             .where('buildings.id= :building_id', { building_id: data.build_id })
-            .select('(SUM(apartments.room_space) * apartments.mk_price)', 'all_room_space')
+            .select('(SUM(apartments.room_space) as all_room_space')
+            .addSelect('apartments.mk_price as mk_price')
             .getRawOne();
 
           const order_apartments = await this.orderRepo.manager
@@ -980,8 +981,8 @@ export class ReportService {
 
           // const order_apartment = await this.orderAllApartment(data.build_id);
 
-          data['all_room_space'] = all_room_space;
-          data['total_room_price'] =(Number(all_room_space)) + summa_real;
+          data['all_room_space'] = all_room_space.all_room_space;
+          data['total_room_price'] =(Number(all_room_space.all_room_space*all_room_space.mk_price)) + summa_real;
           // data['order_room_space'] = order_apartment?.room_space;
           // data['order_all_price'] = order_apartment?.total_amount;
           data['total_sum_cash'] =
