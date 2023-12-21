@@ -970,7 +970,7 @@ export class ReportService {
           const order_apartment = await this.orderAllApartment(data.build_id);
 
           data['all_room_space'] = all_room_space;
-          data['total_room_price'] =  (Number(all_room_space) * Number(data.mk_price)) + summa_real;
+          data['total_room_price'] =(Number(data.mk_price)) + summa_real;
           data['order_room_space'] = order_apartment?.room_space;
           data['order_all_price'] = order_apartment?.total_amount;
           data['total_sum_cash'] =
