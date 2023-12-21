@@ -174,6 +174,7 @@ export class BuildingsService {
       Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
     );
     buildingItems.is_active = true;
+    buildingItems.note_action=createbuildingitems.note_action;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);
 
     const building = await this.buildingRepository.manager
