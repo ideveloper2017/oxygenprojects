@@ -64,18 +64,22 @@ export class OrdersService {
       );
     }
 
-    let initial_pay, deal_price, kv_price_usd, kv_price;
+    let initial_pay, deal_price, kv_price_usd, kv_price,mk_price,mk_price_usd;
 
     if (payment_method.name_alias === 'dollar') {
       deal_price = createOrderDto.price * usdRate.rate_value;
       initial_pay = createOrderDto.initial_pay * usdRate.rate_value;
       kv_price = createOrderDto.price * usdRate.rate_value;
       kv_price_usd = Math.round(Number(createOrderDto.price));
+      mk_price= checkApartment.mk_price;
+      mk_price_usd= checkApartment.mk_price * usdRate.rate_value;
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
       kv_price_usd = Math.round(Number(createOrderDto.price) / Number(usdRate.rate_value));
       kv_price = createOrderDto.price;
+      mk_price= checkApartment.mk_price;
+      mk_price_usd= checkApartment.mk_price / usdRate.rate_value;
     }
 
     // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
@@ -173,7 +177,8 @@ export class OrdersService {
     orderItem.price = kv_price;
     orderItem.price_usd = kv_price_usd;
     orderItem.final_price = total_floored;
-
+    orderItem.mk_price=mk_price;
+    orderItem.mk_price_usd=mk_price_usd;
     await Apartments.update(
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
