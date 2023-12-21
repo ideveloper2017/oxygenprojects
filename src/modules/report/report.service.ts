@@ -981,7 +981,8 @@ export class ReportService {
 
           // const order_apartment = await this.orderAllApartment(data.build_id);
           data['all_room_space'] = all_room_space.all_room_space;
-          data['total_room_price'] =(Number(all_room_space.all_room_price)) + summa_real;
+
+          data['total_room_price'] =(Number(all_room_space.all_room_price)) + Math.abs(summa_real);
           // data['order_room_space'] = order_apartment?.room_space;
           // data['order_all_price'] = order_apartment?.total_amount;
           data['total_sum_cash'] =
@@ -989,7 +990,7 @@ export class ReportService {
           data['total_sum_bank'] =
             Number(summabank.total_sum) - Number(summabank_out.total_sum);
           data['total_sum_due'] =
-            (Number(all_room_space.all_room_price)+summa_real) -
+            (Number(all_room_space.all_room_price)+Math.abs(summa_real)) -
             (Number(summabank.total_sum) -
               Number(summabank_out.total_sum) +
               (Number(summa.total_sum) - Number(summa_out.total_sum)));
