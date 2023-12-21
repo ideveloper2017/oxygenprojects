@@ -610,7 +610,7 @@ export class ReportService {
           'apartments.cells as room_cells',
           'apartments.room_number as room_number',
           'apartments.room_space as room_space',
-          'buildingItems.mk_price as mk_price',
+          'apartments.mk_price as mk_price',
           'buildings.id as building_id',
           'buildings.apartment_number as apartment_number',
         ])
@@ -679,9 +679,8 @@ export class ReportService {
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
           apartmentData['total_amount'] = total_amount;
-          apartmentData['due_total_sum'] = Number(summa_out.total_sum_out)
-            ? Number(total_amount) - Number(summa_out.total_sum_out)
-            : 0;
+          apartmentData['due_total_sum'] = Number(total_amount) - Number(summa_out.total_sum_out)
+
           apartmentData['due_total_usd'] =
             Math.round(Number(orders ? orders.total_amount_usd : 0)) -
             Math.round(Number(summa_out.total_usd_out));
