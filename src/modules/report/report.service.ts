@@ -1383,7 +1383,7 @@ export class ReportService {
         .groupBy('buildingItems.building_id')
         .addGroupBy('buildings.id')
         .addGroupBy('towns.id')
-        .orderBy('buildings.id', 'ASC')
+       // .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
       // No need for Promise.all here, but keeping it in case of future changes
