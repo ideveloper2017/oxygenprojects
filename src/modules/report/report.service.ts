@@ -1383,7 +1383,7 @@ export class ReportService {
         .groupBy('buildingItems.mk_price')
         .addGroupBy('buildings.id')
         .addGroupBy('towns.id')
-        .orderBy('buildingItems.building_id', 'ASC')
+        .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
       console.log(res);
