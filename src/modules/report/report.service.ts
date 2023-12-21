@@ -679,8 +679,11 @@ export class ReportService {
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
           apartmentData['total_amount'] = total_amount;
-          apartmentData['due_total_sum'] = Number(total_amount) - Number(summa_out.total_sum_out)
-          apartmentData['due_total_usd'] = Math.round(Number(orders ? orders.total_amount_usd : 0)) - Math.round(Number(summa_out.total_usd_out));
+          apartmentData['due_total_sum'] =
+            Number(total_amount) - Number(summa_out.total_sum_out);
+          apartmentData['due_total_usd'] =
+            Math.round(Number(orders ? orders.total_amount_usd : 0)) -
+            Math.round(Number(summa_out.total_usd_out));
           return apartmentData;
         }),
       );
@@ -907,7 +910,7 @@ export class ReportService {
               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.BANK]),
             ]);
 
-          const  all_room_space  = await this.orderRepo.manager
+          const all_room_space = await this.orderRepo.manager
             .createQueryBuilder(Apartments, 'apartments')
             .leftJoinAndSelect(
               'apartments.floor',
@@ -925,7 +928,9 @@ export class ReportService {
               'buildings.id=entrances.building_id',
             )
             .where('buildings.id= :building_id', { building_id: data.build_id })
-            .select('SUM(apartments.room_space * apartments.mk_price) as all_room_price')
+            .select(
+              'SUM(apartments.room_space * apartments.mk_price) as all_room_price',
+            )
             .addSelect('SUM(apartments.room_space) as all_room_space')
             .getRawOne();
 
@@ -969,17 +974,24 @@ export class ReportService {
 
           let summa_real = 0;
           order_apartments.forEach((orderData) => {
-
-            const real_price =Number(orderData.mk_price)- Number(orderData.price);
+            const real_price =
+              Number(orderData.mk_price) - Number(orderData.price);
             summa_real += Number(real_price) * Number(orderData.room_space);
 
-            console.log(Number(orderData.price) + '-' + Number(orderData.mk_price)+' '+summa_real);
+            console.log(
+              Number(orderData.price) +
+                '-' +
+                Number(orderData.mk_price) +
+                ' ' +
+                summa_real,
+            );
           });
 
           // const order_apartment = await this.orderAllApartment(data.build_id);
           data['all_room_space'] = all_room_space.all_room_space;
 
-          data['total_room_price'] =(Number(all_room_space.all_room_price)) -summa_real;
+          data['total_room_price'] =
+            Number(all_room_space.all_room_price) - summa_real;
           // data['order_room_space'] = order_apartment?.room_space;
           // data['order_all_price'] = order_apartment?.total_amount;
           data['total_sum_cash'] =
@@ -987,7 +999,8 @@ export class ReportService {
           data['total_sum_bank'] =
             Number(summabank.total_sum) - Number(summabank_out.total_sum);
           data['total_sum_due'] =
-            (Number(all_room_space.all_room_price)-summa_real) -
+            Number(all_room_space.all_room_price) -
+            summa_real -
             (Number(summabank.total_sum) -
               Number(summabank_out.total_sum) +
               (Number(summa.total_sum) - Number(summa_out.total_sum)));
@@ -1360,15 +1373,15 @@ export class ReportService {
           'buildingItems.building_id = buildings.id',
         )
         .select([
-          'buildings.id as building_id',
+          'buildingItems.building_id as building_id',
           'towns.id as town_id',
           'towns.name as townname',
-          'buildings.name as buildingname'
-        //  'buildings.mk_price as mk_price',
+          'buildings.name as buildingname',
+          // 'buildings.mk_price as mk_price',
         ])
         .where('buildingItems.is_active=:is_active', { is_active: true })
-        .groupBy('buildings.id')
-        // .addGroupBy('buildingItems.building_id')
+        .groupBy('buildingItems.building_id')
+        .addGroupBy('buildings.id')
         .addGroupBy('towns.id')
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
