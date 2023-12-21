@@ -655,6 +655,8 @@ export class ReportService {
           apartmentData['clients_middle_name'] = orders
             ? orders.clients_middle_name
             : '';
+          apartmentData['price'] = orders? orders.price: '';
+          apartmentData['price_usd'] = orders? orders.price_usd : '';
           apartmentData['order_number'] = orders ? orders.order_number : '';
           apartmentData['phone'] = orders ? orders.phone : '';
           apartmentData['total_sum_out'] = summa_out.total_sum_out;
