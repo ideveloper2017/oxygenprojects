@@ -1483,7 +1483,7 @@ export class ReportService {
               'apartments.room_space as room_space',
               'apartments.room_number as room_number',
               'orderitems.price as price',
-              'orderitems.price_usb as price_usd',
+              'orderitems.price_usd as price_usd',
               "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
             ])
             .where('orders.order_status IN(:...orderStatus)', {
