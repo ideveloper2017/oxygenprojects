@@ -666,6 +666,7 @@ export class ReportService {
           apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
+          apartmentData['total_amount']=total_amount;
           apartmentData['due_total_sum'] = Number(summa_out.total_sum_out)
             ? Number(total_amount) - Number(summa_out.total_sum_out)
             : 0;
