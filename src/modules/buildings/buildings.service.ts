@@ -158,8 +158,7 @@ export class BuildingsService {
     buildingItems.createBuildingDate = new Date();
     // createbuildingitems.createBuildingDate;
     buildingItems.mk_price = createbuildingitems.mk_price;
-    buildingItems.mk_price_usd = Math.round(
-      Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
+    buildingItems.mk_price_usd = Math.round(Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
     );
     buildingItems.is_active = true;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);

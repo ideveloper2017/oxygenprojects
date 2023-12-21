@@ -556,10 +556,10 @@ export class ReportService {
 
   async clientOrder(data: any) {
     try {
-      let subRes;
+      let apartments, subRes;
 
       // Retrieve apartment data using TypeORM QueryBuilder
-      const apartments = await this.orderRepo.manager
+      apartments = await this.orderRepo.manager
         .createQueryBuilder(Apartments, 'apartments')
         .leftJoinAndSelect(
           'apartments.floor',
