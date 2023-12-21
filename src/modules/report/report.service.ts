@@ -1455,8 +1455,8 @@ export class ReportService {
           'buildingItems.mk_price as mk_price',
         ])
         .where('buildingItems.is_active= :is_active',{is_active:true})
-        // .groupBy('buildings.id')
-        .groupBy('buildingItems.building_id')
+        .groupBy('buildings.id')
+        .addGroupBy('buildingItems.building_id')
         .addGroupBy('towns.id')
         // .addGroupBy('buildings.name')
 
