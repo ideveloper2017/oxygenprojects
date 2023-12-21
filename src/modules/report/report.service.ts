@@ -965,6 +965,7 @@ export class ReportService {
           order_apartments.forEach((orderData) => {
             const real_price = Number(orderData.price) - Number(data.mk_price);
             summa_real += Number(real_price) * Number(orderData.room_space);
+            console.log(Number(orderData.price) + '-' + Number(data.mk_price));
           });
 
           const order_apartment = await this.orderAllApartment(data.build_id);
