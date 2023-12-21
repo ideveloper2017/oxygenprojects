@@ -1452,7 +1452,7 @@ export class ReportService {
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
-          'buildingItems.mk_price as mk_price',
+          'SUM(buildingItems.mk_price) as mk_price',
         ])
         .where('buildingItems.is_active= :is_active',{is_active:true})
         .groupBy('buildings.id')
