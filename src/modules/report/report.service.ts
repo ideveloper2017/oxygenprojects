@@ -680,11 +680,7 @@ export class ReportService {
           const total_amount = orders ? orders.total_amount : 0;
           apartmentData['total_amount'] = total_amount;
           apartmentData['due_total_sum'] = Number(total_amount) - Number(summa_out.total_sum_out)
-
-          apartmentData['due_total_usd'] =
-            Math.round(Number(orders ? orders.total_amount_usd : 0)) -
-            Math.round(Number(summa_out.total_usd_out));
-
+          apartmentData['due_total_usd'] = Math.round(Number(orders ? orders.total_amount_usd : 0)) - Math.round(Number(summa_out.total_usd_out));
           return apartmentData;
         }),
       );
@@ -1368,7 +1364,7 @@ export class ReportService {
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
-          'buildingItems.mk_price as mk_price',
+          'SUM(buildingItems.mk_price) as mk_price',
         ])
         .where('buildingItems.is_active=:is_active', { is_active: true })
         .groupBy('buildings.id')
