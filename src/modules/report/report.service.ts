@@ -1363,8 +1363,8 @@ export class ReportService {
           'buildings.id as building_id',
           'towns.id as town_id',
           'towns.name as townname',
-          'buildings.name as buildingname',
-          'buildings.mk_price as mk_price',
+          'buildings.name as buildingname'
+        //  'buildings.mk_price as mk_price',
         ])
         .where('buildingItems.is_active=:is_active', { is_active: true })
         .groupBy('buildings.id')
@@ -1465,7 +1465,6 @@ export class ReportService {
           const resultpay = await Promise.all(
             resord.map(async (data) => {
               let summa, summabank, initial_sum, return_sum;
-
               summa = await this.allSaleSummaryPayment(
                 data.build_id,
                 Paymentmethods.CASH,
@@ -1488,7 +1487,6 @@ export class ReportService {
                     Number(summa.total_sum) + Number(summabank.total_sum),
                 },
               ];
-
               return data;
             }),
           );
