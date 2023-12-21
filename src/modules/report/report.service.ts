@@ -1406,60 +1406,23 @@ export class ReportService {
       // Use TypeORM QueryBuilder to fetch data
       const res = await this.orderRepo.manager
         .createQueryBuilder(Orders, 'orders')
-        .leftJoinAndSelect(
-          'orders.clients',
-          'clients',
-          'clients.id=orders.client_id',
-        )
-        .leftJoinAndSelect(
-          'orders.orderItems',
-          'orderitems',
-          'orderitems.order_id=orders.id',
-        )
-        .leftJoinAndSelect(
-          'orderitems.apartments',
-          'apartments',
-          'apartments.id=orderitems.apartment_id',
-        )
-        .leftJoinAndSelect(
-          'apartments.floor',
-          'floor',
-          'floor.id=apartments.floor_id',
-        )
-        .leftJoinAndSelect(
-          'floor.entrance',
-          'entrance',
-          'entrance.id=floor.entrance_id',
-        )
-        .leftJoinAndSelect(
-          'entrance.buildings',
-          'buildings',
-          'buildings.id=entrance.building_id',
-        )
-        .leftJoinAndSelect(
-          'buildings.towns',
-          'towns',
-          'towns.id=buildings.town_id',
-        )
-        .leftJoinAndSelect(
-          'buildings.buildingItems',
-          'buildingItems',
-          'buildingItems.building_id=buildings.id',
-        )
-
+        .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
+        .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id = orders.id')
+        .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id = orderitems.apartment_id')
+        .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
+        .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
+        .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
+        .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id = buildings.town_id')
+        .leftJoinAndSelect('buildings.buildingItems', 'buildingItems', 'buildingItems.building_id = buildings.id')
         .select([
           'buildingItems.building_id as building_id',
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
-          'SUM(buildingItems.mk_price) as mk_price',
+          'buildingItems.mk_price as mk_price',
         ])
-        .where('buildingItems.is_active= :is_active',{is_active:true})
-        .groupBy('buildings.id')
-        .addGroupBy('buildingItems.building_id')
-        .addGroupBy('towns.id')
-        // .addGroupBy('buildings.name')
-
+        .where({ 'buildingItems.is_active': true })
+        .groupBy(['buildings.id', 'buildingItems.building_id', 'towns.id'])
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
