@@ -1480,6 +1480,7 @@ export class ReportService {
               'towns.name as townname',
               'buildings.name as buildingname',
               'apartments.room_space as room_space',
+              'apartments.room_number as room_number',
               'orderitems.price as mk_price',
               "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
             ])
