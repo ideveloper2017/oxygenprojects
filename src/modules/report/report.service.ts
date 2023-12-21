@@ -935,7 +935,6 @@ export class ReportService {
               'orders',
               'orders.id=orderItems.order_id',
             )
-
             .leftJoin(
               'apartments.floor',
               'floor',
@@ -971,8 +970,7 @@ export class ReportService {
           const order_apartment = await this.orderAllApartment(data.build_id);
 
           data['all_room_space'] = all_room_space;
-          data['total_room_price'] =
-            Number(all_room_space) * Number(data.mk_price) + summa_real;
+          data['total_room_price'] =  (Number(all_room_space) * Number(data.mk_price)) + summa_real;
           data['order_room_space'] = order_apartment?.room_space;
           data['order_all_price'] = order_apartment?.total_amount;
           data['total_sum_cash'] =
@@ -1406,14 +1404,46 @@ export class ReportService {
       // Use TypeORM QueryBuilder to fetch data
       const res = await this.orderRepo.manager
         .createQueryBuilder(Orders, 'orders')
-        .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
-        .leftJoinAndSelect('orders.orderItems', 'orderitems', 'orderitems.order_id = orders.id')
-        .leftJoinAndSelect('orderitems.apartments', 'apartments', 'apartments.id = orderitems.apartment_id')
-        .leftJoinAndSelect('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
-        .leftJoinAndSelect('floor.entrance', 'entrance', 'entrance.id = floor.entrance_id')
-        .leftJoinAndSelect('entrance.buildings', 'buildings', 'buildings.id = entrance.building_id')
-        .leftJoinAndSelect('buildings.towns', 'towns', 'towns.id = buildings.town_id')
-        .leftJoinAndSelect('buildings.buildingItems', 'buildingItems', 'buildingItems.building_id = buildings.id')
+        .leftJoinAndSelect(
+          'orders.clients',
+          'clients',
+          'clients.id = orders.client_id',
+        )
+        .leftJoinAndSelect(
+          'orders.orderItems',
+          'orderitems',
+          'orderitems.order_id = orders.id',
+        )
+        .leftJoinAndSelect(
+          'orderitems.apartments',
+          'apartments',
+          'apartments.id = orderitems.apartment_id',
+        )
+        .leftJoinAndSelect(
+          'apartments.floor',
+          'floor',
+          'floor.id = apartments.floor_id',
+        )
+        .leftJoinAndSelect(
+          'floor.entrance',
+          'entrance',
+          'entrance.id = floor.entrance_id',
+        )
+        .leftJoinAndSelect(
+          'entrance.buildings',
+          'buildings',
+          'buildings.id = entrance.building_id',
+        )
+        .leftJoinAndSelect(
+          'buildings.towns',
+          'towns',
+          'towns.id = buildings.town_id',
+        )
+        .leftJoinAndSelect(
+          'buildings.buildingItems',
+          'buildingItems',
+          'buildingItems.building_id = buildings.id',
+        )
         .select([
           'buildingItems.building_id as building_id',
           'towns.id as town_id',
@@ -1421,8 +1451,10 @@ export class ReportService {
           'buildings.name as buildingname',
           'buildingItems.mk_price as mk_price',
         ])
-        .where( 'buildingItems.is_active=:is_active',{ is_active:true} )
-        .groupBy('buildings.id').addGroupBy('buildingItems.building_id').addGroupBy('towns.id')
+        .where('buildingItems.is_active=:is_active', { is_active: true })
+        .groupBy('buildings.id')
+        .addGroupBy('buildingItems.building_id')
+        .addGroupBy('towns.id')
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
