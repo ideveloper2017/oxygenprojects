@@ -1422,7 +1422,7 @@ export class ReportService {
           'buildingItems.mk_price as mk_price',
         ])
         .where({ 'buildingItems.is_active': true })
-        .groupBy(['buildings.id', 'buildingItems.building_id', 'towns.id'])
+        .groupBy('buildings.id').addGroupBy('buildingItems.building_id').addGroupBy('towns.id')
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
