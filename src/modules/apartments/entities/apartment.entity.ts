@@ -33,6 +33,9 @@ export class Apartments extends Model {
   @Column({ type: 'float', nullable: true })
   room_space: number;
 
+  @Column({ default:0,nullable:true})
+  mk_price: number;
+
   @Column({ type: 'enum', enum: ApartmentStatus, nullable: true })
   status: ApartmentStatus;
 

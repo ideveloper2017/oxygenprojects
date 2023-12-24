@@ -1,8 +1,16 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import Model from '../../model/model.module';
 import { Towns } from '../../towns/entities/town.entity';
 import { Entrance } from '../../entrance/entities/entrance.entity';
 import { FileUpload } from 'src/modules/file-upload/entities/file-upload.entity';
+import { BuildingItems } from './buildingitems.entity';
 
 @Entity('Buildings')
 export class Buildings extends Model {
@@ -24,17 +32,23 @@ export class Buildings extends Model {
 
   @OneToMany((type) => Entrance, (entrance) => entrance.buildings)
   entrances: Entrance[];
-  
+
   @Column()
   apartment_number: number;
-  
+
   @Column()
   mk_price: number;
-  
-  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building, {onDelete: 'SET NULL', onUpdate: "CASCADE"})
-  @JoinColumn({name: "file_id",})
-  file: FileUpload
 
-  @Column({nullable: true,})
-  file_id: number
+  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building, {
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'file_id' })
+  file: FileUpload;
+
+  @Column({ nullable: true })
+  file_id: number;
+
+  @OneToMany((type) => BuildingItems, (buildingItems) => buildingItems.building)
+  buildingItems: BuildingItems;
 }

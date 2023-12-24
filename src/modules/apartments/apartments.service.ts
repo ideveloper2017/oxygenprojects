@@ -26,7 +26,7 @@ export class ApartmentsService {
     });
     const town_id = res.entrance.buildings.towns.id;
     const build_id = res.entrance.buildings.id;
-    const maxRoomNumber= await Towns.createQueryBuilder('town')
+    const maxRoomNumber = await Towns.createQueryBuilder('town')
       .innerJoin('town.buildings', 'building')
       .innerJoin('building.entrances', 'entrance')
       .innerJoin('entrance.floors', 'floor')
@@ -38,9 +38,13 @@ export class ApartmentsService {
       .getRawOne();
     const newApartment = new Apartments();
     newApartment.floor_id = floor_id;
-    newApartment.room_number = (maxRoomNumber!==undefined)? maxRoomNumber.maxroomnumber + 1 : 1;
+    newApartment.room_number =
+      maxRoomNumber !== undefined ? maxRoomNumber.maxroomnumber + 1 : 1;
     newApartment.cells = createApartmentDto.cells;
     newApartment.room_space = createApartmentDto.room_space;
+    newApartment.mk_price = await Buildings.findOne({
+      where: { id: build_id },
+    }).then((data) => data.mk_price);
     newApartment.status = createApartmentDto.status;
     newApartment.positions = createApartmentDto.positions;
     return await this.apartmentRepository.save(newApartment);

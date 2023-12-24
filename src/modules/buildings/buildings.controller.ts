@@ -31,14 +31,14 @@ export class BuildingsController {
       .then((response) => {
         if (!response) {
           return {
-            status:200,
+            status: 200,
             success: true,
             data: response,
             message: 'Building added successfully',
           };
-        } else  {
+        } else {
           return {
-            status:409,
+            status: 409,
             success: false,
             ...response,
           };
@@ -121,6 +121,33 @@ export class BuildingsController {
       .catch((error) => console.log(error));
   }
 
+  @ApiOperation({ summary: "Bino narxini o'zgartirish" })
+  @Post('/new/buildprice/:id')
+  newBuildPrice(@Param('id', ParseIntPipe) id: number) {
+    // return this.buildingsService.
+  }
+
+  @Get('/buldingprice/all')
+  buildingprice(@Res() res: Response) {
+    return this.buildingsService
+      .allBuildingsPrice()
+      .then((data) => {
+        if (data) {
+          return res.status(200).send({
+            success: true,
+            data,
+            message: 'found record!!!',
+          });
+        } else {
+          res.status(200).send({
+            success: false,
+            data: null,
+            message: 'not found record!!!',
+          });
+        }
+      })
+      .catch((error) => console.log(error));
+  }
 
   // @Post('/image/:id')
   // @ApiConsumes('multipart/form-data')

@@ -13,6 +13,9 @@ export class CreateApartmentDto {
   @ApiProperty({ example: 78.5 })
   room_space: number;
 
+  @ApiProperty({ example: 78.5 })
+  mk_price: number;
+
   @IsString()
   // @IsEnum({enum: ['free', 'sold', 'bron', 'inactive'] , description: "Xato qiymat kiritildi"})
   @ApiProperty({ example: 'free', enum: ['free', 'sold', 'bron', 'inactive'] })
