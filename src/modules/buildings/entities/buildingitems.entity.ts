@@ -11,7 +11,7 @@ export class BuildingItems extends Model {
   @Column()
   building_id: number;
 
-  @Column()
+  @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   mk_price: number;
 
   @Column()

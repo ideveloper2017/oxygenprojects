@@ -8,8 +8,11 @@ export class CreateBuildingitemsDto {
   })
   building_id: number;
 
-  @Column()
-  createBuildingDate: Date;
+  // @ApiProperty()
+  //   createBuildingDate: Date;
+
+  @ApiProperty()
+  note_action: string;
 
   @ApiProperty({
     example: 7500000,

@@ -17,6 +17,7 @@ import { BuildingsService } from './buildings.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
 import { UpdateBuildingDto } from './dto/update-building.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {CreateBuildingitemsDto} from "./dto/create-buildingitems.dto";
 
 @ApiTags('Buildings')
 @Controller('buildings')
@@ -122,9 +123,9 @@ export class BuildingsController {
   }
 
   @ApiOperation({ summary: "Bino narxini o'zgartirish" })
-  @Post('/new/buildprice/:id')
-  newBuildPrice(@Param('id', ParseIntPipe) id: number) {
-    // return this.buildingsService.
+  @Post('/new/buildprice')
+  newBuildPrice(@Body() createbuildingitems: CreateBuildingitemsDto) {
+    return this.buildingsService.changeBuildingPrice(createbuildingitems);
   }
 
   @Get('/buldingprice/all')

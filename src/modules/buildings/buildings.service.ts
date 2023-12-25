@@ -93,7 +93,7 @@ export class BuildingsService {
     let result;
     if (id == 0) {
       result = await this.buildingRepository.find({
-        relations: ['entrances.floors.apartments', 'file'],
+        relations: ['entrances.floors.apartments', 'buildingItems', 'file'],
         order: {
           entrances: {
             entrance_number: 'asc',
@@ -104,7 +104,7 @@ export class BuildingsService {
     } else {
       result = await this.buildingRepository.findOne({
         where: { id: id },
-        relations: ['entrances.floors.apartments', 'file'],
+        relations: ['entrances.floors.apartments', 'buildingItems', 'file'],
         order: {
           entrances: {
             entrance_number: 'asc',
@@ -149,25 +149,51 @@ export class BuildingsService {
       where: { is_default: true },
     });
 
-    const building = await this.buildingRepository.findOneBy({
-      id: createbuildingitems.building_id,
-    });
-
-    // const apartment = new Apartments();
-    // apartment.cells = 1;
-    // apartment.status = ApartmentStatus.FREE;
-    // apartment.room_space = 58.5;
-    // apartment.mk_price = createBuildingDto.mk_price;
-
+    BuildingItems.update(
+      { building_id: createbuildingitems.building_id, is_active: true },
+      { is_active: false },
+    );
     let buildingItems = new BuildingItems();
-    buildingItems.building_id = building.id;
-    buildingItems.createBuildingDate = createbuildingitems.createBuildingDate;
+    buildingItems.building_id = createbuildingitems.building_id;
+    buildingItems.createBuildingDate = new Date();
+    // createbuildingitems.createBuildingDate;
     buildingItems.mk_price = createbuildingitems.mk_price;
     buildingItems.mk_price_usd = Math.round(
       Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
     );
     buildingItems.is_active = true;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);
+
+    const building = await this.buildingRepository.manager
+      .createQueryBuilder(Entrance, 'entrance')
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.floors',
+        'floor',
+        'floor.entrance_id=entrance.id',
+      )
+      .leftJoinAndSelect(
+        'floor.apartments',
+        'apartments',
+        'apartments.floor_id=floor.id',
+      )
+
+      .select(['buildings.id as building_id', 'apartments.id as apartment_id'])
+      .where('buildings.id= :building_id', {
+        building_id: createbuildingitems.building_id,
+      })
+      .getRawMany();
+
+    building.forEach(async (data) => {
+      await Apartments.update(
+        { id: data.apartment_id, status: ApartmentStatus.FREE },
+        { mk_price: createbuildingitems.mk_price },
+      );
+    });
     return buildingItems;
   }
 
@@ -195,6 +221,8 @@ export class BuildingsService {
       .addSelect('buildingItems.createBuildingDate as createBuildingDate')
       .addSelect('buildingItems.note_action as note_action')
       .addSelect('buildingItems.is_active as is_active')
+      .orderBy('buildingItems.id', 'DESC')
+      .addOrderBy('buildings.name', 'ASC')
       .getRawMany();
   }
 }
