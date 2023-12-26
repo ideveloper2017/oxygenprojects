@@ -1453,8 +1453,8 @@ export class ReportService {
           'buildings.name as buildingname',
           'buildingItems.mk_price as mk_price',
         ])
-        .groupBy('buildings.id')
-        .addGroupBy('buildingItems.building_id')
+        // .groupBy('buildings.id')
+        .groupBy('buildingItems.building_id')
         .addGroupBy('towns.id')
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
