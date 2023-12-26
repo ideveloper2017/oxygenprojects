@@ -119,6 +119,7 @@ export class BuildingsService {
   public async getBuilding(id: number) {
     return await this.buildingRepository.find({
       where: { id: id },
+      order: { apartment_number: 'ASC' },
     });
   }
 
@@ -138,10 +139,21 @@ export class BuildingsService {
 
   async getBuldingsOfTown(town_id: number) {
     const result = await this.buildingRepository.find({
-      where: { town_id: town_id },
-      // relations: ['files'],
+      relations: ['buildingItems'],
+      where: { town_id: town_id, buildingItems: { is_active: true } },
+      order: { id: 'desc' },
     });
-
+    // const result = await this.buildingRepository.manager
+    //   .createQueryBuilder(Buildings, 'buildingItems')
+    //   .leftJoinAndSelect(
+    //     'buildings.buildingItems',
+    //     'buildingItems',
+    //     'buildingItems.building_id=buildingItems.id',
+    //   )
+    //   .where('buildings.town_id= :town_id',{town_id})
+    //   // .andWhere('buildingItems.is_active= :is_active', { is_active: true })
+    //   .getRawMany();
+    console.log(result);
     return result;
   }
   async changeBuildingPrice(createbuildingitems: CreateBuildingitemsDto) {
@@ -158,7 +170,8 @@ export class BuildingsService {
     buildingItems.createBuildingDate = new Date();
     // createbuildingitems.createBuildingDate;
     buildingItems.mk_price = createbuildingitems.mk_price;
-    buildingItems.mk_price_usd = Math.round(Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
+    buildingItems.mk_price_usd = Math.round(
+      Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
     );
     buildingItems.is_active = true;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);

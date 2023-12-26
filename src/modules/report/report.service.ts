@@ -422,6 +422,11 @@ export class ReportService {
     res = await this.orderRepo.manager
       .createQueryBuilder(Buildings, 'buildings')
       .leftJoinAndSelect(
+        'buildings.buildingItems',
+        'buildingItems',
+        'buildingItems.building_id=buildings.id',
+      )
+      .leftJoinAndSelect(
         'buildings.towns',
         'towns',
         'towns.id=buildings.town_id',
@@ -433,8 +438,9 @@ export class ReportService {
         'buildings.apartment_number as apartment_number',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'buildings.mk_price as mk_price',
+        'buildingItems.mk_price as mk_price',
       ])
+      .where('buildingItems.is_active= :is_active', { is_active: true })
       .orderBy('building_id', 'ASC')
       .getRawMany();
 
@@ -576,6 +582,11 @@ export class ReportService {
           'buildings',
           'buildings.id = entrance.building_id',
         )
+        .leftJoinAndSelect(
+          'buildings.buildingItems',
+          'buildingItems',
+          'buildingItems.building_id=buildings.id',
+        )
         // .leftJoinAndSelect('apartments.orderItems', 'orderItems', 'orderItems.apartment_id = apartments.id')
         // .leftJoinAndSelect('orderItems.orders', 'orders', 'orders.id = orderItems.order_id')
         // .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
@@ -599,11 +610,12 @@ export class ReportService {
           'apartments.cells as room_cells',
           'apartments.room_number as room_number',
           'apartments.room_space as room_space',
-          'buildings.mk_price as mk_price',
+          'buildingItems.mk_price as mk_price',
           'buildings.id as building_id',
           'buildings.apartment_number as apartment_number',
         ])
         .where('buildings.id = :building_id', { building_id: data.building_id })
+        .andWhere('buildingItems.is_active = :is_active', { is_active: true })
         .orderBy('entrance_number', 'ASC')
         .orderBy('floor_number', 'DESC')
         .orderBy('room_number', 'DESC')
@@ -655,8 +667,8 @@ export class ReportService {
           apartmentData['clients_middle_name'] = orders
             ? orders.clients_middle_name
             : '';
-          apartmentData['price'] = orders? orders.price: '';
-          apartmentData['price_usd'] = orders? orders.price_usd : '';
+          apartmentData['price'] = orders ? orders.price : '';
+          apartmentData['price_usd'] = orders ? orders.price_usd : '';
           apartmentData['order_number'] = orders ? orders.order_number : '';
           apartmentData['phone'] = orders ? orders.phone : '';
           apartmentData['total_sum_out'] = summa_out.total_sum_out;
@@ -666,7 +678,7 @@ export class ReportService {
           apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
-          apartmentData['total_amount']=total_amount;
+          apartmentData['total_amount'] = total_amount;
           apartmentData['due_total_sum'] = Number(summa_out.total_sum_out)
             ? Number(total_amount) - Number(summa_out.total_sum_out)
             : 0;
@@ -854,6 +866,11 @@ export class ReportService {
     res = await this.orderRepo.manager
       .createQueryBuilder(Buildings, 'buildings')
       .leftJoinAndSelect(
+        'buildings.buildingItems',
+        'buildingItems',
+        'buildingItems.building_id=buildings.id',
+      )
+      .leftJoinAndSelect(
         'buildings.towns',
         'towns',
         'towns.id=buildings.town_id',
@@ -862,8 +879,9 @@ export class ReportService {
         'buildings.id as build_id',
         'towns.name as townname',
         'buildings.name as buildingname',
-        'buildings.mk_price as mk_price',
+        'buildingItems.mk_price as mk_price',
       ])
+      .where('buildingItems.is_active=:is_active', { is_active: true })
       .orderBy('buildings.id', 'ASC')
       .getRawMany();
 
@@ -1419,6 +1437,11 @@ export class ReportService {
           'buildings.id=entrance.building_id',
         )
         .leftJoinAndSelect(
+          'buildings.buildingsItems',
+          'buildingsItems',
+          'buildingsItems.building_id=buildings.id',
+        )
+        .leftJoinAndSelect(
           'buildings.towns',
           'towns',
           'towns.id=buildings.town_id',
@@ -1428,7 +1451,7 @@ export class ReportService {
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
-          'buildings.mk_price as mk_price',
+          'buildingsItems.mk_price as mk_price',
         ])
         .groupBy('buildings.id')
         .addGroupBy('towns.id')
