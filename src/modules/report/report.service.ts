@@ -1447,14 +1447,14 @@ export class ReportService {
           'towns.id=buildings.town_id',
         )
         .select([
-          'buildings.id as building_id',
+          'buildingItems.building_id as building_id',
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
           'buildingItems.mk_price as mk_price',
         ])
-        .groupBy('buildings.id')
-        .addGroupBy('buildingItems.id')
+        // .groupBy('buildings.id')
+        .groupBy('buildingItems.building_id')
         .addGroupBy('towns.id')
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
