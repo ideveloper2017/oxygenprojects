@@ -1437,9 +1437,9 @@ export class ReportService {
           'buildings.id=entrance.building_id',
         )
         .leftJoinAndSelect(
-          'buildings.buildingsItems',
-          'buildingsItems',
-          'buildingsItems.building_id=buildings.id',
+          'buildings.buildingItems',
+          'buildingItems',
+          'buildingItems.building_id=buildings.id',
         )
         .leftJoinAndSelect(
           'buildings.towns',
@@ -1451,7 +1451,7 @@ export class ReportService {
           'towns.id as town_id',
           'towns.name as townname',
           'buildings.name as buildingname',
-          'buildingsItems.mk_price as mk_price',
+          'buildingItems.mk_price as mk_price',
         ])
         .groupBy('buildings.id')
         .addGroupBy('towns.id')
