@@ -1437,15 +1437,16 @@ export class ReportService {
           'buildings.id=entrance.building_id',
         )
         .leftJoinAndSelect(
-          'buildings.buildingItems',
-          'buildingItems',
-          'buildingItems.building_id=buildings.id',
-        )
-        .leftJoinAndSelect(
           'buildings.towns',
           'towns',
           'towns.id=buildings.town_id',
         )
+        .leftJoinAndSelect(
+          'buildings.buildingItems',
+          'buildingItems',
+          'buildingItems.building_id=buildings.id',
+        )
+
         .select([
           'buildingItems.building_id as building_id',
           'towns.id as town_id',
@@ -1453,10 +1454,12 @@ export class ReportService {
           'buildings.name as buildingname',
           'buildingItems.mk_price as mk_price',
         ])
-        // .groupBy('buildings.id')
+        .where('buildingItems.is_active= :is_active',{is_active:true})
+        .groupBy('buildings.id')
         .groupBy('buildingItems.building_id')
         .addGroupBy('towns.id')
         .addGroupBy('buildings.name')
+
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
 
