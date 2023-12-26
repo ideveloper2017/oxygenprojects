@@ -1455,7 +1455,6 @@ export class ReportService {
         ])
         // .groupBy('buildings.id')
         .groupBy('buildingItems.building_id')
-        .addGroupBy('buildings.id')
         .addGroupBy('towns.id')
         .orderBy('buildings.id', 'ASC')
         .getRawMany();
