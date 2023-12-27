@@ -21,6 +21,8 @@ import { OrderStatus } from '../../common/enums/order-status';
 import { PaymentStatus } from 'src/common/enums/payment-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { RefundDto } from './dto/refund.dto';
+import { Buildings } from '../buildings/entities/building.entity';
+import { BuildingItems } from '../buildings/entities/buildingitems.entity';
 
 @Injectable()
 export class OrdersService {
@@ -64,22 +66,24 @@ export class OrdersService {
       );
     }
 
-    let initial_pay, deal_price, kv_price_usd, kv_price,mk_price,mk_price_usd;
+    let initial_pay, deal_price, kv_price_usd, kv_price, mk_price, mk_price_usd;
 
     if (payment_method.name_alias === 'dollar') {
       deal_price = createOrderDto.price * usdRate.rate_value;
       initial_pay = createOrderDto.initial_pay * usdRate.rate_value;
       kv_price = createOrderDto.price * usdRate.rate_value;
       kv_price_usd = Math.round(Number(createOrderDto.price));
-      mk_price= checkApartment.mk_price;
-      mk_price_usd= checkApartment.mk_price * usdRate.rate_value;
+      mk_price = checkApartment.mk_price;
+      mk_price_usd = checkApartment.mk_price * usdRate.rate_value;
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
-      kv_price_usd = Math.round(Number(createOrderDto.price) / Number(usdRate.rate_value));
+      kv_price_usd = Math.round(
+        Number(createOrderDto.price) / Number(usdRate.rate_value),
+      );
       kv_price = createOrderDto.price;
-      mk_price= checkApartment.mk_price;
-      mk_price_usd= checkApartment.mk_price / usdRate.rate_value;
+      mk_price = checkApartment.mk_price;
+      mk_price_usd = checkApartment.mk_price / usdRate.rate_value;
     }
 
     // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
@@ -89,7 +93,7 @@ export class OrdersService {
     // order.clients = await Clients.findOne({
     //   where: { id: +createOrderDto.client_id },
     // });
-    order.client_id=createOrderDto.client_id;
+    order.client_id = createOrderDto.client_id;
     order.paymentMethods = payment_method;
     order.order_status = createOrderDto.order_status;
     order.percent = createOrderDto.percent;
@@ -146,7 +150,8 @@ export class OrdersService {
         installment.due_amount = oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount = installment.due_amount / usdRate.rate_value;
+        installment.usd_due_amount =
+          installment.due_amount / usdRate.rate_value;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
@@ -177,8 +182,8 @@ export class OrdersService {
     orderItem.price = kv_price;
     orderItem.price_usd = kv_price_usd;
     orderItem.final_price = total_floored;
-    orderItem.mk_price=mk_price;
-    orderItem.mk_price_usd=mk_price_usd;
+    orderItem.mk_price = mk_price;
+    orderItem.mk_price_usd = mk_price_usd;
     await Apartments.update(
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
@@ -262,16 +267,18 @@ export class OrdersService {
 
   async findOrderByApartmentID(id: number) {
     const order = await this.ordersRepository
-        .createQueryBuilder('order')
-        .leftJoin('order.orderItems', 'orderItem')
-        .leftJoinAndSelect('orderItem.apartments', 'apartment')
-        .leftJoinAndSelect('order.clients', 'clients')
-        .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
-        .leftJoinAndSelect('order.payments', 'payment')
-        .leftJoinAndSelect('order.users', 'users')
-        .where('apartment.id = :id', { id })
-        .andWhere('order.order_status <> :status', { status: OrderStatus.INACTIVE })
-        .getOne();
+      .createQueryBuilder('order')
+      .leftJoin('order.orderItems', 'orderItem')
+      .leftJoinAndSelect('orderItem.apartments', 'apartment')
+      .leftJoinAndSelect('order.clients', 'clients')
+      .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
+      .leftJoinAndSelect('order.payments', 'payment')
+      .leftJoinAndSelect('order.users', 'users')
+      .where('apartment.id = :id', { id })
+      .andWhere('order.order_status <> :status', {
+        status: OrderStatus.INACTIVE,
+      })
+      .getOne();
 
     if (order) {
       const sumOfPayments = order.payments.reduce(
@@ -376,7 +383,8 @@ export class OrdersService {
   public async orderReject(arrayOfId: number[]) {
     let order,
       orderItem,
-      counter = 0;
+      counter = 0,
+      building_price;
     try {
       for (const val of arrayOfId) {
         await this.ordersRepository.update(
@@ -384,13 +392,22 @@ export class OrdersService {
           { order_status: OrderStatus.INACTIVE },
         );
         order = await this.ordersRepository.findOne({ where: { id: val } });
-        orderItem = await OrderItems.findOne({ where: { order_id: order.id } });
+        orderItem = await OrderItems.findOne({ where: { order_id: order.id },relations:['apartments','apartments.floor','apartments.floor.entrance','apartments.floor.entrance.buildings'] });
+
+
+
+        building_price = await BuildingItems.findOne({
+          where: { building_id: orderItem.building_id, is_active: true },
+        });
+
         counter += (
           await Apartments.update(
             { id: +orderItem.apartment_id },
-            { status: ApartmentStatus.FREE },
+            { status: ApartmentStatus.FREE, mk_price: building_price.mk_price },
           )
         ).affected;
+
+        await BuildingItems.update({ building_id: orderItem.building_id, is_active: true },{ mk_price: building_price.mk_price});
       }
 
       if (counter === arrayOfId.length) {
