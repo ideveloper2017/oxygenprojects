@@ -13,26 +13,26 @@ export class OrderItems extends Model {
   orders: Orders;
 
   @Column()
-  order_id: number
+  order_id: number;
   
   @ManyToOne(() => Apartments, (apartment) => apartment.orderItems)
   @JoinColumn({ name: 'apartment_id' })
   apartments: Apartments;
   
   @Column()
-  apartment_id: number
+  apartment_id: number;
 
   @Column({nullable: true,type: 'decimal', precision: 20, scale: 2})
-  mk_price: number
+  mk_price: number;
 
   @Column({nullable: true,type: 'decimal', precision: 20, scale: 2})
-  mk_price_usd: number
+  mk_price_usd: number;
 
   @Column({nullable: true,type: 'decimal', precision: 20, scale: 2})
-  price: number
+  price: number;
   
   @Column({nullable: true,type: 'decimal', precision: 20, scale: 2})
-  price_usd: number
+  price_usd: number;
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   final_price: number;

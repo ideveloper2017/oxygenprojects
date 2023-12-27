@@ -383,8 +383,8 @@ export class OrdersService {
   public async orderReject(arrayOfId: number[]) {
     let order,
       orderItem,
-      counter = 0,
-      building_price;
+      counter = 0;
+
     try {
       for (const val of arrayOfId) {
         await this.ordersRepository.update(
@@ -392,22 +392,55 @@ export class OrdersService {
           { order_status: OrderStatus.INACTIVE },
         );
         order = await this.ordersRepository.findOne({ where: { id: val } });
-        orderItem = await OrderItems.findOne({ where: { order_id: order.id },relations:['apartments','apartments.floor','apartments.floor.entrance','apartments.floor.entrance.buildings'] });
+        // orderItem = await OrderItems.findOne({
+        //   where: { order_id: order.id },
+        //   relations: ['apartments.floor.entrance.buildings.buildingItems'],
+        //   select: {
+        //     apartments: { floor: { entrance: { buildings: { id: true, buildingItems:{building_id:true,mk_price:true} } } } },
+        //   },
+        // });
+        orderItem = await this.ordersRepository.manager
+          .createQueryBuilder(OrderItems, 'orderItems')
+          .leftJoin(
+            'orderItems.apartments',
+            'apartments',
+            'apartments.id=orderItems.apartment_id',
+          )
+          .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+          .leftJoin(
+            'floor.entrance',
+            'entrance',
+            'entrance.id=floor.entrance_id',
+          )
+          .leftJoin(
+            'entrance.buildings',
+            'buildings',
+            'entrance.building_id=buildings.id',
+          )
+          .leftJoin(
+            'buildings.buildingItems',
+            'buildingItems',
+            'buildingItems.building_id=buildings.id',
+          )
+          .select([
+            'apartments.id as apartment_id',
+            'buildings.id as building_id',
+            'buildingItems.mk_price as mk_price',
+          ])
+          .where('orderItems.order_id= :order_id', { order_id: order.id })
+          .andWhere('buildingItems.is_active= :is_active', { is_active: true })
+          .getRawOne();
 
-
-
-        building_price = await BuildingItems.findOne({
-          where: { building_id: orderItem.building_id, is_active: true },
-        });
+        console.log(orderItem);
 
         counter += (
           await Apartments.update(
-            { id: +orderItem.apartment_id },
-            { status: ApartmentStatus.FREE, mk_price: building_price.mk_price },
+            { id: orderItem.apartment_id },
+            { status: ApartmentStatus.FREE, mk_price: orderItem.mk_price },
           )
         ).affected;
 
-        await BuildingItems.update({ building_id: orderItem.building_id, is_active: true },{ mk_price: building_price.mk_price});
+        // await BuildingItems.update({ building_id: orderItem.building_id, is_active: true },{ mk_price: building_price.mk_price});
       }
 
       if (counter === arrayOfId.length) {
