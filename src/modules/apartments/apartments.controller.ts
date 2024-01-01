@@ -44,7 +44,7 @@ export class ApartmentsController {
     return this.apartmentsService
       .updateApartment(id, updateApartmentDto)
       .then((data) => {
-        if (data.affected == 0) {
+        if (data) {
           return { success: false, message: 'Kvartira topilmadi' };
         }
         return { success: true, message: 'Kvartira tahrirlandi' };
