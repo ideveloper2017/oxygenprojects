@@ -14,6 +14,7 @@ import { Response } from 'express';
 import { CreateApartmentDto } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { ApartmentsService } from './apartments.service';
+import { CreateApartmentPriceDto } from './dto/create-apartment-price';
 
 @ApiTags('Apartments')
 @Controller('apartments')
@@ -113,28 +114,56 @@ export class ApartmentsController {
   @Get('/all')
   getAllApartments() {
     return this.apartmentsService.findAllApartments().then((data) => {
-      if(data.length != 0 ){
-        return { success: true, data, message: "All Apartments " };
-      }else {
-        return { success: false, message: "No data found" };
-
+      if (data.length != 0) {
+        return { success: true, data, message: 'All Apartments ' };
+      } else {
+        return { success: false, message: 'No data found' };
       }
-    })
+    });
   }
-  
+
   @Get('/booked')
   getBookedApartments(@Query('page') page: number) {
-    const limit : number = 20
-    const offset = page-1 * limit
-    return this.apartmentsService.findBookedApartments(offset, limit).then(data => {
-      if(data.length > 0) {
-        return {success: true, message:"Booked Apartments", data}
-      }else {
-        return {success: false, message:"No booked apartments found"}
-    }
-  })
-
+    const limit: number = 20;
+    const offset = page - 1 * limit;
+    return this.apartmentsService
+      .findBookedApartments(offset, limit)
+      .then((data) => {
+        if (data.length > 0) {
+          return { success: true, message: 'Booked Apartments', data };
+        } else {
+          return { success: false, message: 'No booked apartments found' };
+        }
+      });
   }
 
+  @Get('/apartmentprice')
+  getApartmentPrices() {
+    return this.apartmentsService.getApartmentPrices().then((data) => {
+      if (data) {
+        return { success: true, data, message: 'All Apartments ' };
+      } else {
+        return { success: false, message: 'No data found' };
+      }
+    });
+  }
 
+  @Post('/changeapartmentprice')
+  changeApartmentPrice(
+    @Body() createapartmentpricedto: CreateApartmentPriceDto,
+  ) {
+    return this.apartmentsService
+      .createApartmentPrice(createapartmentpricedto)
+      .then((data) => {
+        if (data) {
+          return { success: true, data, message: 'All Apartments ' };
+        } else {
+          return { success: false, message: 'No data found' };
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    //console.log(createapartmentpricedto);
+  }
 }

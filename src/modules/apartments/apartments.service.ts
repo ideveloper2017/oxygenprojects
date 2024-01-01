@@ -8,6 +8,7 @@ import { Floor } from '../floor/entities/floor.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { Towns } from '../towns/entities/town.entity';
 import { ApartmentStatus } from 'src/common/enums/apartment-status';
+import { CreateApartmentPriceDto } from './dto/create-apartment-price';
 
 @Injectable()
 export class ApartmentsService {
@@ -33,29 +34,49 @@ export class ApartmentsService {
       .innerJoin('floor.apartments', 'apartment')
       .where('building.town_id = :town_id', { town_id })
       .andWhere('entrance.building_id= :build_id', { build_id: build_id })
+      // .andWhere('apartment.room_number= :room_number', {
+      //   room_number: createApartmentDto.room_number,
+      // })
       .select('apartment.room_number AS maxRoomNumber')
       .orderBy('apartment.room_number', 'DESC')
       .getRawOne();
+    const findapartment = await Apartments.findOne({
+      where: { room_number: createApartmentDto.room_number },
+    });
     const newApartment = new Apartments();
-    newApartment.floor_id = floor_id;
-    newApartment.room_number =
-      maxRoomNumber !== undefined ? maxRoomNumber.maxroomnumber + 1 : 1;
-    newApartment.cells = createApartmentDto.cells;
-    newApartment.room_space = createApartmentDto.room_space;
-    newApartment.mk_price = await Buildings.findOne({
-      where: { id: build_id },
-    }).then((data) => data.mk_price);
-    newApartment.status = createApartmentDto.status;
-    newApartment.positions = createApartmentDto.positions;
-    return await this.apartmentRepository.save(newApartment);
+    if (!findapartment) {
+      newApartment.floor_id = floor_id;
+      newApartment.room_number = createApartmentDto.room_number
+        ? createApartmentDto.room_number
+        : maxRoomNumber !== undefined
+        ? maxRoomNumber.maxroomnumber + 1
+        : 1;
+      newApartment.cells = createApartmentDto.cells;
+      newApartment.room_space = createApartmentDto.room_space;
+      newApartment.mk_price = await Buildings.findOne({
+        where: { id: build_id },
+      }).then((data) => data.mk_price);
+      newApartment.status = createApartmentDto.status;
+      newApartment.positions = createApartmentDto.positions;
+      return await this.apartmentRepository.save(newApartment);
+    } else {
+      return findapartment;
+    }
   }
 
   async updateApartment(id: number, updateApartmentDto: UpdateApartmentDto) {
-    const editedApartment = await this.apartmentRepository.update(
-      { id: id },
-      updateApartmentDto,
-    );
-    return editedApartment;
+    const findaprt = await this.apartmentRepository.findOne({
+      where: { id: id, room_number: updateApartmentDto.room_number },
+    });
+    if (!findaprt) {
+      const editedApartment = await this.apartmentRepository.update(
+        { id: id },
+        updateApartmentDto,
+      );
+      return editedApartment;
+    } else {
+      return findaprt;
+    }
   }
 
   async getOneApartment(id: number) {
@@ -97,7 +118,10 @@ export class ApartmentsService {
   }
 
   async findAllApartments() {
-    const apartments = await this.apartmentRepository.find();
+    const apartments = await this.apartmentRepository.find({
+      where: { status: ApartmentStatus.FREE },
+      relations: ['floor.entrance.buildings'],
+    });
     return apartments;
   }
 
@@ -109,5 +133,56 @@ export class ApartmentsService {
       order: { updated_at: 'DESC' },
     });
     return bookeds;
+  }
+
+  async getApartmentPrices() {
+    return await this.apartmentRepository.manager
+      .createQueryBuilder(Apartments, 'apartments')
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'apartments.floor_id=floor.id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'floor.entrance_id=entrance.id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'entrance.building_id=buildings.id',
+      )
+      .leftJoinAndSelect(
+        'buildings.towns',
+        'towns',
+        'towns.id=buildings.town_id',
+      )
+
+      .select('towns.name as townname')
+      .addSelect('buildings.name as buildingname')
+      .addSelect('floor.floor_number as floor_number')
+      .addSelect('apartments.*')
+
+      .orderBy('buildings.name', 'ASC')
+      .getRawMany();
+  }
+
+  async createApartmentPrice(createapartmentpricedto: CreateApartmentPriceDto) {
+    {
+      let ret;
+      for (
+        let aprt_id = 0;
+        aprt_id < createapartmentpricedto.apartment_id.length;
+        aprt_id++
+      ) {
+        console.log(createapartmentpricedto.apartment_id[aprt_id]);
+        ret = await Apartments.update(
+          { id: createapartmentpricedto.apartment_id[aprt_id] },
+          { mk_price: createapartmentpricedto.mk_price },
+        );
+      }
+      return ret;
+    }
   }
 }

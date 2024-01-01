@@ -11,6 +11,7 @@ export default abstract class Model extends BaseEntity {
   @CreateDateColumn({ type: 'timestamp without time zone', default: 'NOW()' })
   created_at: Date;
 
+
   @UpdateDateColumn({
     type: 'timestamp without time zone',
     onUpdate: 'NOW()',

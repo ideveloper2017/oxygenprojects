@@ -656,7 +656,6 @@ export class ReportService {
               apartment_id,
             ),
           ]);
-
           // Calculate and assign values to the apartmentData object
           apartmentData['clients_first_name'] = orders
             ? orders.clients_first_name
