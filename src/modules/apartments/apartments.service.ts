@@ -94,11 +94,11 @@ export class ApartmentsService {
     const findapartment = await Apartments.findOne({
       relations: ['floor.entrance'],
       where: {
+        room_number: updateApartmentDto.room_number,
         floor: {
           floor_number: updateApartmentDto.floor_number,
           entrance: { entrance_number: updateApartmentDto.entrance_number },
         },
-        room_number: updateApartmentDto.room_number,
       },
     });
 
