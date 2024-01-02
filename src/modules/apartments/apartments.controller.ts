@@ -43,13 +43,6 @@ export class ApartmentsController {
   ) {
     return this.apartmentsService
       .updateApartment(id, updateApartmentDto)
-      .then((data) => {
-        if (data) {
-          return { success: false, message: 'Kvartira topilmadi' };
-        }
-        return { success: true, message: 'Kvartira tahrirlandi' };
-      })
-      .catch((error) => console.log(error));
   }
 
   @ApiOperation({ summary: "Kvartirani ro'yxatdan o'chirish" })

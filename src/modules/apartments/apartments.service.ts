@@ -37,14 +37,29 @@ export class ApartmentsService {
       // .andWhere('apartment.room_number= :room_number', {
       //   room_number: createApartmentDto.room_number,
       // })
+      .andWhere('floor.floor_number= :floor_number', {
+        floor_number: createApartmentDto.floor_number,
+      })
+      .andWhere('entrance.entrance_number= :entrance_number', {
+        entrance_number: createApartmentDto.entrance_number,
+      })
       .select('apartment.room_number AS maxRoomNumber')
       .orderBy('apartment.room_number', 'DESC')
       .getRawOne();
+
     const findapartment = await Apartments.findOne({
-      where: { room_number: createApartmentDto.room_number },
+      relations: ['floor.entrance'],
+      where: {
+        floor: {
+          floor_number: createApartmentDto.floor_number,
+          entrance: { entrance_number: createApartmentDto.entrance_number },
+        },
+        room_number: createApartmentDto.room_number,
+      },
     });
-    const newApartment = new Apartments();
-    if (!findapartment) {
+
+    if (findapartment === null) {
+      const newApartment = new Apartments();
       newApartment.floor_id = floor_id;
       newApartment.room_number = createApartmentDto.room_number
         ? createApartmentDto.room_number
@@ -58,24 +73,64 @@ export class ApartmentsService {
       }).then((data) => data.mk_price);
       newApartment.status = createApartmentDto.status;
       newApartment.positions = createApartmentDto.positions;
-      return await this.apartmentRepository.save(newApartment);
+      const result = await this.apartmentRepository.save(newApartment);
+      return { success: true, data: result, message: 'Xona qo`shildi' };
     } else {
-      return findapartment;
+      return {
+        success: false,
+        message:
+          'Ushbu ' +
+          findapartment?.floor?.entrance?.entrance_number +
+          '-podyezd ' +
+          findapartment?.floor?.floor_number +
+          '-etajda ' +
+          findapartment?.room_number +
+          '-xona mavjud !!!',
+      };
     }
   }
 
   async updateApartment(id: number, updateApartmentDto: UpdateApartmentDto) {
-    const findaprt = await this.apartmentRepository.findOne({
-      where: { id: id, room_number: updateApartmentDto.room_number },
+    const findapartment = await Apartments.findOne({
+      relations: ['floor.entrance'],
+      where: {
+        floor: {
+          floor_number: updateApartmentDto.floor_number,
+          entrance: { entrance_number: updateApartmentDto.entrance_number },
+        },
+        room_number: updateApartmentDto.room_number,
+      },
     });
-    if (!findaprt) {
+
+    console.log(findapartment);
+    if (findapartment === null) {
       const editedApartment = await this.apartmentRepository.update(
         { id: id },
-        updateApartmentDto,
+        {
+          room_number: +updateApartmentDto.room_number,
+          cells: updateApartmentDto.cells,
+          room_space: updateApartmentDto.room_space,
+          status: updateApartmentDto.status,
+          positions: updateApartmentDto.positions,
+        },
       );
-      return editedApartment;
+      return {
+        success: true,
+        data: editedApartment,
+        message: 'Xona  raqami o`zgartirildi',
+      };
     } else {
-      return findaprt;
+      return {
+        success: false,
+        message:
+          'Ushbu ' +
+          findapartment?.floor?.entrance?.entrance_number +
+          '-podyezd ' +
+          findapartment?.floor?.floor_number +
+          '-etajda ' +
+          findapartment?.room_number +
+          '-xona mavjud !!!',
+      };
     }
   }
 
@@ -120,7 +175,13 @@ export class ApartmentsService {
   async findAllApartments() {
     const apartments = await this.apartmentRepository.find({
       where: { status: ApartmentStatus.FREE },
-      relations: ['floor.entrance.buildings'],
+      relations: ['floor.entrance.buildings.towns'],
+      order: {
+        floor: {
+          floor_number: 'DESC',
+          entrance: { buildings: { towns: { name: 'ASC' }, name: 'ASC' } },
+        },
+      },
     });
     return apartments;
   }
@@ -163,8 +224,8 @@ export class ApartmentsService {
       .addSelect('buildings.name as buildingname')
       .addSelect('floor.floor_number as floor_number')
       .addSelect('apartments.*')
-
       .orderBy('buildings.name', 'ASC')
+      .addOrderBy('floor.floor_number', 'DESC')
       .getRawMany();
   }
 
@@ -176,7 +237,6 @@ export class ApartmentsService {
         aprt_id < createapartmentpricedto.apartment_id.length;
         aprt_id++
       ) {
-        console.log(createapartmentpricedto.apartment_id[aprt_id]);
         ret = await Apartments.update(
           { id: createapartmentpricedto.apartment_id[aprt_id] },
           { mk_price: createapartmentpricedto.mk_price },

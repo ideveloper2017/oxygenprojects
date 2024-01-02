@@ -1,9 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 import { ApartmentStatus } from 'src/common/enums/apartment-status';
-import {PositionStatus} from "../../../common/enums/PositionStatus";
+import { PositionStatus } from '../../../common/enums/PositionStatus';
 
 export class CreateApartmentDto {
+
+  @ApiProperty({ example: 5 })
+  entrance_number: number;
+
+  @ApiProperty({ example: 5 })
+  floor_number: number;
+
   @ApiProperty({ example: 4 })
   room_number: number;
 
@@ -19,8 +26,8 @@ export class CreateApartmentDto {
   @IsString()
   // @IsEnum({enum: ['free', 'sold', 'bron', 'inactive'] , description: "Xato qiymat kiritildi"})
   @ApiProperty({ example: 'free', enum: ['free', 'sold', 'bron', 'inactive'] })
-  status: ApartmentStatus
+  status: ApartmentStatus;
 
-  @ApiProperty({example:"leftside",enum:PositionStatus})
-  positions:PositionStatus;
+  @ApiProperty({ example: 'leftside', enum: PositionStatus })
+  positions: PositionStatus;
 }
