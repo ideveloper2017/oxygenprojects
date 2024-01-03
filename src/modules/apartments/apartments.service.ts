@@ -102,7 +102,6 @@ export class ApartmentsService {
       },
     });
 
-    console.log(findapartment);
     if (findapartment === null) {
       const editedApartment = await this.apartmentRepository.update(
         { id: id },
@@ -120,6 +119,15 @@ export class ApartmentsService {
         message: 'Xona  raqami o`zgartirildi',
       };
     } else {
+      await this.apartmentRepository.update(
+        { id: id },
+        {
+          cells: updateApartmentDto.cells,
+          room_space: updateApartmentDto.room_space,
+          status: updateApartmentDto.status,
+          positions: updateApartmentDto.positions,
+        },
+      );
       return {
         success: false,
         message:

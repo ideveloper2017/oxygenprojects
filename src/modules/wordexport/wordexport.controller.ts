@@ -86,7 +86,7 @@ export class WordexportController {
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
     initial_pay_usd = Math.round(Number(order.initial_pay) /Number(usdRate.rate_value));
-    percent = order?.percent;
+    percent = Number(order?.percent);
     const file_id = order?.orderItems?.map((data) => {
       return data.apartments.file_id;
     });
@@ -146,8 +146,8 @@ export class WordexportController {
           ')',
         percent: percent,
         apartment_image: fileobj,
-        total_sum: (summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay)),
-        totalsum: (summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay)),
+        total_sum: (summa ? Math.round(Number(summa.summa)) : 0) + Math.round(Number(order.initial_pay)),
+        totalsum: (summa ? Math.round(Number(summa.summa)) : 0) + Math.round(Number(order.initial_pay)),
         totalsum_usd: Math.round((Number((summa_usd ? summa_usd.summa : 0)) + Number(initial_pay_usd))),
         number_to_words_percent: this.numberToWords(percent),
         number_to_words_sum: this.numberToWords((summa ? Math.floor(Number(summa.summa)) : 0) + Math.floor(Number(order.initial_pay))),
@@ -179,8 +179,8 @@ export class WordexportController {
     //
     //   scopeDataResolver: undefined, // ScopeDataResolver
     // }
-    const filename = 'shartnoma.docx';
-    const templateFile = fs.readFileSync('data/shartnoma.docx');
+    const filename = 'shartnoma_fuylar.docx';
+    const templateFile = fs.readFileSync('data/shartnoma_fuylar.docx');
 
     const doc = await handler.process(templateFile, data);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

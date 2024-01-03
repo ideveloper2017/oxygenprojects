@@ -50,7 +50,7 @@ export class UsersService {
     let users;
     if (id != 0) {
       users = await this.usersRepository.findOne({
-        where:{id:id},
+        where: { id: id },
         relations: ['roles.permission'],
       });
     } else {
@@ -71,7 +71,7 @@ export class UsersService {
   }
 
   public async createLogin(createUserDto: CreateUserDto) {
-    let role_id
+    let role_id;
     try {
       const role = await this.usersRepository.manager
         .getRepository(Roles)
@@ -82,15 +82,12 @@ export class UsersService {
           });
         });
 
-
       const isExists = await this.usersRepository.findOne({
         where: { username: createUserDto.username },
       });
       if (isExists) {
         return { success: false, message: 'User already exists' };
       }
-
-
 
       const user = await this.usersRepository.save([
         {
@@ -102,7 +99,9 @@ export class UsersService {
           is_active: createUserDto.is_active,
           user_is_deleted: false,
           roles: role_id,
-          town_access:createUserDto.town_access.join(',') ,
+          town_access: createUserDto.town_access
+            ? createUserDto.town_access.join(',')
+            : '',
         },
       ]);
       return createUserDto;
@@ -122,9 +121,8 @@ export class UsersService {
   // }
 
   public async updateUser(id: number, updateUserDto: UpdateUserDto) {
-
     let obj;
-    if (updateUserDto.password!=null) {
+    if (updateUserDto.password != null) {
       obj = {
         first_name: updateUserDto.first_name,
         last_name: updateUserDto.last_name,
@@ -132,10 +130,10 @@ export class UsersService {
         phone_number: updateUserDto.phone_number,
         password: await bcrypt.hash(updateUserDto.password, 10),
         is_active: updateUserDto.is_active,
-        roles: await Roles.findOne({where: {id: updateUserDto.role_id}}),
+        roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
         town_access: updateUserDto.town_access?.join(','),
         user_is_deleted: false,
-      }
+      };
     } else {
       obj = {
         first_name: updateUserDto.first_name,
@@ -143,17 +141,13 @@ export class UsersService {
         username: updateUserDto.username,
         phone_number: updateUserDto.phone_number,
         is_active: updateUserDto.is_active,
-        roles: await Roles.findOne({where: {id: updateUserDto.role_id}}),
+        roles: await Roles.findOne({ where: { id: updateUserDto.role_id } }),
         town_access: updateUserDto.town_access?.join(','),
         user_is_deleted: false,
-      }
+      };
     }
 
-
-    return await this.usersRepository.update(
-      { id: id },
-      obj
-    );
+    return await this.usersRepository.update({ id: id }, obj);
   }
 
   public async deleteUsers(userid: number[]) {
