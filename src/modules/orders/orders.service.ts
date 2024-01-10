@@ -369,10 +369,11 @@ export class OrdersService {
     let conteiner: number;
 
     for (const val of arrayOfId) {
-      const temp = await this.ordersRepository.update(
-        { id: val },
-        { is_deleted: true },
-      );
+      // const temp = await this.ordersRepository.update(
+      //   { id: val },
+      //   { is_deleted: true },
+      // );
+      const temp = await this.ordersRepository.delete({id:val});
       conteiner += temp.affected;
     }
     return conteiner;
