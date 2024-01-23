@@ -355,13 +355,185 @@ export class OrdersService {
 
   // =================== shartnomani tahrirlash ==================================
 
-  async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
-    const order = await this.ordersRepository.update(
-      { id: id },
-      updateOrderDto,
+  async updateOrder(id: number, updateOrderDto: UpdateOrderDto, users: any) {
+    //shartnoma tuziliyotgan vaqtdagi dollar kursi
+    const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
+    const payment_method = await PaymentMethods.findOne({
+      where: { id: +updateOrderDto.payment_method_id },
+    });
+    const checkApartment = await Apartments.findOne({
+      where: { id: +updateOrderDto.apartment_id },
+    });
+    if (
+      checkApartment.status === ApartmentStatus.SOLD ||
+      checkApartment.status === ApartmentStatus.INACTIVE
+    ) {
+      throw new HttpException(
+        'Xonadon allaqachon sotilgan',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    let initial_pay, deal_price, kv_price_usd, kv_price, mk_price, mk_price_usd;
+
+    if (payment_method.name_alias === 'dollar') {
+      deal_price = updateOrderDto.price * usdRate.rate_value;
+      initial_pay = updateOrderDto.initial_pay * usdRate.rate_value;
+      kv_price = updateOrderDto.price * usdRate.rate_value;
+      kv_price_usd = Math.round(Number(updateOrderDto.price));
+      mk_price = checkApartment.mk_price;
+      mk_price_usd = checkApartment.mk_price * usdRate.rate_value;
+    } else {
+      deal_price = updateOrderDto.price;
+      initial_pay = updateOrderDto.initial_pay;
+      kv_price_usd = Math.round(
+        Number(updateOrderDto.price) / Number(usdRate.rate_value),
+      );
+      kv_price = updateOrderDto.price;
+      mk_price = checkApartment.mk_price;
+      mk_price_usd = checkApartment.mk_price / usdRate.rate_value;
+    }
+
+    // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
+    const initial_floored = initial_pay;
+
+    const order = new Orders();
+    // order.clients = await Clients.findOne({
+    //   where: { id: +createOrderDto.client_id },
+    // });
+    order.client_id = updateOrderDto.client_id;
+    order.paymentMethods = payment_method;
+    order.order_status = updateOrderDto.order_status;
+    order.percent = updateOrderDto.percent;
+    order.order_date = updateOrderDto.order_date;
+    order.initial_pay = initial_floored;
+    order.currency_value = usdRate.rate_value;
+    order.users = await Users.findOne({ where: { id: users.userId } });
+    order.quantity = 1;
+    order.delivery_time = updateOrderDto.delivery_time;
+    const savedOrder = await this.ordersRepository.save(order);
+
+    const apartment = await Apartments.findOne({
+      where: { id: updateOrderDto.apartment_id },
+      relations: ['floor.entrance.buildings'],
+    });
+
+    // binodagi barcha apartmentlarga tegishli narxini olish
+
+    const total = deal_price
+      ? deal_price * apartment.room_space
+      : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
+
+    console.log(
+      deal_price +
+        '-' +
+        apartment.room_space +
+        '/' +
+        apartment.floor.entrance.buildings.mk_price,
     );
-    return order;
+
+    // const total_floored = Math.floor(total / 1000) * 1000
+    const total_floored = total;
+    let schedule;
+
+    if (
+      payment_method.name_alias.toLowerCase() === 'subsidia' ||
+      payment_method.name_alias.toLowerCase() === 'ipoteka'
+    ) {
+      // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
+
+      const oneMonthDue = updateOrderDto.initial_pay
+        ? (total - updateOrderDto.initial_pay) /
+          updateOrderDto.installment_month
+        : total / updateOrderDto.installment_month;
+
+      const creditSchedule = [];
+      const date = new Date();
+
+      for (let i = 1; i <= updateOrderDto.installment_month; i++) {
+        const mon = new Date(date.setMonth(date.getMonth() + 1));
+
+        const installment = new CreditTable();
+        installment.orders = savedOrder;
+        installment.due_amount = oneMonthDue;
+        installment.due_date = mon;
+        installment.left_amount = 0;
+        installment.usd_due_amount =
+          installment.due_amount / usdRate.rate_value;
+        installment.currency_value = usdRate.rate_value;
+        installment.status = 'waiting';
+        creditSchedule.push(installment);
+      }
+
+      schedule = await CreditTable.save(creditSchedule);
+    }
+
+    const total_in_usd = total / usdRate.rate_value;
+
+    const updatedOrder = await this.ordersRepository.update(
+      { id: savedOrder.id },
+      {
+        total_amount: total_floored,
+        total_amount_usd: total_in_usd,
+        order_status:
+          total_floored == initial_floored
+            ? OrderStatus.COMPLETED
+            : OrderStatus.ACTIVE,
+      },
+    );
+
+    const orderItem = new OrderItems();
+    orderItem.orders = savedOrder;
+    orderItem.apartments = await Apartments.findOne({
+      where: { id: +updateOrderDto.apartment_id },
+    });
+    orderItem.price = kv_price;
+    orderItem.price_usd = kv_price_usd;
+    orderItem.final_price = total_floored;
+    orderItem.mk_price = mk_price;
+    orderItem.mk_price_usd = mk_price_usd;
+    await Apartments.update(
+      { id: updateOrderDto.apartment_id },
+      { status: ApartmentStatus.SOLD },
+    );
+
+    const inBooking = await Booking.findOne({
+      where: { apartment_id: updateOrderDto.apartment_id },
+    });
+
+    if (inBooking) {
+      await Booking.update({ id: inBooking.id }, { bron_is_active: false });
+    }
+
+    await OrderItems.save(orderItem);
+
+    const payment = new Payments();
+    payment.order_id = +savedOrder.id;
+    payment.users = savedOrder.users;
+    payment.amount = savedOrder.initial_pay;
+    payment.payment_date = new Date();
+    payment.paymentmethods = Paymentmethods.CASH;
+    payment.caishers = await Caisher.findOne({
+      where: { id: updateOrderDto.caisher_id, is_active: true },
+    });
+    payment.amount_usd = savedOrder.initial_pay / usdRate.rate_value;
+    payment.currency_value = usdRate.rate_value;
+    payment.caisher_type = Caishertype.IN;
+    payment.payment_status = PaymentStatus.PAID;
+    payment.pay_note = "Boshlangich to'lov";
+
+    await Payments.save(payment);
+
+    return updatedOrder;
   }
+
+  // async updateOrder(id: number, updateOrderDto: UpdateOrderDto) {
+  //   const order = await this.ordersRepository.update(
+  //     { id: id },
+  //     updateOrderDto,
+  //   );
+  //   return order;
+  // }
 
   // ============= shartnomalarni o'chirish ========================================
 

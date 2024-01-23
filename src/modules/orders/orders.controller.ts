@@ -54,9 +54,9 @@ export class OrdersController {
           });
         }
       })
-    .catch((error) => {
-      res.send({ status: 409, success: false, message: error.message });
-    });
+      .catch((error) => {
+        res.send({ status: 409, success: false, message: error.message });
+      });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -93,14 +93,20 @@ export class OrdersController {
 
   @ApiOperation({ summary: 'Order ni tahrirlash' })
   @Patch('/edit/:id')
-  editOrder(@Param('id') id: number, @Body() editOrderDto: UpdateOrderDto) {
-    return this.orderService.updateOrder(id, editOrderDto).then((response) => {
-      if (response.affected != 0) {
-        return { success: true, message: 'order updated' };
-      } else {
-        return { success: false, message: 'order not found' };
-      }
-    });
+  editOrder(
+    @AuthUser() user: any,
+    @Param('id') id: number,
+    @Body() editOrderDto: UpdateOrderDto,
+  ) {
+    return this.orderService
+      .updateOrder(id, editOrderDto, user)
+      .then((response) => {
+        if (response.affected != 0) {
+          return { success: true, message: 'order updated' };
+        } else {
+          return { success: false, message: 'order not found' };
+        }
+      });
   }
 
   @ApiOperation({
@@ -136,29 +142,29 @@ export class OrdersController {
     });
   }
 
-  @ApiOperation({summary: "Shartnoma bekor qilish"})
+  @ApiOperation({ summary: 'Shartnoma bekor qilish' })
   @Post('/cancel')
   cancelOrders(@Body() arraOfId: number[]) {
-    if(arraOfId.length){
+    if (arraOfId.length) {
       return this.orderService.orderReject(arraOfId);
     } else {
       return { success: false, message: 'IDs not provided' };
     }
   }
-  
-  @ApiOperation({summary: "Qarzi bor shartnomalarni olish"})
+
+  @ApiOperation({ summary: 'Qarzi bor shartnomalarni olish' })
   @Post('/listdue')
   getOrderListDue(@Body() refundDto: RefundDto) {
     return this.orderService.getOrderListIsDue(refundDto);
   }
 
-  @ApiOperation({summary: "Get Canceled orders"})
+  @ApiOperation({ summary: 'Get Canceled orders' })
   @Get('/canceled-orders/:orderId')
   getCanceledOrders(@Param('orderId') orderId: number) {
     return this.orderService.findRejectedOrders(orderId);
   }
 
-  @ApiOperation({summary: "Get Completed orders"})
+  @ApiOperation({ summary: 'Get Completed orders' })
   @Get('/done-orders/:orderId')
   getCompletedOrders(@Param('orderId') orderId: number) {
     return this.orderService.findCompletedOrders(orderId);
