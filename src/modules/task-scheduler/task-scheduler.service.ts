@@ -22,7 +22,6 @@ export class TaskSchedulerService {
     // joriy vaqtni olish
     const currentDate = new Date();
 
-
     //bron qilingan xonadonlarni topish qaysiyki bron muddati bugungi kundan kichik bolganlarini
     const bookings = await Booking.find({
       where: {

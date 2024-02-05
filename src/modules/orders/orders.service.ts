@@ -135,9 +135,8 @@ export class OrdersService {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
 
       const oneMonthDue = createOrderDto.initial_pay
-        ? (total - createOrderDto.initial_pay) /
-          createOrderDto.installment_month
-        : total / createOrderDto.installment_month;
+        ? Math.round(Number(total - createOrderDto.initial_pay) / Number(createOrderDto.installment_month))
+        : Math.round(Number(total) / Number(createOrderDto.installment_month));
 
       const creditSchedule = [];
       const date = new Date();
@@ -150,8 +149,7 @@ export class OrdersService {
         installment.due_amount = oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount =
-          installment.due_amount / usdRate.rate_value;
+        installment.usd_due_amount =installment.due_amount / usdRate.rate_value;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);

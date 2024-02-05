@@ -304,9 +304,7 @@ export class PaymentsService {
       if (!nextPaid) {
         break;
       }
-      const amount_usd = Math.round(
-        Number(nextPaid.due_amount) / Number(installmentDto.currency_value),
-      );
+      const amount_usd = Math.round(Math.round(Number(nextPaid.due_amount)) / Math.round(Number(installmentDto.currency_value)));
 
       if (money >= nextPaid.due_amount) {
         if (!nextPaid.left_amount) {
@@ -319,7 +317,7 @@ export class PaymentsService {
               usd_due_amount: amount_usd,
             },
           );
-          money -= Number(nextPaid.due_amount);
+          money -= Math.round(Number(nextPaid.due_amount));
         } else {
           await CreditTable.update(
             { id: nextPaid.id },
@@ -330,29 +328,31 @@ export class PaymentsService {
               usd_due_amount: amount_usd,
             },
           );
-          money -= nextPaid.left_amount;
+          money -= Math.round(Number(nextPaid.left_amount));
         }
       } else {
         if (!nextPaid.left_amount) {
           await CreditTable.update(
             { id: nextPaid.id },
             {
-              left_amount: Math.floor(nextPaid.due_amount - money),
+              status: Math.round(Number(nextPaid.due_amount) - money)>0?'waiting':'paid',
+              left_amount: Math.round(Number(nextPaid.due_amount) - money),
               currency_value: installmentDto.currency_value,
-              usd_due_amount: Math.floor(
-                (nextPaid.due_amount - money) / installmentDto.currency_value,
+              usd_due_amount: Math.round(
+                (Number(nextPaid.due_amount) - money) / Number(installmentDto.currency_value),
               ),
             },
           );
           break;
         } else {
+
           if (money >= nextPaid.left_amount) {
             await CreditTable.update(
               { id: nextPaid.id },
               {
                 status: 'paid',
                 left_amount: 0,
-                currency_value: installmentDto.currency_value,
+                currency_value: Number(installmentDto.currency_value),
                 usd_due_amount: amount_usd,
               },
             );
@@ -361,11 +361,12 @@ export class PaymentsService {
             await CreditTable.update(
               { id: nextPaid.id },
               {
-                left_amount: Math.floor(nextPaid.left_amount - money),
+                status: 'paid',
+                left_amount: Math.round(Number(nextPaid.left_amount) - money),
                 currency_value: installmentDto.currency_value,
-                usd_due_amount: Math.floor(
-                  (nextPaid.left_amount - money) /
-                    installmentDto.currency_value,
+                usd_due_amount: Math.round(
+                  (Number(nextPaid.left_amount) - money) /
+                    Number(installmentDto.currency_value),
                 ),
               },
             );
