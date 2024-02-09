@@ -135,7 +135,10 @@ export class OrdersService {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
 
       const oneMonthDue = createOrderDto.initial_pay
-        ? Math.round(Number(total - createOrderDto.initial_pay) / Number(createOrderDto.installment_month))
+        ? Math.round(
+            Number(total - createOrderDto.initial_pay) /
+              Number(createOrderDto.installment_month),
+          )
         : Math.round(Number(total) / Number(createOrderDto.installment_month));
 
       const creditSchedule = [];
@@ -149,7 +152,8 @@ export class OrdersService {
         installment.due_amount = oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount =installment.due_amount / usdRate.rate_value;
+        installment.usd_due_amount =
+          installment.due_amount / usdRate.rate_value;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
@@ -182,6 +186,7 @@ export class OrdersService {
     orderItem.final_price = total_floored;
     orderItem.mk_price = mk_price;
     orderItem.mk_price_usd = mk_price_usd;
+    orderItem.order_status = createOrderDto.order_status;
     await Apartments.update(
       { id: createOrderDto.apartment_id },
       { status: ApartmentStatus.SOLD },
@@ -266,15 +271,21 @@ export class OrdersService {
   async findOrderByApartmentID(id: number) {
     const order = await this.ordersRepository
       .createQueryBuilder('order')
-      .leftJoin('order.orderItems', 'orderItem')
-      .leftJoinAndSelect('orderItem.apartments', 'apartment')
+      .leftJoinAndSelect('order.orderItems', 'orderItems')
+      .leftJoinAndSelect('orderItems.apartments', 'apartment')
       .leftJoinAndSelect('order.clients', 'clients')
       .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
       .leftJoinAndSelect('order.payments', 'payment')
       .leftJoinAndSelect('order.users', 'users')
-      .where('apartment.id = :id', { id })
-      .andWhere('order.order_status <> :status', {
-        status: OrderStatus.INACTIVE,
+      .where('orderItems.apartment_id = :id', { id })
+      // .andWhere('orderItems.order_status= :status', {
+      //   status: OrderStatus.ACTIVE,
+      // })
+      .andWhere('orderItems.order_status IN(:...status)', {
+        status: [OrderStatus.COMPLETED, OrderStatus.ACTIVE],
+      })
+      .andWhere('order.order_status IN(:...status)', {
+        status: [OrderStatus.COMPLETED, OrderStatus.ACTIVE],
       })
       .getOne();
 
@@ -561,14 +572,14 @@ export class OrdersService {
           { id: val },
           { order_status: OrderStatus.INACTIVE },
         );
+
         order = await this.ordersRepository.findOne({ where: { id: val } });
-        // orderItem = await OrderItems.findOne({
-        //   where: { order_id: order.id },
-        //   relations: ['apartments.floor.entrance.buildings.buildingItems'],
-        //   select: {
-        //     apartments: { floor: { entrance: { buildings: { id: true, buildingItems:{building_id:true,mk_price:true} } } } },
-        //   },
-        // });
+        await this.ordersRepository.manager
+          .getRepository(OrderItems)
+          .update(
+            { order_id: order.id },
+            { order_status: OrderStatus.INACTIVE },
+          );
         orderItem = await this.ordersRepository.manager
           .createQueryBuilder(OrderItems, 'orderItems')
           .leftJoin(

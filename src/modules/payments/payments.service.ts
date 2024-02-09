@@ -13,6 +13,7 @@ import { OrderStatus } from 'src/common/enums/order-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
+import { OrderItems } from '../order-items/entities/order-item.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -55,12 +56,20 @@ export class PaymentsService {
           { id: newPaymentDto.order_id },
           { order_status: OrderStatus.COMPLETED },
         );
+        await OrderItems.update(
+          { order_id: newPaymentDto.order_id },
+          { order_status: OrderStatus.COMPLETED },
+        );
       } else if (
         newPaymentDto.is_completed &&
         newPaymentDto.caishertype === Caishertype.OUT
       ) {
         await Orders.update(
           { id: newPaymentDto.order_id },
+          { order_status: OrderStatus.REFUNDED },
+        );
+        await OrderItems.update(
+          { order_id: newPaymentDto.order_id },
           { order_status: OrderStatus.REFUNDED },
         );
       }
@@ -293,7 +302,10 @@ export class PaymentsService {
   public async payForInstallment(installmentDto: NewPaymentDto) {
     let money =
       installmentDto.paymentmethods === Paymentmethods.USD
-        ? Math.round(Number(installmentDto.amount) * Number(installmentDto.currency_value))
+        ? Math.round(
+            Number(installmentDto.amount) *
+              Number(installmentDto.currency_value),
+          )
         : Number(installmentDto.amount);
     while (money > 0) {
       const nextPaid = await CreditTable.findOne({
@@ -304,7 +316,10 @@ export class PaymentsService {
       if (!nextPaid) {
         break;
       }
-      const amount_usd = Math.round(Math.round(Number(nextPaid.due_amount)) / Math.round(Number(installmentDto.currency_value)));
+      const amount_usd = Math.round(
+        Math.round(Number(nextPaid.due_amount)) /
+          Math.round(Number(installmentDto.currency_value)),
+      );
 
       if (money >= nextPaid.due_amount) {
         if (!nextPaid.left_amount) {
@@ -335,17 +350,20 @@ export class PaymentsService {
           await CreditTable.update(
             { id: nextPaid.id },
             {
-              status: Math.round(Number(nextPaid.due_amount) - money)>0?'waiting':'paid',
+              status:
+                Math.round(Number(nextPaid.due_amount) - money) > 0
+                  ? 'waiting'
+                  : 'paid',
               left_amount: Math.round(Number(nextPaid.due_amount) - money),
               currency_value: installmentDto.currency_value,
               usd_due_amount: Math.round(
-                (Number(nextPaid.due_amount) - money) / Number(installmentDto.currency_value),
+                (Number(nextPaid.due_amount) - money) /
+                  Number(installmentDto.currency_value),
               ),
             },
           );
           break;
         } else {
-
           if (money >= nextPaid.left_amount) {
             await CreditTable.update(
               { id: nextPaid.id },
