@@ -612,8 +612,6 @@ export class OrdersService {
           .andWhere('buildingItems.is_active= :is_active', { is_active: true })
           .getRawOne();
 
-        console.log(orderItem);
-
         counter += (
           await Apartments.update(
             { id: orderItem.apartment_id },

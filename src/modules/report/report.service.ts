@@ -441,7 +441,8 @@ export class ReportService {
         'buildingItems.mk_price as mk_price',
       ])
       .where('buildingItems.is_active= :is_active', { is_active: true })
-      .orderBy('building_id', 'ASC')
+      .addOrderBy('building_id', 'ASC')
+
       .getRawMany();
 
     updateRes = await Promise.all(
@@ -617,8 +618,8 @@ export class ReportService {
         .where('buildings.id = :building_id', { building_id: data.building_id })
         .andWhere('buildingItems.is_active = :is_active', { is_active: true })
         .orderBy('entrance_number', 'ASC')
-        .orderBy('floor_number', 'DESC')
-        .orderBy('room_number', 'DESC')
+        .addOrderBy('floor_number', 'ASC')
+        .addOrderBy('room_number', 'ASC')
         .getRawMany();
 
       // Use Promise.all to execute clientPayment for each apartment in parallel
@@ -678,7 +679,8 @@ export class ReportService {
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
           apartmentData['total_amount'] = total_amount;
-          apartmentData['due_total_sum'] = Number(total_amount) - Number(summa_out.total_sum_out);
+          apartmentData['due_total_sum'] =
+            Number(total_amount) - Number(summa_out.total_sum_out);
           apartmentData['due_total_usd'] =
             Math.round(Number(orders ? orders.total_amount_usd : 0)) -
             Math.round(Number(summa_out.total_usd_out));
