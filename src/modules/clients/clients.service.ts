@@ -63,8 +63,6 @@ export class ClientsService {
 
   async findAllClients(offset: number, limit: number) {
     const clients = await this.clientRepo.find({
-      skip: offset,
-      take: limit,
       order: { id: 'desc' },
       relations: ['users'],
     });
