@@ -90,7 +90,9 @@ export class OrdersController {
       }
     });
   }
-
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Order ni tahrirlash' })
   @Patch('/edit/:id')
   editOrder(
