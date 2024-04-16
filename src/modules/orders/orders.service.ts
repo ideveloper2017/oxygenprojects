@@ -116,14 +116,6 @@ export class OrdersService {
       ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
 
-    console.log(
-      deal_price +
-        '-' +
-        apartment.room_space +
-        '/' +
-        apartment.floor.entrance.buildings.mk_price,
-    );
-
     // const total_floored = Math.floor(total / 1000) * 1000
     const total_floored = total;
     let schedule;
@@ -366,6 +358,7 @@ export class OrdersService {
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto, users: any) {
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
+
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
     const payment_method = await PaymentMethods.findOne({
       where: { id: +updateOrderDto.payment_method_id },
