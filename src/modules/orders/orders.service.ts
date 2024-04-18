@@ -198,7 +198,7 @@ export class OrdersService {
     payment.order_id = +savedOrder.id;
     payment.users = savedOrder.users;
     payment.amount = savedOrder.initial_pay;
-    payment.payment_date = new Date();
+    payment.payment_date = createOrderDto.order_date;
     payment.paymentmethods = Paymentmethods.CASH;
     payment.caishers = await Caisher.findOne({
       where: { id: createOrderDto.caisher_id, is_active: true },
