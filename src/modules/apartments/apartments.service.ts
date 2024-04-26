@@ -48,16 +48,17 @@ export class ApartmentsService {
       .getRawOne();
 
     const findapartment = await Apartments.findOne({
-      relations: ['floor.entrance'],
+      relations: ['floor.entrance.buildings'],
       where: {
         floor: {
           floor_number: createApartmentDto.floor_number,
-          entrance: { entrance_number: createApartmentDto.entrance_number },
+          entrance: { entrance_number: createApartmentDto.entrance_number,buildings:{id:build_id} },
         },
         room_number: createApartmentDto.room_number,
       },
     });
 
+    console.log(findapartment);
     if (findapartment === null) {
       const newApartment = new Apartments();
       newApartment.floor_id = floor_id;

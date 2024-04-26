@@ -404,7 +404,6 @@ export class PaymentsService {
     // .where('order.id = :id', {id: payDto.order_id})
     // .groupBy('payments.id')
     // .getRawMany()
-
     // console.log(payments[0].sumPayment,payments[0].total_amount );
 
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
@@ -440,8 +439,8 @@ export class PaymentsService {
       await queryRunner.commitTransaction();
       return await this.paymentRepo.save(payment);
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
-      console.log(error.message);
     } finally {
       await queryRunner.release();
     }

@@ -15,13 +15,13 @@ export class TaskSchedulerService {
 
   private readonly logger = new Logger(TaskSchedulerService.name);
 
-  @Cron('0 0 * * *') // Run every day at midnight
+  // @Cron('0 0 * * *') // Run every day at midnight
+  @Cron('5 * * * * *')
   async checkAndChangeApartmentStatus(): Promise<void> {
     this.logger.log('Running apartment status check...');
 
     // joriy vaqtni olish
     const currentDate = new Date();
-
     //bron qilingan xonadonlarni topish qaysiyki bron muddati bugungi kundan kichik bolganlarini
     const bookings = await Booking.find({
       where: {

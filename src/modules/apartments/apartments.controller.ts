@@ -26,7 +26,7 @@ export class ApartmentsController {
     status: 201,
     description: "Kvartira muvaffaqiyatli qo'shildi!",
   })
-  @Post('/new/:floor_id')
+  @Post('/new/:build_id/:floor_id')
   createApartment(
     @Param('floor_id') floor_id: number,
     @Body() createApartmentDto: CreateApartmentDto,
