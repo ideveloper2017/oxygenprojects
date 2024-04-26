@@ -29,7 +29,7 @@ export class TaskSchedulerService {
         bron_is_active: true,
       },
     });
-
+    console.log(bookings);
     // bron bo'lgan xonadonlarning bron muddati tugaganlarini bronini berkor qilish va xonadonni bo'sh holatga keltirish
     for (const booking of bookings) {
       booking.bron_is_active = false;
@@ -37,7 +37,7 @@ export class TaskSchedulerService {
 
       // bron qilingan xonadon ni topishva va statusini free ga almashtirish
       const apartment = await this.apartmentRepository.findOne({
-        where: { id: booking.apartment_id},
+        where: { id: booking.apartment_id,status:ApartmentStatus.BRON},
       });
 
       if (apartment) {
