@@ -18,15 +18,16 @@ export class ApartmentsService {
   ) {}
 
   async addOneApartment(
+    build_id: number,
     floor_id: number,
     createApartmentDto: CreateApartmentDto,
   ) {
     const res = await Floor.findOne({
-      where: { id: floor_id },
+      where: { id: floor_id, entrance:{building_id:build_id} },
       relations: ['entrance.buildings.towns'],
     });
     const town_id = res.entrance.buildings.towns.id;
-    const build_id = res.entrance.buildings.id;
+    const building_id = res.entrance.buildings.id;
     const maxRoomNumber = await Towns.createQueryBuilder('town')
       .innerJoin('town.buildings', 'building')
       .innerJoin('building.entrances', 'entrance')
@@ -52,7 +53,7 @@ export class ApartmentsService {
       where: {
         floor: {
           floor_number: createApartmentDto.floor_number,
-          entrance: { entrance_number: createApartmentDto.entrance_number,buildings:{id:build_id} },
+          entrance: { entrance_number: createApartmentDto.entrance_number,buildings:{id:building_id} },
         },
         room_number: createApartmentDto.room_number,
       },
@@ -91,14 +92,18 @@ export class ApartmentsService {
     }
   }
 
-  async updateApartment(id: number, updateApartmentDto: UpdateApartmentDto) {
+  async updateApartment(
+    build_id: number,
+    id: number,
+    updateApartmentDto: UpdateApartmentDto,
+  ) {
     const findapartment = await Apartments.findOne({
       relations: ['floor.entrance'],
       where: {
         room_number: updateApartmentDto.room_number,
         floor: {
           floor_number: updateApartmentDto.floor_number,
-          entrance: { entrance_number: updateApartmentDto.entrance_number },
+          entrance: { entrance_number: updateApartmentDto.entrance_number,buildings:{id:build_id} },
         },
       },
     });

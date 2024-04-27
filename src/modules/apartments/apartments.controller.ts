@@ -28,21 +28,23 @@ export class ApartmentsController {
   })
   @Post('/new/:build_id/:floor_id')
   createApartment(
+    @Param('build_id') build_id: number,
     @Param('floor_id') floor_id: number,
     @Body() createApartmentDto: CreateApartmentDto,
   ) {
-    return this.apartmentsService.addOneApartment(floor_id, createApartmentDto);
+    return this.apartmentsService.addOneApartment(build_id,floor_id, createApartmentDto);
   }
 
   @ApiOperation({ summary: 'Kvartira tahrirlash' })
   @ApiResponse({ status: 200, description: 'Kvartira tahrirlandi' })
-  @Patch('/edit/:id')
+  @Patch('/edit/:build_id/:id')
   updateApartment(
+    @Param('build_id') build_id: number,
     @Param('id') id: number,
     @Body() updateApartmentDto: UpdateApartmentDto,
   ) {
     return this.apartmentsService
-      .updateApartment(id, updateApartmentDto)
+      .updateApartment(build_id,id, updateApartmentDto)
   }
 
   @ApiOperation({ summary: "Kvartirani ro'yxatdan o'chirish" })
