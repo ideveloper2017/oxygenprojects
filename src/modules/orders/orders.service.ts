@@ -38,8 +38,7 @@ export class OrdersService {
       .getOne();
   }
 
-  // =================== Yangi shartnoma tuzisha ===================================
-
+  // =================== Yangi shartnoma tuzisha ===================================//
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
 
