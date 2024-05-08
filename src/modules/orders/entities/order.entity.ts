@@ -22,6 +22,9 @@ export class Orders extends Model {
   @JoinColumn({ name: 'user_id' })
   users: Users;
 
+  @Column()
+  user_id:number;
+
   @Column({nullable:true})
   percent:number;
 
@@ -34,8 +37,8 @@ export class Orders extends Model {
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   initial_pay: number;
 
-  @Column({nullable: true, default:0 })
-  initial_month:number;
+  @Column({ default: 0 })
+  initial_month: number;
 
   @Column({ nullable: true, type: 'decimal', precision: 20, scale: 2 })
   currency_value: number;

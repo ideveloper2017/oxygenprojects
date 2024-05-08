@@ -94,21 +94,21 @@ export class OrdersController {
   //@Roles('admin', 'manager')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Order ni tahrirlash' })
-  @Patch('/edit/:id')
+  @Patch('/edit/:order_id')
   editOrder(
     @AuthUser() user: any,
-    @Param('id') id: number,
+    @Param('order_id') id: number,
     @Body() editOrderDto: UpdateOrderDto,
   ) {
     return this.orderService
-      .updateOrder(id, editOrderDto, user)
-      .then((response) => {
-        if (response.affected != 0) {
-          return { success: true, message: 'order updated' };
-        } else {
-          return { success: false, message: 'order not found' };
-        }
-      });
+      .updateOrder(id, editOrderDto, user);
+      // .then((response) => {
+      //   if (response.affected != 0) {
+      //     return { success: true, message: 'order updated' };
+      //   } else {
+      //     return { success: false, message: 'order not found' };
+      //   }
+      // });
   }
 
   @ApiOperation({

@@ -27,6 +27,9 @@ export class Payments extends Model {
   caishers: Caisher;
 
   @Column()
+  caisher_id: number;
+
+  @Column()
   payment_date: Date;
 
   @Column({ type: 'decimal', precision: 20, scale: 2, default: 0 })

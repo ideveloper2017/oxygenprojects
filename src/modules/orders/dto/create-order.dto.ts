@@ -29,6 +29,9 @@ export class CreateOrderDto {
   @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov somda' })
   initial_pay: number;
 
+  @ApiProperty()
+  initial_month: number;
+
   @ApiProperty({ example: '2023-09-04' })
   order_date: Date;
 
