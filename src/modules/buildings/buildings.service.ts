@@ -96,8 +96,8 @@ export class BuildingsService {
         relations: ['entrances.floors.apartments', 'buildingItems', 'file'],
         order: {
           entrances: {
-            entrance_number: 'asc',
-            floors: { floor_number: 'desc', apartments: { room_number: 'asc' } },
+            entrance_number: 'desc',
+            floors: { floor_number: 'desc', apartments: { room_number: 'ASC' } },
           },
         },
       });

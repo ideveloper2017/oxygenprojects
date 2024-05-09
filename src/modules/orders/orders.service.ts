@@ -1,25 +1,25 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { Orders } from './entities/order.entity';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { PaymentMethods } from '../payment-method/entities/payment-method.entity';
-import { OrderItems } from '../order-items/entities/order-item.entity';
-import { Apartments } from '../apartments/entities/apartment.entity';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { Users } from '../users/entities/user.entity';
-import { PaymentsService } from '../payments/payments.service';
-import { Caisher } from '../caisher/entities/caisher.entity';
-import { Caishertype } from 'src/common/enums/caishertype';
-import { Paymentmethods } from 'src/common/enums/paymentmethod';
-import { Payments } from '../payments/entities/payment.entity';
-import { Booking } from '../booking/entities/booking.entity';
-import { ApartmentStatus } from '../../common/enums/apartment-status';
-import { OrderStatus } from '../../common/enums/order-status';
-import { PaymentStatus } from 'src/common/enums/payment-status';
-import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
-import { RefundDto } from './dto/refund.dto';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {In, Repository} from 'typeorm';
+import {Orders} from './entities/order.entity';
+import {CreateOrderDto} from './dto/create-order.dto';
+import {PaymentMethods} from '../payment-method/entities/payment-method.entity';
+import {OrderItems} from '../order-items/entities/order-item.entity';
+import {Apartments} from '../apartments/entities/apartment.entity';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
+import {UpdateOrderDto} from './dto/update-order.dto';
+import {Users} from '../users/entities/user.entity';
+import {PaymentsService} from '../payments/payments.service';
+import {Caisher} from '../caisher/entities/caisher.entity';
+import {Caishertype} from 'src/common/enums/caishertype';
+import {Paymentmethods} from 'src/common/enums/paymentmethod';
+import {Payments} from '../payments/entities/payment.entity';
+import {Booking} from '../booking/entities/booking.entity';
+import {ApartmentStatus} from '../../common/enums/apartment-status';
+import {OrderStatus} from '../../common/enums/order-status';
+import {PaymentStatus} from 'src/common/enums/payment-status';
+import {ExchangRates} from '../exchang-rates/entities/exchang-rate.entity';
+import {RefundDto} from './dto/refund.dto';
 
 @Injectable()
 export class OrdersService {
@@ -99,6 +99,7 @@ export class OrdersService {
     order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
     order.delivery_time = createOrderDto.delivery_time;
+    order.initial_month = createOrderDto.installment_month;
     const savedOrder = await this.ordersRepository.save(order);
 
     const apartment = await Apartments.findOne({
@@ -358,10 +359,11 @@ export class OrdersService {
       where: { id: id, order_status: OrderStatus.ACTIVE },
     });
 
-    await OrderItems.delete({ order_id: id });
-    await CreditTable.delete({ order_id: id});
-    await Payments.delete({ order_id: id });
+    const order_item = await OrderItems.findOne({ where: { order_id: id } });
 
+
+    await CreditTable.delete({ order_id: id });
+    await OrderItems.delete({order_id:id});
 
     if (order_id) {
       const usdRate = await ExchangRates.findOne({
@@ -372,6 +374,13 @@ export class OrdersService {
       });
       const checkApartment = await Apartments.findOne({
         where: { id: +updateOrderDto.apartment_id },
+      });
+
+      await Apartments.update(
+        { id: order_item.apartment_id, status: ApartmentStatus.SOLD },
+        { status: ApartmentStatus.FREE },
+      ).then((data)=>{
+        console.log(data.raw);
       });
 
       let initial_pay,
@@ -409,7 +418,7 @@ export class OrdersService {
       order.initial_month = updateOrderDto.initial_month;
       order.currency_value = usdRate.rate_value;
       order.user_id = users.userId;
-          // await Users.findOne({ where: { id: users.userId } });
+      // await Users.findOne({ where: { id: users.userId } });
       order.quantity = 1;
       order.delivery_time = updateOrderDto.delivery_time;
       const savedOrder = await this.ordersRepository
@@ -441,10 +450,12 @@ export class OrdersService {
         payment_method.name_alias.toLowerCase() === 'subsidia' ||
         payment_method.name_alias.toLowerCase() === 'ipoteka'
       ) {
-         const oneMonthDue = updateOrderDto.initial_pay
-          ? (total - updateOrderDto.initial_pay) /
-            updateOrderDto.installment_month
-          : total / updateOrderDto.installment_month;
+        const oneMonthDue = updateOrderDto.initial_pay
+          ? Math.round(
+              Number(total - updateOrderDto.initial_pay) /
+                Number(updateOrderDto.initial_month),
+            )
+          : Math.round(Number(total / updateOrderDto.initial_month));
 
         const creditSchedule = [];
         const date = new Date();
@@ -457,8 +468,9 @@ export class OrdersService {
           installment.due_amount = oneMonthDue;
           installment.due_date = mon;
           installment.left_amount = 0;
-          installment.usd_due_amount =
-            installment.due_amount / usdRate.rate_value;
+          installment.usd_due_amount = Math.round(
+            Number(installment.due_amount / usdRate.rate_value),
+          );
           installment.currency_value = usdRate.rate_value;
           installment.status = 'waiting';
           creditSchedule.push(installment);
@@ -482,7 +494,7 @@ export class OrdersService {
       );
 
       const orderItem = new OrderItems();
-      orderItem.orders=order_id;
+      orderItem.order_id = id;
       orderItem.apartments = await Apartments.findOne({
         where: { id: +updateOrderDto.apartment_id },
       });
@@ -507,21 +519,23 @@ export class OrdersService {
       await OrderItems.save(orderItem);
 
       const payment = new Payments();
-      payment.orders = order_id;
+      payment.order_id = id;
       payment.users = users.userId;
       payment.amount = updateOrderDto.initial_pay;
-      payment.payment_date = new Date();
+      payment.payment_date = updateOrderDto.order_date;
       payment.paymentmethods = Paymentmethods.CASH;
       payment.caishers = await Caisher.findOne({
         where: { id: updateOrderDto.caisher_id, is_active: true },
       });
-      payment.amount_usd = updateOrderDto.initial_pay / usdRate.rate_value;
+      payment.amount_usd = Math.round(
+        Number(updateOrderDto.initial_pay / usdRate.rate_value),
+      );
       payment.currency_value = usdRate.rate_value;
       payment.caisher_type = Caishertype.IN;
       payment.payment_status = PaymentStatus.PAID;
       payment.pay_note = "Boshlangich to'lov";
 
-      await Payments.update({order_id: order_id.id},payment);
+      await Payments.update({ order_id: id }, payment);
 
       return updatedOrder;
     } else {

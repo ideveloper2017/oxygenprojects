@@ -101,14 +101,14 @@ export class OrdersController {
     @Body() editOrderDto: UpdateOrderDto,
   ) {
     return this.orderService
-      .updateOrder(id, editOrderDto, user);
-      // .then((response) => {
-      //   if (response.affected != 0) {
-      //     return { success: true, message: 'order updated' };
-      //   } else {
-      //     return { success: false, message: 'order not found' };
-      //   }
-      // });
+      .updateOrder(id, editOrderDto, user)
+      .then((response) => {
+        if (response.affected != 0) {
+          return { success: true, message: 'order updated' };
+        } else {
+          return { success: false, message: 'order not found' };
+        }
+      });
   }
 
   @ApiOperation({

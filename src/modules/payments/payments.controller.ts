@@ -1,20 +1,21 @@
 import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Patch,
-    Param,
-    ParseIntPipe,
-    Query, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  ParseIntPipe,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
-import {ApiBearerAuth, ApiOperation, ApiTags} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
-import {AuthUser} from "../../common/decorators/auth-user.decorator";
-import {JwtAuthGuard} from "../auth/jwt-auth.guard";
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Payments')
 @Controller('payments')
@@ -24,12 +25,12 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('/list')
-  public getAll(@Query('page') page: number,@AuthUser() user:any) {
+  public getAll(@Query('page') page: number, @AuthUser() user: any) {
     const limit: number = 20;
     const offset = (page - 1) * limit;
 
     return this.paymentsService
-      .getAllPayments(offset, limit,user)
+      .getAllPayments(offset, limit, user)
       .then((data) => {
         if (data.length != 0) {
           return { success: true, data: data, message: 'success' };
@@ -45,20 +46,19 @@ export class PaymentsController {
   @Patch('/update/:id')
   public updatePayment(
     @Param('id', ParseIntPipe) id: number,
-    @Body() newPaymentDto: UpdatePaymentDto,
+    @Body() newPaymentDto: NewPaymentDto,
   ) {
-    return this.paymentsService
-      .update(id, newPaymentDto)
-      .then((data) => {
-        if (data.affected > 0) {
-          return { success: true, message: 'update' };
-        } else {
-          return { success: false, message: 'not update' };
-        }
-      })
-      .catch((error) => {
-        return { success: false, message: error.message };
-      });
+    return this.paymentsService.update(id, newPaymentDto);
+    // .then((data) => {
+    //   if (data.affected > 0) {
+    //     return { success: true, message: 'update' };
+    //   } else {
+    //     return { success: false, message: 'not update' };
+    //   }
+    // })
+    // .catch((error) => {
+    //   return { success: false, message: error.message };
+    // });
   }
 
   @Post('/delete')
@@ -105,17 +105,16 @@ export class PaymentsController {
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')
   newPayment(@Body() newPaymentDto: NewPaymentDto) {
-    return this.paymentsService
-      .newPayment(newPaymentDto)
-      // .then((data) => {
-      //   if (!data) {
-      //     return { success: false, message: 'Payment was not created' };
-      //   } else {
-      //     return { success: true, message: 'Payment created' };
-      //   }
-      // })
-      // .catch((error) => {
-      //   return { success: false, message: error.message };
-      // });
+    return this.paymentsService.newPayment(newPaymentDto);
+    // .then((data) => {
+    //   if (!data) {
+    //     return { success: false, message: 'Payment was not created' };
+    //   } else {
+    //     return { success: true, message: 'Payment created' };
+    //   }
+    // })
+    // .catch((error) => {
+    //   return { success: false, message: error.message };
+    // });
   }
 }

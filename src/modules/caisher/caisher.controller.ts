@@ -64,9 +64,7 @@ export class CaisherController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCaisherDto: UpdateCaisherDto) {
     try {
-
-
-      return this.caisherService.update(+id,  updateCaisherDto).then((data) => {
+      return this.caisherService.update(+id,updateCaisherDto).then((data) => {
         if (data.affected != 0) {
           return { success: true, data: data, message: 'update product' };
         } else {
