@@ -536,7 +536,7 @@ export class OrdersService {
       payment.pay_note = "Boshlangich to'lov";
 
       if (paymentItem) {
-        await Payments.update({ order_id: id }, payment);
+        await Payments.update({ order_id: id,payment_date:paymentItem.payment_date }, payment);
       } else {
         await Payments.save(payment);
       }
