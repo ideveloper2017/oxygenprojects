@@ -274,7 +274,7 @@ export class PaymentsService {
         where: { id: newPaymentDto.order_id },
         relations: ['paymentMethods'],
       });
-      await Payments.delete({ id: id });
+      //await Payments.delete({ id: id });
       const usdRate = await ExchangRates.findOne({
         where: { is_default: true },
       });
@@ -287,7 +287,7 @@ export class PaymentsService {
       // ) {
       //   newPay = await this.payForInstallment(newPaymentDto);
       // } else {
-      newPay = await this.doPayment(newPaymentDto);
+      newPay = await this.doUpdatePayment(id,newPaymentDto);
       // }
 
 
@@ -457,6 +457,57 @@ export class PaymentsService {
       }
     }
     return await this.doPayment(installmentDto);
+  }
+
+
+  async doUpdatePayment(id:number,payDto: NewPaymentDto) {
+    // const payments = await this.paymentRepo.createQueryBuilder('payments')
+    // .leftJoin('payments.orders', 'order')
+    // .addSelect('SUM(payments.amount)', 'sumPayment')
+    // .addSelect('order.total_amount', 'total_amount')
+    // .where('order.id = :id', {id: payDto.order_id})
+    // .groupBy('payments.id')
+    // .getRawMany()
+    // console.log(payments[0].sumPayment,payments[0].total_amount );
+
+    const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
+    queryRunner.startTransaction();
+    let amountToUsd, amountToUzs;
+
+    try {
+      if (payDto.paymentmethods === Paymentmethods.USD) {
+        amountToUsd = payDto.amount;
+        amountToUzs = Math.floor(payDto.amount * payDto.currency_value);
+      } else {
+        amountToUsd = Math.floor(payDto.amount / payDto.currency_value);
+        amountToUzs = payDto.amount;
+      }
+
+      const payment = new Payments();
+      payment.orders = await Orders.findOne({
+        where: { id: +payDto.order_id },
+      });
+      payment.users = await Users.findOne({ where: { id: +payDto.user_id } });
+      payment.amount = amountToUzs;
+      payment.amount_usd = amountToUsd;
+      payment.currency_value = payDto.currency_value;
+      payment.payment_date = payDto.payment_date;
+      payment.paymentmethods = payDto.paymentmethods;
+      payment.caishers = await Caisher.findOne({
+        where: { id: payDto.caisher_id },
+      });
+      payment.caisher_type = payDto.caishertype;
+      payment.pay_note = payDto.pay_note;
+      payment.payment_status = PaymentStatus.PAID;
+
+      await queryRunner.commitTransaction();
+      return await this.paymentRepo.update({id:id},payment);
+    } catch (error) {
+      console.log(error.message);
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async doPayment(payDto: NewPaymentDto) {
