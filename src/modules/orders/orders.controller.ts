@@ -137,7 +137,7 @@ export class OrdersController {
   getLastID(@Param('building_id') building_id: number) {
     return this.orderService.getLastID(building_id).then((data) => {
       if (data != null) {
-        return { success: true, data: data.id + 1 };
+        return { success: true, data: data.orders.contract_number + 1 };
       } else {
         return { success: true, data: 1 };
       }

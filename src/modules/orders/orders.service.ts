@@ -33,19 +33,17 @@ export class OrdersService {
 
   async getLastID(building_id: number) {
     return await this.ordersRepository.manager
-        .getRepository(OrderItems)
-        .createQueryBuilder('orderItems')
-        .leftJoinAndSelect('orderItems.orders', 'orders')
-        .leftJoinAndSelect('orderItems.apartments', 'apartments')
-        .leftJoinAndSelect('apartments.floor', 'floor')
-        .leftJoinAndSelect('floor.entrance', 'entrance')
-        .leftJoinAndSelect('entrance.buildings', 'buildings')
-        .select('orders.contract_number')
-        .where('buildings.id = :building_id', { building_id })
-        .orderBy('orders.contract_number', 'DESC')
-        .getOne();
+      .getRepository(OrderItems)
+      .createQueryBuilder('orderItems')
+      .leftJoinAndSelect('orderItems.orders', 'orders')
+      .leftJoinAndSelect('orderItems.apartments', 'apartments')
+      .leftJoinAndSelect('apartments.floor', 'floor')
+      .leftJoinAndSelect('floor.entrance', 'entrance')
+      .leftJoinAndSelect('entrance.buildings', 'buildings')
+      .where('buildings.id = :building_id', { building_id })
+      .orderBy('orders.contract_number', 'DESC')
+      .getOne();
   }
-
 
   // =================== Yangi shartnoma tuzisha ===================================//
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
@@ -107,6 +105,7 @@ export class OrdersService {
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
+    order.contract_number = +createOrderDto.contractNum;
     order.delivery_time = createOrderDto.delivery_time;
     order.initial_month = createOrderDto.installment_month;
     const savedOrder = await this.ordersRepository.save(order);
