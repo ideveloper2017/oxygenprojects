@@ -13,6 +13,7 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { Entrance } from '../entrance/entities/entrance.entity';
 import { OrderItems } from '../order-items/entities/order-item.entity';
+import { PaymentStatus } from '../../common/enums/payment-status';
 
 @Injectable()
 export class ReportService {
@@ -322,6 +323,7 @@ export class ReportService {
           endDate,
         },
       )
+      .andWhere('payments.payment_status=:paymentstatus',{paymentstatus:PaymentStatus.PAID})
       .groupBy('users.id')
       .addGroupBy('caishers.id')
       .addGroupBy('payments.paymentmethods')
@@ -340,11 +342,8 @@ export class ReportService {
         });
         data['total_sum_out'] = Number(summa_out.total_sum_out);
         data['total_sum_out_usd'] = Math.round(Number(summa_out.total_usd_out));
-        data['grand_total_sum'] =
-          Number(data.total_sum) - Number(summa_out.total_sum_out);
-        data['grand_total_usd'] =
-          Math.round(Number(data.total_usd)) -
-          Math.round(Number(summa_out.total_usd_out));
+        data['grand_total_sum'] =  Number(data.total_sum) - Number(summa_out.total_sum_out);
+        data['grand_total_usd'] =  Math.round(Number(data.total_usd))-Math.round(Number(summa_out.total_usd_out));
         return data;
       }),
     );
