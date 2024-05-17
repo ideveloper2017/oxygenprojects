@@ -31,10 +31,36 @@ export class OrdersService {
 
   //==================== yangi qo'shiladigan shartnima raqami ===========================
 
-  async getLastID() {
-    return await this.ordersRepository
-      .createQueryBuilder('orders')
-      .orderBy('id', 'DESC')
+  async getLastID(building_id: number) {
+    return await this.ordersRepository.manager.getRepository(OrderItems)
+      .createQueryBuilder('orderItems')
+      .leftJoinAndSelect(
+        'orderItems.orders',
+        'orders',
+        'orderItems.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orderItems.apartments',
+        'apartments',
+        'apartments.id=ordetItems.apartment_id',
+      )
+      .leftJoinAndSelect(
+        'apartments.floor',
+        'floor',
+        'floor.id=apartments.floor_id',
+      )
+      .leftJoinAndSelect(
+        'floor.entrance',
+        'entrance',
+        'entrance.id=floor.entrance_id',
+      )
+      .leftJoinAndSelect(
+        'entrance.buildings',
+        'buildings',
+        'buildings.id=entrance.building_id',
+      )
+      .where('buildings.id=:building_id', { building_id })
+      .orderBy('orders.id', 'DESC')
       .getOne();
   }
 
@@ -536,7 +562,10 @@ export class OrdersService {
       payment.pay_note = "Boshlangich to'lov";
 
       if (paymentItem) {
-        await Payments.update({ order_id: id,payment_date:paymentItem.payment_date }, payment);
+        await Payments.update(
+          { order_id: id, payment_date: paymentItem.payment_date },
+          payment,
+        );
       } else {
         await Payments.save(payment);
       }

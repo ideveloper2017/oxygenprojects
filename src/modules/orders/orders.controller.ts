@@ -133,9 +133,9 @@ export class OrdersController {
     });
   }
 
-  @Get('/last')
-  getLastID() {
-    return this.orderService.getLastID().then((data) => {
+  @Get('/last/:building_id')
+  getLastID(@Param('building_id') building_id: number) {
+    return this.orderService.getLastID(building_id).then((data) => {
       if (data != null) {
         return { success: true, data: data.id + 1 };
       } else {
