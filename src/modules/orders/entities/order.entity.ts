@@ -7,13 +7,15 @@ import { OrderItems } from '../../order-items/entities/order-item.entity';
 import { Payments } from '../../payments/entities/payment.entity';
 import { CreditTable } from '../../credit-table/entities/credit-table.entity';
 import { OrderStatus } from '../../../common/enums/order-status';
-import { Paymentmethods } from '../../../common/enums/paymentmethod';
 
 @Entity('Orders')
 export class Orders extends Model {
   @ManyToOne((type) => Clients, (clients) => clients.orders)
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
+
+  @Column({default:0})
+  contract_number: number;
 
   @Column()
   client_id: number;
@@ -23,13 +25,13 @@ export class Orders extends Model {
   users: Users;
 
   @Column()
-  user_id:number;
+  user_id: number;
 
-  @Column({nullable:true})
-  percent:number;
+  @Column({ nullable: true })
+  percent: number;
 
-  @Column({nullable:true})
-  delivery_time:number;
+  @Column({ nullable: true })
+  delivery_time: number;
 
   @Column()
   quantity: number;
