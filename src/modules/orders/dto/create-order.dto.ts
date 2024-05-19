@@ -9,9 +9,9 @@ export class CreateOrderDto {
   @IsInt()
   client_id: number;
 
-
   @ApiProperty()
-  contractNum:number;
+  @IsInt()
+  contractNum: number;
 
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
   @IsInt()

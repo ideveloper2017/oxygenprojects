@@ -89,6 +89,7 @@ export class OrdersService {
       mk_price_usd = checkApartment.mk_price / usdRate.rate_value;
     }
 
+    const contractnumber: number = createOrderDto.contractNum;
     // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
     const initial_floored = initial_pay;
 
@@ -105,11 +106,10 @@ export class OrdersService {
     order.currency_value = usdRate.rate_value;
     order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
-    order.contract_number = +createOrderDto.contractNum;
+    order.contract_number = contractnumber;
     order.delivery_time = createOrderDto.delivery_time;
-    order.initial_month = createOrderDto.installment_month;
+    order.initial_month = +createOrderDto.installment_month;
     const savedOrder = await this.ordersRepository.save(order);
-
     const apartment = await Apartments.findOne({
       where: { id: createOrderDto.apartment_id },
       relations: ['floor.entrance.buildings'],
@@ -346,7 +346,7 @@ export class OrdersService {
         }, 0);
 
         result.push({
-          order_id: data.id,
+          order_id: data.contract_number,
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           totalsum: Math.floor(data.total_amount - sum),
@@ -425,6 +425,7 @@ export class OrdersService {
       order.initial_month = updateOrderDto.initial_month;
       order.currency_value = usdRate.rate_value;
       order.user_id = users.userId;
+      order.contract_number = updateOrderDto.contractNum;
       // await Users.findOne({ where: { id: users.userId } });
       order.quantity = 1;
       order.delivery_time = updateOrderDto.delivery_time;

@@ -107,7 +107,7 @@ export class WordexportController {
           String(order?.order_date.getMonth() + 1).padStart(2, '0') +
           '.' +
           String(order?.order_date.getFullYear()).padStart(2, '0'),
-        order_number: order?.id,
+        order_number: order?.contract_number,
         client_name:
           order?.clients?.first_name +
           ' ' +
