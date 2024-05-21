@@ -20,6 +20,7 @@ import { OrderStatus } from '../../common/enums/order-status';
 import { PaymentStatus } from 'src/common/enums/payment-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { RefundDto } from './dto/refund.dto';
+import { NewPaymentDto } from '../payments/dto/create-payment.dto';
 
 @Injectable()
 export class OrdersService {
@@ -281,9 +282,6 @@ export class OrdersService {
       .andWhere('orderItems.order_status IN(:...status)', {
         status: [OrderStatus.COMPLETED, OrderStatus.ACTIVE],
       })
-      .andWhere('order.order_status IN(:...status)', {
-        status: [OrderStatus.COMPLETED, OrderStatus.ACTIVE],
-      })
       .getOne();
 
     if (order) {
@@ -335,6 +333,7 @@ export class OrdersService {
 
         result.push({
           order_id: data.id,
+          contract_number: data.contract_number,
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           left_amount: incomingSum - outgoingSum,
@@ -346,7 +345,8 @@ export class OrdersService {
         }, 0);
 
         result.push({
-          order_id: data.contract_number,
+          contract_number: data.contract_number,
+          order_id: data.id,
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           totalsum: Math.floor(data.total_amount - sum),
@@ -383,12 +383,12 @@ export class OrdersService {
         where: { id: +updateOrderDto.apartment_id },
       });
 
-      await Apartments.update(
-        { id: order_item.apartment_id, status: ApartmentStatus.SOLD },
-        { status: ApartmentStatus.FREE },
-      ).then((data) => {
-        console.log(data.raw);
-      });
+      // await Apartments.update(
+      //   { id: order_item.apartment_id, status: ApartmentStatus.SOLD },
+      //   { status: ApartmentStatus.FREE },
+      // ).then((data) => {
+      //   console.log(data.raw);
+      // });
 
       let initial_pay,
         deal_price,
@@ -524,7 +524,14 @@ export class OrdersService {
         await Booking.update({ id: inBooking.id }, { bron_is_active: false });
       }
 
-      await OrderItems.save(orderItem);
+      const orderItemAvailable = await OrderItems.findOne({
+        where: { order_id: id },
+      });
+      if (orderItemAvailable) {
+        await OrderItems.update({ order_id: id }, orderItem);
+      } else {
+        await OrderItems.save(orderItem);
+      }
 
       const paymentItem = await Payments.findOne({ where: { order_id: id } });
       const payment = new Payments();
@@ -543,6 +550,31 @@ export class OrdersService {
       payment.caisher_type = Caishertype.IN;
       payment.payment_status = PaymentStatus.PAID;
       payment.pay_note = "Boshlangich to'lov";
+
+      // const updatePayment: NewPaymentDto = {
+      //   user_id: users.userId,
+      //   order_id: id,
+      //   paymentmethods: payment.paymentmethods,
+      //   payment_date: updateOrderDto.order_date,
+      //   amount: 0,
+      //   currency_value: usdRate.rate_value,
+      //   caisher_id: await Caisher.findOne({
+      //     where: { id: updateOrderDto.caisher_id, is_active: true },
+      //   }).then((data) => data.id),
+      //   caishertype: Caishertype.IN,
+      //   payment_status: PaymentStatus.PAID,
+      //   pay_note: '',
+      //   is_completed: false,
+      // };
+      //
+      // if (
+      //   payment_method.name_alias.toLowerCase() === 'subsidia' ||
+      //   payment_method.name_alias.toLowerCase() === 'ipoteka'
+      // ) {
+      //   this.paymentService.updatepayForInstallment2(updatePayment);
+      // } else {
+      //   this.paymentService.doUpdatePayment(id, updatePayment);
+      // }
 
       if (paymentItem) {
         await Payments.update(

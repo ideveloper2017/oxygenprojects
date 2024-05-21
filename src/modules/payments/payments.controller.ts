@@ -48,17 +48,19 @@ export class PaymentsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() newPaymentDto: NewPaymentDto,
   ) {
-    return this.paymentsService.update(id, newPaymentDto);
-    // .then((data) => {
-    //   if (data.affected > 0) {
-    //     return { success: true, message: 'update' };
-    //   } else {
-    //     return { success: false, message: 'not update' };
-    //   }
-    // })
-    // .catch((error) => {
-    //   return { success: false, message: error.message };
-    // });
+
+    return this.paymentsService
+      .update(id, newPaymentDto)
+      .then((data) => {
+        if (data) {
+          return { success: true, message: 'update' };
+        } else {
+          return { success: false, message: 'not update' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
   }
 
   @Post('/delete')

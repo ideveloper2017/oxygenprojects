@@ -97,7 +97,10 @@ export class BuildingsService {
         order: {
           entrances: {
             entrance_number: 'desc',
-            floors: { floor_number: 'desc', apartments: { room_number: 'ASC' } },
+            floors: {
+              floor_number: 'desc',
+              apartments: { room_number: 'ASC' },
+            },
           },
         },
       });
@@ -108,7 +111,10 @@ export class BuildingsService {
         order: {
           entrances: {
             entrance_number: 'asc',
-            floors: { floor_number: 'desc', apartments: { room_number: 'asc' } },
+            floors: {
+              floor_number: 'desc',
+              apartments: { room_number: 'asc' },
+            },
           },
         },
       });
@@ -174,7 +180,7 @@ export class BuildingsService {
       Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
     );
     buildingItems.is_active = true;
-    buildingItems.note_action=createbuildingitems.note_action;
+    buildingItems.note_action = createbuildingitems.note_action;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);
 
     const building = await this.buildingRepository.manager

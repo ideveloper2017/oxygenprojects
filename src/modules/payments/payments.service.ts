@@ -270,6 +270,8 @@ export class PaymentsService {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     try {
+      await Payments.delete({ id: id });
+
       const { paymentMethods } = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
         relations: ['paymentMethods'],
@@ -278,6 +280,11 @@ export class PaymentsService {
       const usdRate = await ExchangRates.findOne({
         where: { is_default: true },
       });
+
+      await CreditTable.update(
+        { order_id: newPaymentDto.order_id },
+        { status: 'waiting', left_amount: 0 },
+      );
       let newPay;
 
       // if (
@@ -287,9 +294,18 @@ export class PaymentsService {
       // ) {
       //   newPay = await this.payForInstallment(newPaymentDto);
       // } else {
-      newPay = await this.doUpdatePayment(id,newPaymentDto);
+      // newPay = await this.doUpdatePayment(id,newPaymentDto);
       // }
 
+      if (
+        (paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
+          paymentMethods.name_alias.toLowerCase() == 'subsidia') &&
+        newPaymentDto.caishertype === Caishertype.IN
+      ) {
+        newPay = await this.updatepayForInstallment(newPaymentDto);
+      } else {
+        newPay = await this.doUpdatePayment(id, newPaymentDto);
+      }
 
       if (
         newPaymentDto.is_completed &&
@@ -392,7 +408,7 @@ export class PaymentsService {
               status: 'paid',
               left_amount: 0,
               currency_value: installmentDto.currency_value,
-              usd_due_amount: amount_usd,
+              // usd_due_amount: amount_usd,
             },
           );
           money -= Math.round(Number(nextPaid.due_amount));
@@ -403,7 +419,7 @@ export class PaymentsService {
               status: 'paid',
               left_amount: 0,
               currency_value: installmentDto.currency_value,
-              usd_due_amount: amount_usd,
+              //usd_due_amount: amount_usd,
             },
           );
           money -= Math.round(Number(nextPaid.left_amount));
@@ -419,10 +435,10 @@ export class PaymentsService {
                   : 'paid',
               left_amount: Math.round(Number(nextPaid.due_amount) - money),
               currency_value: installmentDto.currency_value,
-              usd_due_amount: Math.round(
-                (Number(nextPaid.due_amount) - money) /
-                  Number(installmentDto.currency_value),
-              ),
+              // usd_due_amount: Math.round(
+              //   (Number(nextPaid.due_amount) - money) /
+              //     Number(installmentDto.currency_value),
+              // ),
             },
           );
           break;
@@ -434,7 +450,7 @@ export class PaymentsService {
                 status: 'paid',
                 left_amount: 0,
                 currency_value: Number(installmentDto.currency_value),
-                usd_due_amount: amount_usd,
+                // usd_due_amount: amount_usd,
               },
             );
             money -= nextPaid.left_amount;
@@ -445,10 +461,10 @@ export class PaymentsService {
                 status: 'paid',
                 left_amount: Math.round(Number(nextPaid.left_amount) - money),
                 currency_value: installmentDto.currency_value,
-                usd_due_amount: Math.round(
-                  (Number(nextPaid.left_amount) - money) /
-                    Number(installmentDto.currency_value),
-                ),
+                // usd_due_amount: Math.round(
+                //   (Number(nextPaid.left_amount) - money) /
+                //     Number(installmentDto.currency_value),
+                // ),
               },
             );
             break;
@@ -459,8 +475,227 @@ export class PaymentsService {
     return await this.doPayment(installmentDto);
   }
 
+  public async updatepayForInstallment(installmentDto: NewPaymentDto) {
+    await this.doPaymentUpdate(installmentDto);
 
-  async doUpdatePayment(id:number,payDto: NewPaymentDto) {
+    const orders=await Orders.findOne({where:{id:installmentDto.order_id}});
+    const payment = await this.paymentRepo.manager
+      .getRepository(Payments)
+      .createQueryBuilder('payments')
+      .select('SUM(payments.amount)', 'amount')
+      .addSelect('SUM(payments.amount_usd)', 'amount_usd')
+      .where('payments.order_id=:order_id', {
+        order_id: installmentDto.order_id,
+      })
+      .getRawOne();
+
+    let money =
+      installmentDto.paymentmethods === Paymentmethods.USD
+        ? Math.round(
+            Math.abs(Number(payment.amount-orders.initial_pay)) * Number(installmentDto.currency_value),
+          )
+        : Math.abs(Number(payment.amount-orders.initial_pay));
+
+    console.log(money);
+    while (money > 0) {
+      const nextPaid = await CreditTable.findOne({
+        where: { order_id: installmentDto.order_id, status: 'waiting' },
+        order: { due_date: 'ASC' },
+      });
+
+      if (!nextPaid) {
+        break;
+      }
+      const amount_usd = Math.round(
+        Math.round(Number(nextPaid.due_amount)) /
+          Math.round(Number(installmentDto.currency_value)),
+      );
+
+      if (money >= nextPaid.due_amount) {
+        if (!nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            {
+              status: 'paid',
+              left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              // usd_due_amount: amount_usd,
+            },
+          );
+          money -= Math.round(Number(nextPaid.due_amount));
+        } else {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            {
+              status: 'paid',
+              left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              //    usd_due_amount: amount_usd,
+            },
+          );
+          money -= Math.round(Number(nextPaid.left_amount));
+        }
+      } else {
+        if (!nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            {
+              status:
+                Math.round(Number(nextPaid.due_amount) - money) > 0
+                  ? 'waiting'
+                  : 'paid',
+              left_amount: Math.round(Number(nextPaid.due_amount) - money),
+              currency_value: installmentDto.currency_value,
+              // usd_due_amount: Math.round(
+              //   (Number(nextPaid.due_amount) - money) /
+              //     Number(installmentDto.currency_value),
+              // ),
+            },
+          );
+          break;
+        } else {
+          if (money >= nextPaid.left_amount) {
+            await CreditTable.update(
+              { id: nextPaid.id },
+              {
+                status: 'paid',
+                left_amount: 0,
+                currency_value: Number(installmentDto.currency_value),
+                // usd_due_amount: amount_usd,
+              },
+            );
+            money -= nextPaid.left_amount;
+          } else {
+            await CreditTable.update(
+              { id: nextPaid.id },
+              {
+                status: 'paid',
+                left_amount: Math.round(Number(nextPaid.left_amount) - money),
+                currency_value: installmentDto.currency_value,
+                // usd_due_amount: Math.round(
+                //   (Number(nextPaid.left_amount) - money) /
+                //     Number(installmentDto.currency_value),
+                // ),
+              },
+            );
+            break;
+          }
+        }
+      }
+    }
+    // return await this.doPaymentUpdate(installmentDto);
+  }
+
+  public async updatepayForInstallment2(installmentDto: NewPaymentDto) {
+
+    const orders=await Orders.findOne({where:{id:installmentDto.order_id}});
+
+    const payment = await this.paymentRepo.manager
+      .getRepository(Payments)
+      .createQueryBuilder('payments')
+      .select('SUM(payments.amount)', 'amount')
+      .addSelect('SUM(payments.amount_usd)', 'amount_usd')
+      .where('payments.order_id=:order_id', {
+        order_id: installmentDto.order_id,
+      })
+      .getRawOne();
+
+    let money =
+      installmentDto.paymentmethods === Paymentmethods.USD
+        ? Math.round(
+            Math.abs(Number(payment.amount - orders.initial_pay)) *
+              Number(installmentDto.currency_value),
+          )
+        : Math.abs(Number(payment.amount - orders.initial_pay));
+    while (money > 0) {
+      const nextPaid = await CreditTable.findOne({
+        where: { order_id: installmentDto.order_id, status: 'waiting' },
+        order: { due_date: 'ASC' },
+      });
+
+      if (!nextPaid) {
+        break;
+      }
+      const amount_usd = Math.round(
+        Math.round(Number(nextPaid.due_amount)) /
+          Math.round(Number(installmentDto.currency_value)),
+      );
+
+      if (money >= nextPaid.due_amount) {
+        if (!nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            {
+              status: 'paid',
+              left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              // usd_due_amount: amount_usd,
+            },
+          );
+          money -= Math.round(Number(nextPaid.due_amount));
+        } else {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            {
+              status: 'paid',
+              left_amount: 0,
+              currency_value: installmentDto.currency_value,
+              //    usd_due_amount: amount_usd,
+            },
+          );
+          money -= Math.round(Number(nextPaid.left_amount));
+        }
+      } else {
+        if (!nextPaid.left_amount) {
+          await CreditTable.update(
+            { id: nextPaid.id },
+            {
+              status:
+                Math.round(Number(nextPaid.due_amount) - money) > 0
+                  ? 'waiting'
+                  : 'paid',
+              left_amount: Math.round(Number(nextPaid.due_amount) - money),
+              currency_value: installmentDto.currency_value,
+              // usd_due_amount: Math.round(
+              //   (Number(nextPaid.due_amount) - money) /
+              //     Number(installmentDto.currency_value),
+              // ),
+            },
+          );
+          break;
+        } else {
+          if (money >= nextPaid.left_amount) {
+            await CreditTable.update(
+              { id: nextPaid.id },
+              {
+                status: 'paid',
+                left_amount: 0,
+                currency_value: Number(installmentDto.currency_value),
+                // usd_due_amount: amount_usd,
+              },
+            );
+            money -= nextPaid.left_amount;
+          } else {
+            await CreditTable.update(
+              { id: nextPaid.id },
+              {
+                status: 'paid',
+                left_amount: Math.round(Number(nextPaid.left_amount) - money),
+                currency_value: installmentDto.currency_value,
+                // usd_due_amount: Math.round(
+                //   (Number(nextPaid.left_amount) - money) /
+                //     Number(installmentDto.currency_value),
+                // ),
+              },
+            );
+            break;
+          }
+        }
+      }
+    }
+    // return await this.doPaymentUpdate(installmentDto);
+  }
+  async doUpdatePayment(id: number, payDto: NewPaymentDto) {
     // const payments = await this.paymentRepo.createQueryBuilder('payments')
     // .leftJoin('payments.orders', 'order')
     // .addSelect('SUM(payments.amount)', 'sumPayment')
@@ -501,7 +736,7 @@ export class PaymentsService {
       payment.payment_status = PaymentStatus.PAID;
 
       await queryRunner.commitTransaction();
-      return await this.paymentRepo.update({id:id},payment);
+      return await this.paymentRepo.update({ id: id }, payment);
     } catch (error) {
       console.log(error.message);
       await queryRunner.rollbackTransaction();
