@@ -367,7 +367,9 @@ export class OrdersService {
       where: { id: id, order_status: OrderStatus.ACTIVE },
     });
 
-    const order_item = await OrderItems.findOne({ where: { order_id: id } });
+    const order_item: OrderItems = await OrderItems.findOne({
+      where: { order_id: id },
+    });
 
     await CreditTable.delete({ order_id: id });
     await OrderItems.delete({ order_id: id });
@@ -383,12 +385,12 @@ export class OrdersService {
         where: { id: +updateOrderDto.apartment_id },
       });
 
-      // await Apartments.update(
-      //   { id: order_item.apartment_id, status: ApartmentStatus.SOLD },
-      //   { status: ApartmentStatus.FREE },
-      // ).then((data) => {
-      //   console.log(data.raw);
-      // });
+      await Apartments.update(
+        { id: order_item.apartment_id, status: ApartmentStatus.SOLD },
+        { status: ApartmentStatus.FREE },
+      ).then((data) => {
+        console.log(data.raw);
+      });
 
       let initial_pay,
         deal_price,

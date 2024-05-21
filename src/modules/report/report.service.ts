@@ -438,6 +438,7 @@ export class ReportService {
         'towns.name as townname',
         'buildings.name as buildingname',
         'buildingItems.mk_price as mk_price',
+
       ])
       .where('buildingItems.is_active= :is_active', { is_active: true })
       .addOrderBy('building_id', 'ASC')
@@ -613,6 +614,7 @@ export class ReportService {
           'apartments.mk_price as mk_price',
           'buildings.id as building_id',
           'buildings.apartment_number as apartment_number',
+
         ])
         .where('buildings.id = :building_id', { building_id: data.building_id })
         .andWhere('buildingItems.is_active = :is_active', { is_active: true })
@@ -665,6 +667,9 @@ export class ReportService {
             : '';
           apartmentData['clients_middle_name'] = orders
             ? orders.clients_middle_name
+            : '';
+          apartmentData['clients_description'] = orders
+            ? orders.description
             : '';
           apartmentData['price'] = orders ? orders.price : '';
           apartmentData['price_usd'] = orders ? orders.price_usd : '';

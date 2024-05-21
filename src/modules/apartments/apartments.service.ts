@@ -23,7 +23,7 @@ export class ApartmentsService {
     createApartmentDto: CreateApartmentDto,
   ) {
     const res = await Floor.findOne({
-      where: { id: floor_id, entrance:{building_id:build_id} },
+      where: { id: floor_id, entrance: { building_id: build_id } },
       relations: ['entrance.buildings.towns'],
     });
     const town_id = res.entrance.buildings.towns.id;
@@ -53,12 +53,14 @@ export class ApartmentsService {
       where: {
         floor: {
           // floor_number: createApartmentDto.floor_number,`
-          entrance: { entrance_number: createApartmentDto.entrance_number,buildings:{id:building_id} },
+          entrance: {
+            entrance_number: createApartmentDto.entrance_number,
+            buildings: { id: building_id },
+          },
         },
         room_number: createApartmentDto.room_number,
       },
     });
-
 
     if (findapartment === null) {
       const newApartment = new Apartments();
@@ -103,7 +105,10 @@ export class ApartmentsService {
         room_number: updateApartmentDto.room_number,
         floor: {
           floor_number: updateApartmentDto.floor_number,
-          entrance: { entrance_number: updateApartmentDto.entrance_number,buildings:{id:build_id} },
+          entrance: {
+            entrance_number: updateApartmentDto.entrance_number,
+            buildings: { id: build_id },
+          },
         },
       },
     });
@@ -163,8 +168,8 @@ export class ApartmentsService {
   }
 
   async getApartments(floor_id: number) {
-    const apartments = await this.apartmentRepository.find({
-      where: { floor_id: floor_id },
+    const apartments: Apartments[] = await this.apartmentRepository.find({
+      where: { floor_id: floor_id,status: ApartmentStatus.FREE },
     });
     return apartments;
   }
