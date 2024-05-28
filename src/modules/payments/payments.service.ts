@@ -148,8 +148,8 @@ export class PaymentsService {
           'towns',
           'towns.id=buildings.town_id',
         )
-        .skip(offset)
-        .take(limit)
+        // .skip(offset)
+        // .take(limit)
         .orderBy('payments.id', 'DESC')
         .getMany();
     } else if (user.roles.role_name == 'manager') {
@@ -201,8 +201,8 @@ export class PaymentsService {
           'towns.id=buildings.town_id',
         )
         .where('towns.id In(:...town_access)', { town_access })
-        .skip(offset)
-        .take(limit)
+        // .skip(offset)
+        // .take(limit)
         .orderBy('payments.id', 'DESC')
         .getMany();
     } else if (user.roles.role_name == 'Seller') {
