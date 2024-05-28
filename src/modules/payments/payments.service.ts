@@ -203,7 +203,7 @@ export class PaymentsService {
         .where('towns.id In(:...town_access)', { town_access })
         // .skip(offset)
         // .take(limit)
-        .orderBy('payments.id', 'DESC')
+        .orderBy('payments.payment_date', 'DESC')
         .getMany();
     } else if (user.roles.role_name == 'Seller') {
       orders_res = await this.paymentRepo
@@ -256,7 +256,7 @@ export class PaymentsService {
         .where('towns.id In(:...town_access)', { town_access })
         .skip(offset)
         .take(limit)
-        .orderBy('payments.id', 'DESC')
+        .orderBy('payments.payment_date', 'DESC')
         .getMany();
     }
 
