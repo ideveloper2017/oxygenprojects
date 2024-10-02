@@ -42,6 +42,9 @@ export class OrdersService {
       .leftJoinAndSelect('floor.entrance', 'entrance')
       .leftJoinAndSelect('entrance.buildings', 'buildings')
       .where('buildings.id = :building_id', { building_id })
+      .andWhere('orders.order_status=:order_status', {
+        order_status: OrderStatus.ACTIVE,
+      })
       .orderBy('orders.contract_number', 'DESC')
       .getOne();
   }

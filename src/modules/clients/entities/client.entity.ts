@@ -4,6 +4,16 @@ import { Orders } from '../../orders/entities/order.entity';
 import { Booking } from 'src/modules/booking/entities/booking.entity';
 import { Users } from '../../users/entities/user.entity';
 
+export enum Gender {
+  Male = 'male',
+  Female = 'female',
+}
+
+export enum UserType {
+  Jismoniy = 'jismoniy',
+  Yuridik = 'yuridik',
+}
+
 @Entity('Clients')
 export class Clients extends Model {
   @Column()
@@ -18,10 +28,18 @@ export class Clients extends Model {
   @Column()
   tin: string;
 
-  @Column({ enum: ['male', 'female'] })
+  @Column({
+    type: 'enum',
+    enum: Gender,
+    default: Gender.Male,
+  })
   gender: string;
 
-  @Column({ enum: ['jismoniy', 'yuridik'] })
+  @Column({
+    type: 'enum',
+    enum: UserType,
+    default: UserType.Jismoniy,
+  })
   type: string;
 
   @Column()
