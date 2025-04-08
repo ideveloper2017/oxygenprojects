@@ -93,7 +93,12 @@ export class BuildingsService {
     let result;
     if (id == 0) {
       result = await this.buildingRepository.find({
-        relations: ['entrances.floors.apartments', 'buildingItems', 'file'],
+        relations: [
+          'towns',
+          'entrances.floors.apartments',
+          'buildingItems',
+          'file',
+        ],
         order: {
           entrances: {
             entrance_number: 'desc',
