@@ -144,6 +144,11 @@ export class BuildingsService {
   }
 
   async deleteBuilding(id: number) {
+    await this.buildingItemsRepository
+      .findOne({ where: { building_id: id } })
+      .then((res) => {
+        this.buildingItemsRepository.delete(res.id);
+      });
     const result = await this.buildingRepository.delete(id);
     return result;
   }
