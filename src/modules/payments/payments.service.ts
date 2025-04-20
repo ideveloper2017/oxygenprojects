@@ -392,6 +392,7 @@ export class PaymentsService {
         order: { due_date: 'ASC' },
       });
 
+
       if (!nextPaid) {
         break;
       }
@@ -408,6 +409,7 @@ export class PaymentsService {
               status: 'paid',
               left_amount: 0,
               currency_value: installmentDto.currency_value,
+              paid_amount: money,
               // usd_due_amount: amount_usd,
             },
           );
@@ -419,6 +421,7 @@ export class PaymentsService {
               status: 'paid',
               left_amount: 0,
               currency_value: installmentDto.currency_value,
+              paid_amount: money,
               //usd_due_amount: amount_usd,
             },
           );
@@ -435,6 +438,7 @@ export class PaymentsService {
                   : 'paid',
               left_amount: Math.round(Number(nextPaid.due_amount) - money),
               currency_value: installmentDto.currency_value,
+              paid_amount: money,
               // usd_due_amount: Math.round(
               //   (Number(nextPaid.due_amount) - money) /
               //     Number(installmentDto.currency_value),
@@ -450,6 +454,7 @@ export class PaymentsService {
                 status: 'paid',
                 left_amount: 0,
                 currency_value: Number(installmentDto.currency_value),
+                paid_amount: money,
                 // usd_due_amount: amount_usd,
               },
             );
@@ -461,6 +466,7 @@ export class PaymentsService {
                 status: 'paid',
                 left_amount: Math.round(Number(nextPaid.left_amount) - money),
                 currency_value: installmentDto.currency_value,
+                paid_amount: money,
                 // usd_due_amount: Math.round(
                 //   (Number(nextPaid.left_amount) - money) /
                 //     Number(installmentDto.currency_value),
@@ -758,7 +764,10 @@ export class PaymentsService {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     let amountToUsd, amountToUzs;
+    let credit_tb_id: number;
 
+    // eslint-disable-next-line prefer-const
+    credit_tb_id = payDto.credit_table_id;
     try {
       if (payDto.paymentmethods === Paymentmethods.USD) {
         amountToUsd = payDto.amount;
@@ -784,7 +793,7 @@ export class PaymentsService {
       payment.caisher_type = payDto.caishertype;
       payment.pay_note = payDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
-
+      payment.credit_table_id = credit_tb_id ? credit_tb_id : null;
       await queryRunner.commitTransaction();
       return await this.paymentRepo.save(payment);
     } catch (error) {

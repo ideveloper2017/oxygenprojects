@@ -10,6 +10,9 @@ export class NewPaymentDto {
   @ApiProperty({ example: 1 })
   order_id: number;
 
+  @ApiProperty({ example: 1 })
+  credit_table_id: number;
+
   @ApiProperty({ example: '2023-12-06' })
   payment_date: Date;
 

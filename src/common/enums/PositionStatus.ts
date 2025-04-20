@@ -4,4 +4,5 @@ export enum PositionStatus{
     RIGHTSIDE='rightside',
     MIDDLESIDE='middleside',
     BACKSIDE='backside',
+    PENTHOUSE='penthouse',
 }

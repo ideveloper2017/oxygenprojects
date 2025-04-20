@@ -98,6 +98,16 @@ export class PaymentMethodsService {
           name: 'Subsidia',
           name_alias:'subsidia',
           is_active: true,
+        },{
+          id:5,
+          name: 'Nasiya (so`m)',
+          name_alias:'nasiya_naqd',
+          is_active: true,
+        },{
+          id:6,
+          name: 'Nasiya (dollar)',
+          name_alias:'nasiya_dollar',
+          is_active: true,
         }
       ])
     }

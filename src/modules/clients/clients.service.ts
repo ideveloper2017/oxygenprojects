@@ -30,7 +30,7 @@ export class ClientsService {
       newClient.last_name = createClientDto.last_name;
       newClient.middle_name = createClientDto.middle_name;
       newClient.gender = createClientDto.gender;
-      newClient.type = createClientDto.type;
+      newClient.type = 'jismoniy';
       newClient.address = createClientDto.address;
       newClient.contact_number = createClientDto.contact_number; //2023-08-13
       newClient.date_of_birth = createClientDto.date_of_birth;
@@ -77,7 +77,23 @@ export class ClientsService {
     return { status: 200, data: client, message: 'success' };
   }
 
-  async editClientInfo(id: number, updateClientDto: UpdateClientDto,user_id:any) {
+  async deleteClient(id: number) {
+    const client = await this.clientRepo.find({ where: { id: id } });
+    if (!client) {
+      return { status: 400, message: 'client not fount' };
+    }
+    client.map((value) => {
+      this.clientRepo.delete({ id: value.id });
+    });
+
+    return { status: 200, message: 'success' };
+  }
+
+  async editClientInfo(
+    id: number,
+    updateClientDto: UpdateClientDto,
+    user_id: any,
+  ) {
     try {
       const updatedClient = await this.clientRepo
         .createQueryBuilder()

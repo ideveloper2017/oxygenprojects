@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {isDecimal, IsInt} from 'class-validator';
+import {isDecimal, IsInt, IsString} from 'class-validator';
 import { OrderStatus } from '../../../common/enums/order-status';
 import {PositionStatus} from "../../../common/enums/PositionStatus";
 import { Column } from 'typeorm';
@@ -10,8 +10,12 @@ export class CreateOrderDto {
   client_id: number;
 
   @ApiProperty()
+  @IsString()
+  contractNum: string;
+
+  @ApiProperty({ example: 1, description: "ro'yxatdan o'tgan mijoz idisi" })
   @IsInt()
-  contractNum: number;
+  currency_value: number;
 
   @ApiProperty({ example: 1, description: 'sotib olinayotgan kvartira idsi' })
   @IsInt()

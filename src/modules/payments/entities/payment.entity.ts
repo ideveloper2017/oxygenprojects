@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Caisher } from '../../caisher/entities/caisher.entity';
@@ -6,6 +6,7 @@ import { Paymentmethods } from '../../../common/enums/paymentmethod';
 import { Caishertype } from '../../../common/enums/caishertype';
 import { Users } from '../../users/entities/user.entity';
 import { PaymentStatus } from '../../../common/enums/payment-status';
+import { CreditTable } from '../../credit-table/entities/credit-table.entity';
 
 @Entity('Payments')
 export class Payments extends Model {
@@ -19,6 +20,13 @@ export class Payments extends Model {
 
   @Column()
   order_id: number;
+
+  @ManyToOne(() => CreditTable, (credittable) => credittable.payments, { nullable: false, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'credit_table_id' })
+  credittable: CreditTable;
+
+  @Column({ nullable: true})
+  credit_table_id: number;
 
   @ManyToOne(() => Caisher, (caisher) => caisher.payments, {
     onDelete: 'CASCADE',
@@ -44,11 +52,7 @@ export class Payments extends Model {
   @Column({ type: 'enum', enum: Caishertype, default: Caishertype.IN })
   caisher_type: Caishertype;
 
-  @Column({
-    type: 'enum',
-    enum: Paymentmethods,
-    default: Paymentmethods.CASH,
-  })
+  @Column({ type: 'enum', enum: Paymentmethods, default: Paymentmethods.CASH })
   paymentmethods: Paymentmethods;
 
   @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.PAID })

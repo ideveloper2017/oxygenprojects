@@ -1,6 +1,6 @@
 import {
   Body,
-  Controller,
+  Controller,Delete,
   Get,
   Param,
   Patch,
@@ -49,6 +49,16 @@ export class ClientsController {
     @Body() updateClientDto: UpdateClientDto,
   ) {
     return this.clientsService.editClientInfo(id, updateClientDto,user_id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Mijoz ma'lumotlarini o`chirish" })
+  @ApiResponse({ status: 200, description: "Mijoz ma'lumotlari o'chirildi." })
+  @Delete('/delete/:id')
+  deleteClient(@Param('id') id: number) {
+    return this.clientsService.deleteClient(id);
   }
 
   @ApiOperation({ summary: "Mijoz ma'lumotlari" })

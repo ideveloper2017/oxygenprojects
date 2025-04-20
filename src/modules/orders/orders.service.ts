@@ -52,17 +52,13 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================//
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
-
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
-
     const payment_method = await PaymentMethods.findOne({
       where: { id: +createOrderDto.payment_method_id },
     });
-
     const checkApartment = await Apartments.findOne({
       where: { id: +createOrderDto.apartment_id },
     });
-
     if (
       checkApartment.status === ApartmentStatus.SOLD ||
       checkApartment.status === ApartmentStatus.INACTIVE
@@ -74,7 +70,6 @@ export class OrdersService {
     }
 
     let initial_pay, deal_price, kv_price_usd, kv_price, mk_price, mk_price_usd;
-
     if (payment_method.name_alias === 'dollar') {
       deal_price = createOrderDto.price * usdRate.rate_value;
       initial_pay = createOrderDto.initial_pay * usdRate.rate_value;
@@ -93,10 +88,9 @@ export class OrdersService {
       mk_price_usd = checkApartment.mk_price / usdRate.rate_value;
     }
 
-    const contractnumber: number = createOrderDto.contractNum;
+    const contractnumber: string = createOrderDto.contractNum;
     // const initial_floored = Math.floor(initial_pay / 1000 ) *1000;
     const initial_floored = initial_pay;
-
     const order = new Orders();
     // order.clients = await Clients.findOne({
     //   where: { id: +createOrderDto.client_id },
@@ -107,10 +101,10 @@ export class OrdersService {
     order.percent = createOrderDto.percent;
     order.order_date = createOrderDto.order_date;
     order.initial_pay = initial_floored;
-    order.currency_value = usdRate.rate_value;
+    order.currency_value = createOrderDto.currency_value;
     order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
-    order.contract_number = contractnumber;
+    order.contract_number = createOrderDto.contractNum;
     order.delivery_time = createOrderDto.delivery_time;
     order.initial_month = +createOrderDto.installment_month;
     const savedOrder = await this.ordersRepository.save(order);
@@ -120,7 +114,6 @@ export class OrdersService {
     });
 
     // binodagi barcha apartmentlarga tegishli narxini olish
-
     const total = deal_price
       ? deal_price * apartment.room_space
       : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
@@ -143,28 +136,25 @@ export class OrdersService {
         : Math.round(Number(total) / Number(createOrderDto.installment_month));
 
       const creditSchedule = [];
-      const date = new Date();
 
       for (let i = 1; i <= createOrderDto.installment_month; i++) {
-        const mon = new Date(date.setMonth(date.getMonth() + 1));
-
+        //const mon = createOrderDto.order_date
+        const baseDate = new Date(createOrderDto.order_date);
+        const mon = new Date(baseDate.setMonth(baseDate.getMonth() + i));
         const installment = new CreditTable();
         installment.orders = savedOrder;
         installment.due_amount = oneMonthDue;
         installment.due_date = mon;
         installment.left_amount = 0;
-        installment.usd_due_amount =
-          installment.due_amount / usdRate.rate_value;
+        installment.paid_amount = 0;
+        installment.usd_due_amount = installment.due_amount / usdRate.rate_value;
         installment.currency_value = usdRate.rate_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
       }
-
       schedule = await CreditTable.save(creditSchedule);
     }
-
     const total_in_usd = total / usdRate.rate_value;
-
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {

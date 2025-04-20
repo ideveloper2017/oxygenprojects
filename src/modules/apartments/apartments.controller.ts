@@ -43,8 +43,7 @@ export class ApartmentsController {
     @Param('id') id: number,
     @Body() updateApartmentDto: UpdateApartmentDto,
   ) {
-    return this.apartmentsService
-      .updateApartment(build_id,id, updateApartmentDto)
+    return this.apartmentsService.updateApartment(build_id,id, updateApartmentDto);
   }
 
   @ApiOperation({ summary: "Kvartirani ro'yxatdan o'chirish" })
