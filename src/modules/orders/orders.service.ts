@@ -70,22 +70,25 @@ export class OrdersService {
     }
 
     let initial_pay, deal_price, kv_price_usd, kv_price, mk_price, mk_price_usd;
-    if (payment_method.name_alias === 'dollar') {
-      deal_price = createOrderDto.price * usdRate.rate_value;
-      initial_pay = createOrderDto.initial_pay * usdRate.rate_value;
-      kv_price = createOrderDto.price * usdRate.rate_value;
+    if (
+      payment_method.name_alias === 'dollar' ||
+      payment_method.name_alias === 'nasiya_dollar'
+    ) {
+      deal_price = createOrderDto.price * createOrderDto.currency_value;
+      initial_pay = createOrderDto.initial_pay * createOrderDto.currency_value;
+      kv_price = createOrderDto.price * createOrderDto.currency_value;
       kv_price_usd = Math.round(Number(createOrderDto.price));
       mk_price = checkApartment.mk_price;
-      mk_price_usd = checkApartment.mk_price * usdRate.rate_value;
+      mk_price_usd = checkApartment.mk_price * createOrderDto.currency_value;
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
       kv_price_usd = Math.round(
-        Number(createOrderDto.price) / Number(usdRate.rate_value),
+        Number(createOrderDto.price) / Number(createOrderDto.currency_value),
       );
       kv_price = createOrderDto.price;
       mk_price = checkApartment.mk_price;
-      mk_price_usd = checkApartment.mk_price / usdRate.rate_value;
+      mk_price_usd = checkApartment.mk_price / createOrderDto.currency_value;
     }
 
     const contractnumber: string = createOrderDto.contractNum;
@@ -123,18 +126,23 @@ export class OrdersService {
     let schedule;
 
     if (
-      payment_method.name_alias.toLowerCase() === 'subsidia' ||
-      payment_method.name_alias.toLowerCase() === 'ipoteka'
+      payment_method.name_alias === 'subsidia' ||
+      payment_method.name_alias === 'ipoteka' ||
+      payment_method.name_alias === 'nasiya_naqd' ||
+      payment_method.name_alias === 'nasiya_dollar'
     ) {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
-
       const oneMonthDue = createOrderDto.initial_pay
         ? Math.round(
-            Number(total - createOrderDto.initial_pay) /
-              Number(createOrderDto.installment_month),
+            payment_method.name_alias === 'nasiya_dollar'
+              ? Number(
+                  total -
+                    createOrderDto.initial_pay * createOrderDto.currency_value,
+                ) / Number(createOrderDto.installment_month)
+              : Number(total - createOrderDto.initial_pay) /
+                  Number(createOrderDto.installment_month),
           )
         : Math.round(Number(total) / Number(createOrderDto.installment_month));
-
       const creditSchedule = [];
 
       for (let i = 1; i <= createOrderDto.installment_month; i++) {
@@ -147,19 +155,21 @@ export class OrdersService {
         installment.due_date = mon;
         installment.left_amount = 0;
         installment.paid_amount = 0;
-        installment.usd_due_amount = installment.due_amount / usdRate.rate_value;
-        installment.currency_value = usdRate.rate_value;
+        installment.usd_due_amount =
+          installment.due_amount / createOrderDto.currency_value;
+        installment.currency_value = createOrderDto.currency_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
       }
       schedule = await CreditTable.save(creditSchedule);
     }
-    const total_in_usd = total / usdRate.rate_value;
+
+    console.log(total + '/' + createOrderDto.currency_value);
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {
         total_amount: total_floored,
-        total_amount_usd: total_in_usd,
+        total_amount_usd: Number(total / createOrderDto.currency_value),
         order_status:
           total_floored == initial_floored
             ? OrderStatus.COMPLETED
@@ -202,8 +212,8 @@ export class OrdersService {
     payment.caishers = await Caisher.findOne({
       where: { id: createOrderDto.caisher_id, is_active: true },
     });
-    payment.amount_usd = savedOrder.initial_pay / usdRate.rate_value;
-    payment.currency_value = usdRate.rate_value;
+    payment.amount_usd = savedOrder.initial_pay / createOrderDto.currency_value;
+    payment.currency_value = createOrderDto.currency_value;
     payment.caisher_type = Caishertype.IN;
     payment.payment_status = PaymentStatus.PAID;
     payment.pay_note = "Boshlangich to'lov";
@@ -337,16 +347,19 @@ export class OrdersService {
           return accumulator + +currentValue.amount;
         }, 0);
 
+        const sum_usd = data.payments.reduce((accumulator, currentValue) => {
+          return accumulator + +currentValue.amount_usd;
+        }, 0);
+
         result.push({
           contract_number: data.contract_number,
           order_id: data.id,
           order_date: data.order_date,
           clients: data.clients.first_name + ' ' + data.clients.last_name,
           totalsum: Math.floor(data.total_amount - sum),
+          totalsum_usd: Math.floor(data.total_amount_usd - sum_usd),
           order_status: data.order_status,
         });
-
-        console.log(data.total_amount + '-----' + sum);
       }
     });
     return result;

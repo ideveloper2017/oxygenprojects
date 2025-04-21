@@ -14,6 +14,7 @@ import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { OrderItems } from '../order-items/entities/order-item.entity';
+import { find } from 'rxjs';
 
 @Injectable()
 export class PaymentsService {
@@ -33,14 +34,23 @@ export class PaymentsService {
         relations: ['paymentMethods'],
       });
 
-      const usdRate = await ExchangRates.findOne({
-        where: { is_default: true },
+      const credit_tb_id = await CreditTable.findOne({
+        where: { order_id: newPaymentDto.order_id, status: 'waiting' },
+        order: { due_date: 'ASC' },
       });
+
+      newPaymentDto.credit_table_id = credit_tb_id.id;
+
+      // const usdRate = await ExchangRates.findOne({
+      //   where: { is_default: true },
+      // });
       let newPay;
 
       if (
         (paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
-          paymentMethods.name_alias.toLowerCase() == 'subsidia') &&
+          paymentMethods.name_alias.toLowerCase() == 'subsidia' ||
+          paymentMethods.name_alias.toLowerCase() == 'nasiya_naqd' ||
+          paymentMethods.name_alias.toLowerCase() == 'nasiya_dollar') &&
         newPaymentDto.caishertype === Caishertype.IN
       ) {
         newPay = await this.payForInstallment(newPaymentDto);
@@ -392,7 +402,6 @@ export class PaymentsService {
         order: { due_date: 'ASC' },
       });
 
-
       if (!nextPaid) {
         break;
       }
@@ -484,7 +493,9 @@ export class PaymentsService {
   public async updatepayForInstallment(installmentDto: NewPaymentDto) {
     await this.doPaymentUpdate(installmentDto);
 
-    const orders=await Orders.findOne({where:{id:installmentDto.order_id}});
+    const orders = await Orders.findOne({
+      where: { id: installmentDto.order_id },
+    });
     const payment = await this.paymentRepo.manager
       .getRepository(Payments)
       .createQueryBuilder('payments')
@@ -498,9 +509,10 @@ export class PaymentsService {
     let money =
       installmentDto.paymentmethods === Paymentmethods.USD
         ? Math.round(
-            Math.abs(Number(payment.amount-orders.initial_pay)) * Number(installmentDto.currency_value),
+            Math.abs(Number(payment.amount - orders.initial_pay)) *
+              Number(installmentDto.currency_value),
           )
-        : Math.abs(Number(payment.amount-orders.initial_pay));
+        : Math.abs(Number(payment.amount - orders.initial_pay));
 
     console.log(money);
     while (money > 0) {
@@ -593,8 +605,9 @@ export class PaymentsService {
   }
 
   public async updatepayForInstallment2(installmentDto: NewPaymentDto) {
-
-    const orders=await Orders.findOne({where:{id:installmentDto.order_id}});
+    const orders = await Orders.findOne({
+      where: { id: installmentDto.order_id },
+    });
 
     const payment = await this.paymentRepo.manager
       .getRepository(Payments)
@@ -752,15 +765,6 @@ export class PaymentsService {
   }
 
   async doPayment(payDto: NewPaymentDto) {
-    // const payments = await this.paymentRepo.createQueryBuilder('payments')
-    // .leftJoin('payments.orders', 'order')
-    // .addSelect('SUM(payments.amount)', 'sumPayment')
-    // .addSelect('order.total_amount', 'total_amount')
-    // .where('order.id = :id', {id: payDto.order_id})
-    // .groupBy('payments.id')
-    // .getRawMany()
-    // console.log(payments[0].sumPayment,payments[0].total_amount );
-
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     let amountToUsd, amountToUzs;
@@ -793,7 +797,14 @@ export class PaymentsService {
       payment.caisher_type = payDto.caishertype;
       payment.pay_note = payDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
-      payment.credit_table_id = credit_tb_id ? credit_tb_id : null;
+      payment.credit_table_id = credit_tb_id
+        ? credit_tb_id
+        : await CreditTable.findOne({
+            where: { order_id: payDto.order_id, status: 'waiting' },
+            order: { id: 'asc' },
+          }).then((res) => {
+            return res?.id ? res.id : null;
+          });
       await queryRunner.commitTransaction();
       return await this.paymentRepo.save(payment);
     } catch (error) {
