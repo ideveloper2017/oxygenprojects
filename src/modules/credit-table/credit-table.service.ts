@@ -41,7 +41,21 @@ export class CreditTableService {
       },
       { incomingSum: 0, outgoingSum: 0 },
     );
+
+    const { incomingSum_usd, outgoingSum_usd } = order.payments.reduce(
+      (acc, curr) => {
+        if (curr.caisher_type === Caishertype.IN) {
+          acc.incomingSum_usd += +curr.amount_usd;
+        } else {
+          acc.outgoingSum_usd += +curr.amount_usd;
+        }
+        return acc;
+      },
+      { incomingSum_usd: 0, outgoingSum_usd: 0 },
+    );
+
     order['sumOfpayments'] = incomingSum - outgoingSum;
+    order['sumOfpayments_usd'] = incomingSum_usd - outgoingSum_usd;
 
     // CreditTable'ga bog'langan payment'larni guruhlab chiqish
     const creditTablesWithPayments = order.creditTables.map((credit) => {
@@ -53,10 +67,21 @@ export class CreditTableService {
         (sum, payment) => sum + Number(payment.amount),
         0,
       );
+      const totalPaid_usd = paymentsForThisCredit.reduce(
+        (sum, payment) => sum + Number(payment.amount_usd),
+        0,
+      );
+
+      const payment_currency_value = paymentsForThisCredit.reduce(
+        (sum, payment) => Number(payment.currency_value),
+        0,
+      );
 
       return {
         ...credit,
         totalPaid,
+        totalPaid_usd,
+        payment_currency_value,
         remaining: Number(credit.due_amount) - totalPaid,
       };
     });

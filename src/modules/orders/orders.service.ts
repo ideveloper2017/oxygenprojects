@@ -79,7 +79,7 @@ export class OrdersService {
       kv_price = createOrderDto.price * createOrderDto.currency_value;
       kv_price_usd = Math.round(Number(createOrderDto.price));
       mk_price = checkApartment.mk_price;
-      mk_price_usd = checkApartment.mk_price * createOrderDto.currency_value;
+      mk_price_usd = checkApartment.mk_price / createOrderDto.currency_value;
     } else {
       deal_price = createOrderDto.price;
       initial_pay = createOrderDto.initial_pay;
@@ -155,8 +155,7 @@ export class OrdersService {
         installment.due_date = mon;
         installment.left_amount = 0;
         installment.paid_amount = 0;
-        installment.usd_due_amount =
-          installment.due_amount / createOrderDto.currency_value;
+        installment.usd_due_amount = Number(installment.due_amount / createOrderDto.currency_value);
         installment.currency_value = createOrderDto.currency_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
@@ -164,7 +163,7 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-    console.log(total + '/' + createOrderDto.currency_value);
+
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {
@@ -244,11 +243,17 @@ export class OrdersService {
 
       order.forEach((orderItem) => {
         orderItem.total_amount = Math.round(Number(orderItem.total_amount));
+        orderItem.tot_amount_usd = Math.round(Number(orderItem.total_amount_usd));
         const sumOfPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
+        const sumOfPayments_usd = orderItem.payments.reduce(
+          (accumulator, currentPayment) => accumulator + +currentPayment.amount_usd,
+          0,
+        );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
+        orderItem.sumOfpayments_usd = sumOfPayments_usd ? sumOfPayments_usd : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
@@ -262,7 +267,13 @@ export class OrdersService {
           accumulator + Number(currentValue.amount),
         0,
       );
+      const sum_usd = order['payments'].reduce(
+        (accumulator, currentValue) =>
+          accumulator + Number(currentValue.amount_usd),
+        0,
+      );
       order['sumOfpayments'] = sum ? sum : 0;
+      order['sumOfpayments_usd'] = sum_usd ? sum_usd : 0;
     }
     return order;
   }
@@ -274,6 +285,9 @@ export class OrdersService {
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.orderItems', 'orderItems')
       .leftJoinAndSelect('orderItems.apartments', 'apartment')
+      // .leftJoinAndSelect('apartment.floor', 'floor')
+      // .leftJoinAndSelect('floor.entrance', 'entrance')
+      // .leftJoinAndSelect('entrance.towns', 'towns')
       .leftJoinAndSelect('order.clients', 'clients')
       .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
       .leftJoinAndSelect('order.payments', 'payment')
@@ -292,7 +306,12 @@ export class OrdersService {
         (accumulator, currentPayment) => accumulator + +currentPayment.amount,
         0,
       );
+      const sumOfPayments_usd = order.payments.reduce(
+        (accumulator, currentPayment) => accumulator + +currentPayment.amount_usd,
+        0,
+      );
       order['sumOfpayments'] = sumOfPayments ? Math.floor(sumOfPayments) : 0;
+      order['sumOfpayments_usd'] = sumOfPayments_usd ? Math.floor(sumOfPayments_usd) : 0;
     }
     return order;
   }

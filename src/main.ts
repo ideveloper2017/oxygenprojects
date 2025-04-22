@@ -12,7 +12,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.enableCors({
-    origin: ['http://localhost:5173', 'https://worldclass.oxygenhouse.uz','https://oxygenhouse.uz'],
+    origin: ['http://localhost:5173', 'https://uy.brainsamrt.uz','https://afsonasales.uz'],
     credentials: true,
     exposedHeaders: ['set-cookie'],
   });

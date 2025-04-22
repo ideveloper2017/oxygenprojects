@@ -27,6 +27,9 @@ export class CreditTable extends Model {
   @Column({ type: 'float' })
   left_amount: number;
 
+  @Column({ type: 'float', nullable:true })
+  left_amount_usd: number;
+
   @Column({ type: 'float', nullable:true  })
   paid_amount: number;
 
