@@ -90,7 +90,7 @@ export class PaymentMethodsService {
         },
         {
           id:3,
-          name: 'Ipoteka (Nasiya savdo)',
+          name: 'Ipoteka',
           name_alias:'ipoteka',
           is_active: true,
         },{
