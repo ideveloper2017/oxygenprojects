@@ -99,7 +99,7 @@ export class BuildingsController {
     return this.buildingsService
       .updateBuilding(id, updateBuildingDto)
       .then((data) => {
-        if (data.affected) {
+        if (data) {
           return { success: true, message: 'Bino tahrirlandi.' };
         } else {
           return { success: false, message: 'Bino topilmadi.' };

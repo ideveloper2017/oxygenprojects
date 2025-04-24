@@ -523,7 +523,7 @@ export class PaymentsService {
                   ? 'waiting'
                   : 'paid',
               left_amount: (nextPaid.orders.payment_method_id === 6)? Math.round(Number(amount*installmentDto.currency_value) - Number(money*installmentDto.currency_value)):0,
-              left_amount_usd: Math.round(Number(amount) - money),
+              left_amount_usd: (nextPaid.orders.payment_method_id === 6)? Math.round(Number(amount) - Number(money)):Math.round(Number(amount/installmentDto.currency_value) - Number(money/installmentDto.currency_value)),
               currency_value: installmentDto.currency_value,
               paid_amount: money,
             },

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import { Buildings } from './entities/building.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -135,12 +135,20 @@ export class BuildingsService {
   }
 
   async updateBuilding(id: number, updateBuildingDto: UpdateBuildingDto) {
-    const building = await this.buildingRepository.update(
-      { id: id },
-      updateBuildingDto,
-    );
+    const building = await this.buildingRepository.findOne({
+      where: { id },
+      relations: ['buildingItems'],
+    });
 
-    return building;
+    Object.assign(building, updateBuildingDto);
+
+
+    // const building = await this.buildingRepository.update(
+    //   { id: id },
+    //   updateBuildingDto,
+    // );
+    //
+    return await this.buildingRepository.save(building);
   }
 
   async deleteBuilding(id: number) {

@@ -49,6 +49,6 @@ export class Buildings extends Model {
   @Column({ nullable: true })
   file_id: number;
 
-  @OneToMany((type) => BuildingItems, (buildingItems) => buildingItems.building)
-  buildingItems: BuildingItems;
+  @OneToMany(() => BuildingItems, (buildingItems) => buildingItems.building)
+  buildingItems: BuildingItems[];
 }

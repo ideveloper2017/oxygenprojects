@@ -1,19 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import { OrdersService } from '../orders/orders.service';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Orders } from '../orders/entities/order.entity';
-import { IsNull, Not, Repository } from 'typeorm';
-import { OrderStatus } from '../../common/enums/order-status';
-import { Payments } from '../payments/entities/payment.entity';
-import { Caishertype } from '../../common/enums/caishertype';
-import { ApartmentStatus } from '../../common/enums/apartment-status';
-import { Paymentmethods } from '../../common/enums/paymentmethod';
-import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { Apartments } from '../apartments/entities/apartment.entity';
-import { Buildings } from '../buildings/entities/building.entity';
-import { Entrance } from '../entrance/entities/entrance.entity';
-import { OrderItems } from '../order-items/entities/order-item.entity';
-import { PaymentStatus } from '../../common/enums/payment-status';
+import {Injectable} from '@nestjs/common';
+import {OrdersService} from '../orders/orders.service';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Orders} from '../orders/entities/order.entity';
+import {Repository} from 'typeorm';
+import {OrderStatus} from '../../common/enums/order-status';
+import {Payments} from '../payments/entities/payment.entity';
+import {Caishertype} from '../../common/enums/caishertype';
+import {ApartmentStatus} from '../../common/enums/apartment-status';
+import {Paymentmethods} from '../../common/enums/paymentmethod';
+import {CreditTable} from '../credit-table/entities/credit-table.entity';
+import {Apartments} from '../apartments/entities/apartment.entity';
+import {Buildings} from '../buildings/entities/building.entity';
+import {OrderItems} from '../order-items/entities/order-item.entity';
+import {PaymentStatus} from '../../common/enums/payment-status';
 
 @Injectable()
 export class ReportService {
@@ -642,13 +641,13 @@ export class ReportService {
             this.clientPayment(
               orders ? orders.order_id : 0,
               orders ? orders.client_id : 0,
-              [Paymentmethods.CARD, Paymentmethods.CASH, Paymentmethods.BANK],
+              [Paymentmethods.CARD,Paymentmethods.USD,Paymentmethods.CASH, Paymentmethods.BANK],
               apartment_id,
             ),
             this.clientPayment(
               orders ? orders.order_id : 0,
               orders ? orders.client_id : 0,
-              [Paymentmethods.CASH, Paymentmethods.CARD],
+              [Paymentmethods.CASH,Paymentmethods.USD, Paymentmethods.CARD],
               apartment_id,
             ),
             this.clientPayment(
@@ -683,10 +682,9 @@ export class ReportService {
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
           apartmentData['total_amount'] = total_amount;
-          apartmentData['due_total_sum'] =
-            Number(total_amount) - Number(summa_out.total_sum_out);
-          apartmentData['due_total_usd'] =
-            Math.round(Number(orders ? orders.total_amount_usd : 0)) -
+          apartmentData['total_amount_usd'] = Number(orders ? orders.total_amount_usd : 0);
+          apartmentData['due_total_sum'] = Number(total_amount) - Number(summa_out.total_sum_out);
+          apartmentData['due_total_usd'] = Math.round(Number(orders ? orders.total_amount_usd : 0)) -
             Math.round(Number(summa_out.total_usd_out));
           return apartmentData;
         }),
@@ -1483,7 +1481,7 @@ export class ReportService {
 
           const resultpay = await Promise.all(
             resord.map(async (data) => {
-              let summa, summabank, initial_sum, return_sum;
+              let summa, summabank,summa_usd, initial_sum, return_sum;
               summa = await this.allSaleSummaryPayment(
                 data.build_id,
                 Paymentmethods.CASH,
@@ -1491,6 +1489,15 @@ export class ReportService {
               ).then((data) => {
                 return data;
               });
+
+                summa_usd = await this.allSaleSummaryPayment(
+                    data.build_id,
+                    Paymentmethods.USD,
+                    data.order_id,
+                ).then((data) => {
+                    return data;
+                });
+
               summabank = await this.allSaleSummaryPayment(
                 data.build_id,
                 Paymentmethods.BANK,
@@ -1500,10 +1507,9 @@ export class ReportService {
               });
               data['data_month'] = [
                 {
-                  total_sum_cahs: Number(summa.total_sum),
-                  total_sum_bank: Number(summabank.total_sum),
-                  total_sum_due:
-                    Number(summa.total_sum) + Number(summabank.total_sum),
+                  total_sum_cahs: Math.floor(Number(summa.total_sum)+Number(summa_usd.total_sum)),
+                  total_sum_bank: Math.floor(Number(summabank.total_sum)),
+                  total_sum_due: Math.floor(Number(summa.total_sum) +Number(summa_usd.total_sum)+ Number(summabank.total_sum)),
                 },
               ];
               return data;
