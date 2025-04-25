@@ -903,11 +903,13 @@ export class ReportService {
               this.allSummaryPayment(data.build_id, [
                 Paymentmethods.CASH,
                 Paymentmethods.CARD,
+                Paymentmethods.USD,
               ]),
               this.allSummaryPayment(data.build_id, [Paymentmethods.BANK]),
               this.allSummaryPaymentOut(data.build_id, [
                 Paymentmethods.CASH,
                 Paymentmethods.CARD,
+                Paymentmethods.USD,
               ]),
               this.allSummaryPaymentOut(data.build_id, [Paymentmethods.BANK]),
             ]);
@@ -1790,7 +1792,7 @@ export class ReportService {
         data['payments_bank'] = await this.returnPayment(
           data.apartment_id,
           data.client_id,
-          [Paymentmethods.USD, Paymentmethods.BANK],
+          [Paymentmethods.BANK],
           data.payment_date,
         );
         return data;

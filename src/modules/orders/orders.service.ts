@@ -363,11 +363,11 @@ export class OrdersService {
         });
       } else {
         const sum = data.payments.reduce((accumulator, currentValue) => {
-          return accumulator + +currentValue.amount;
+          return accumulator + Math.round(currentValue.amount);
         }, 0);
 
         const sum_usd = data.payments.reduce((accumulator, currentValue) => {
-          return accumulator + +currentValue.amount_usd;
+          return accumulator + Math.round(currentValue.amount_usd);
         }, 0);
 
         result.push({

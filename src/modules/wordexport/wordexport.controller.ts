@@ -85,7 +85,7 @@ export class WordexportController {
       .getRawOne();
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
-    initial_pay_usd = Math.round(Number(order.initial_pay) /Number(usdRate.rate_value));
+    initial_pay_usd = Math.round(Number(order.initial_pay) /Number(order.currency_value));
     percent = Number(order?.percent);
     const file_id = order?.orderItems?.map((data) => {
       return data.apartments.file_id;

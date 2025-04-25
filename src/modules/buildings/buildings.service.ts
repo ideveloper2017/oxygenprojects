@@ -42,7 +42,7 @@ export class BuildingsService {
       buildingItems.createBuildingDate = new Date();
       buildingItems.mk_price = createBuildingDto.mk_price;
       buildingItems.mk_price_usd = Math.round(
-        Number(createBuildingDto.mk_price) / Number(usdRate.rate_value),
+        Number(createBuildingDto.mk_price) / Number(1),
       );
       buildingItems.is_active = true;
       buildingItems = await this.buildingItemsRepository.save(buildingItems);

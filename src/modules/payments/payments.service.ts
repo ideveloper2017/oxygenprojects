@@ -548,8 +548,8 @@ export class PaymentsService {
               { id: nextPaid.id },
               {
                 status: 'paid',
-                left_amount: Math.round(Number(left_amount* installmentDto.currency_value) - (money* installmentDto.currency_value)),
-                left_amount_usd: Math.round(Number(left_amount) - money),
+                left_amount: Math.round(Number(left_amount* installmentDto.currency_value) - Number(money* installmentDto.currency_value)),
+                left_amount_usd: Math.round(Number(left_amount) - Number(money)),
                 currency_value: installmentDto.currency_value,
                 paid_amount: money,
               },
