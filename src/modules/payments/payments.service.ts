@@ -39,7 +39,7 @@ export class PaymentsService {
         order: { due_date: 'ASC' },
       });
 
-      newPaymentDto.credit_table_id = credit_tb_id.id;
+      newPaymentDto.credit_table_id = credit_tb_id?.id || 0;
 
       // const usdRate = await ExchangRates.findOne({
       //   where: { is_default: true },
@@ -107,13 +107,7 @@ export class PaymentsService {
           // const total_amount_usd =
           //   kv_price_usd * aprt_id?.apartments?.room_space;
 
-          console.log({
-            total_amount: total_amount,
-            total_amount_usd: incomingSum_usd,
-            order_status: OrderStatus.COMPLETED,
-          });
-
-          await Orders.update(
+           await Orders.update(
             { id: newPaymentDto.order_id },
             {
               total_amount: total_amount,

@@ -155,7 +155,7 @@ export class OrdersService {
         installment.due_date = mon;
         installment.left_amount = 0;
         installment.paid_amount = 0;
-        installment.usd_due_amount = Number(installment.due_amount / createOrderDto.currency_value);
+        installment.usd_due_amount = Math.round(Number(installment.due_amount / createOrderDto.currency_value));
         installment.currency_value = createOrderDto.currency_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);

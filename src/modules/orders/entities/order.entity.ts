@@ -14,7 +14,7 @@ export class Orders extends Model {
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 
-  @Column()
+  @Column({ nullable: true })
   contract_number: string;
 
   @Column()
