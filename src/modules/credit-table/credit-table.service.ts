@@ -24,7 +24,10 @@ export class CreditTableService {
         'orderItems.apartments.floor.entrance.buildings.towns',
         'creditTables',
       ],
-      order: { creditTables: { due_date: 'ASC' } },
+      order: {
+        payments: { id: 'asc' },
+        creditTables: { due_date: 'ASC' },
+      },
     });
 
     if (!order) throw new Error('Order not found');

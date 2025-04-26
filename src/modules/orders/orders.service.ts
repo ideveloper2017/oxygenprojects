@@ -74,21 +74,32 @@ export class OrdersService {
       payment_method.name_alias === 'dollar' ||
       payment_method.name_alias === 'nasiya_dollar'
     ) {
-      deal_price = createOrderDto.price * createOrderDto.currency_value;
-      initial_pay = createOrderDto.initial_pay * createOrderDto.currency_value;
-      kv_price = createOrderDto.price * createOrderDto.currency_value;
+      deal_price = Math.round(
+        Number(createOrderDto.price) * Number(createOrderDto.currency_value),
+      );
+      initial_pay = Math.round(
+        Number(createOrderDto.initial_pay) *
+          Number(createOrderDto.currency_value),
+      );
+      kv_price = Math.round(
+        Number(createOrderDto.price) * Number(createOrderDto.currency_value),
+      );
       kv_price_usd = Math.round(Number(createOrderDto.price));
-      mk_price = checkApartment.mk_price;
-      mk_price_usd = checkApartment.mk_price / createOrderDto.currency_value;
+      mk_price = Math.round(Number(checkApartment.mk_price));
+      mk_price_usd = Math.round(
+        Number(checkApartment.mk_price) / Number(createOrderDto.currency_value),
+      );
     } else {
-      deal_price = createOrderDto.price;
-      initial_pay = createOrderDto.initial_pay;
+      deal_price = Math.round(createOrderDto.price);
+      initial_pay = Math.round(createOrderDto.initial_pay);
       kv_price_usd = Math.round(
         Number(createOrderDto.price) / Number(createOrderDto.currency_value),
       );
-      kv_price = createOrderDto.price;
-      mk_price = checkApartment.mk_price;
-      mk_price_usd = checkApartment.mk_price / createOrderDto.currency_value;
+      kv_price = Math.round(createOrderDto.price);
+      mk_price = Math.round(checkApartment.mk_price);
+      mk_price_usd = Math.round(
+        Number(checkApartment.mk_price) / Number(createOrderDto.currency_value),
+      );
     }
 
     const contractnumber: string = createOrderDto.contractNum;
@@ -118,8 +129,10 @@ export class OrdersService {
 
     // binodagi barcha apartmentlarga tegishli narxini olish
     const total = deal_price
-      ? deal_price * apartment.room_space
-      : apartment.floor.entrance.buildings.mk_price * apartment.room_space;
+      ? Math.round(deal_price * apartment.room_space)
+      : Math.round(
+          apartment.floor.entrance.buildings.mk_price * apartment.room_space,
+        );
 
     // const total_floored = Math.floor(total / 1000) * 1000
     const total_floored = total;
@@ -132,19 +145,16 @@ export class OrdersService {
       payment_method.name_alias === 'nasiya_dollar'
     ) {
       // umumiy qiymatni to'lov muddatiga bo'lgandagi bir oylik to'lov
-      const oneMonthDue = createOrderDto.initial_pay
+      const oneMonthDue = Math.round(Number(createOrderDto.initial_pay))
         ? Math.round(
             payment_method.name_alias === 'nasiya_dollar'
-              ? Number(
-                  total -
-                    createOrderDto.initial_pay * createOrderDto.currency_value,
-                ) / Number(createOrderDto.installment_month)
-              : Number(total - createOrderDto.initial_pay) /
+              ? ((Number(total) - (Number(createOrderDto.initial_pay)*Number(createOrderDto.currency_value))))/Number(createOrderDto.installment_month)
+              : (Number(total) - Number(createOrderDto.initial_pay)) /
                   Number(createOrderDto.installment_month),
           )
         : Math.round(Number(total) / Number(createOrderDto.installment_month));
       const creditSchedule = [];
-
+      console.log("Total " +total +" oneMonthDue "+oneMonthDue+ " "+payment_method.name_alias+ ((Number(total)+"-"+ Number(createOrderDto.initial_pay))+ "*"+Number(createOrderDto.currency_value))+ "/"+    Number(createOrderDto.installment_month))
       for (let i = 1; i <= createOrderDto.installment_month; i++) {
         //const mon = createOrderDto.order_date
         const baseDate = new Date(createOrderDto.order_date);
@@ -155,7 +165,9 @@ export class OrdersService {
         installment.due_date = mon;
         installment.left_amount = 0;
         installment.paid_amount = 0;
-        installment.usd_due_amount = Math.round(Number(installment.due_amount / createOrderDto.currency_value));
+        installment.usd_due_amount = Math.round(
+          Number(installment.due_amount / createOrderDto.currency_value),
+        );
         installment.currency_value = createOrderDto.currency_value;
         installment.status = 'waiting';
         creditSchedule.push(installment);
@@ -163,12 +175,13 @@ export class OrdersService {
       schedule = await CreditTable.save(creditSchedule);
     }
 
-
     const updatedOrder = await this.ordersRepository.update(
       { id: savedOrder.id },
       {
         total_amount: total_floored,
-        total_amount_usd: Math.floor(Number(total / createOrderDto.currency_value)),
+        total_amount_usd: Math.floor(
+          Number(total / createOrderDto.currency_value),
+        ),
         order_status:
           total_floored == initial_floored
             ? OrderStatus.COMPLETED
@@ -243,13 +256,16 @@ export class OrdersService {
 
       order.forEach((orderItem) => {
         orderItem.total_amount = Math.round(Number(orderItem.total_amount));
-        orderItem.tot_amount_usd = Math.round(Number(orderItem.total_amount_usd));
+        orderItem.tot_amount_usd = Math.round(
+          Number(orderItem.total_amount_usd),
+        );
         const sumOfPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) => accumulator + +currentPayment.amount,
           0,
         );
         const sumOfPayments_usd = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount_usd,
+          (accumulator, currentPayment) =>
+            accumulator + +currentPayment.amount_usd,
           0,
         );
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
@@ -307,11 +323,14 @@ export class OrdersService {
         0,
       );
       const sumOfPayments_usd = order.payments.reduce(
-        (accumulator, currentPayment) => accumulator + +currentPayment.amount_usd,
+        (accumulator, currentPayment) =>
+          accumulator + +currentPayment.amount_usd,
         0,
       );
       order['sumOfpayments'] = sumOfPayments ? Math.floor(sumOfPayments) : 0;
-      order['sumOfpayments_usd'] = sumOfPayments_usd ? Math.floor(sumOfPayments_usd) : 0;
+      order['sumOfpayments_usd'] = sumOfPayments_usd
+        ? Math.floor(sumOfPayments_usd)
+        : 0;
     }
     return order;
   }

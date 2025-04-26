@@ -39,6 +39,29 @@ export class PaymentsService {
         order: { due_date: 'ASC' },
       });
 
+      // orders.forEach((data) => {
+      //   const sum = data.payments.reduce((accumulator, currentValue) => {
+      //     return accumulator + Math.round(currentValue.amount);
+      //   }, 0);
+      //
+      //   const sum_usd = data.payments.reduce((accumulator, currentValue) => {
+      //     return accumulator + Math.round(currentValue.amount_usd);
+      //   }, 0);
+      //   // const filteredOrders = orders.filter((order) => order.id === newPaymentDto.order_id);
+      //   result.push({
+      //     contract_number: data.contract_number,
+      //     order_date: data.order_date,
+      //     // clients: data.clients.first_name + ' ' + data.clients.last_name,
+      //     totalsum: Math.floor(data.total_amount - sum),
+      //     totalsum_usd: Math.floor(data.total_amount_usd - sum_usd),
+      //     order_status: data.order_status,
+      //   });
+      // });
+
+      // const total_sum = result.map((item) => {
+      //   return Math.round(Number(item.totalsum));
+      // });
+
       newPaymentDto.credit_table_id = credit_tb_id?.id || 0;
 
       // const usdRate = await ExchangRates.findOne({
@@ -58,7 +81,48 @@ export class PaymentsService {
         newPay = await this.doPayment(newPaymentDto);
       }
 
+      const credit_summa = await CreditTable.find({
+        where: { order_id: newPaymentDto.order_id, status: 'paid' },
+        order: { due_date: 'ASC' },
+      });
+
+      const { creditSum } = credit_summa.reduce(
+        (acc, curr) => {
+          acc.creditSum += +Number(curr.due_amount);
+          return acc;
+        },
+        {
+          creditSum: 0,
+        },
+      );
+      const result = [];
+      const orders = await Orders.createQueryBuilder('orders')
+        .addSelect('orders.id')
+        .addSelect('orders.order_date')
+        .leftJoinAndSelect(
+          'orders.clients',
+          'clients',
+          'clients.id=orders.client_id',
+        )
+        .leftJoinAndSelect(
+          'orders.payments',
+          'payments',
+          'payments.order_id=orders.id',
+        )
+        .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
+        .andWhere('orders.id =:order_id', { order_id: newPaymentDto.order_id })
+        .getOne();
+      console.log(
+        Number(orders?.total_amount) +
+          ' - ' +
+          Number(creditSum) +
+          '+' +
+          Number(orders?.initial_pay),
+      );
       if (
+        Number(orders?.total_amount) -
+          (Number(creditSum) + Number(orders?.initial_pay)) ===
+          0 &&
         newPaymentDto.is_completed &&
         newPaymentDto.caishertype === Caishertype.IN
       ) {
@@ -107,7 +171,7 @@ export class PaymentsService {
           // const total_amount_usd =
           //   kv_price_usd * aprt_id?.apartments?.room_space;
 
-           await Orders.update(
+          await Orders.update(
             { id: newPaymentDto.order_id },
             {
               total_amount: total_amount,
@@ -452,109 +516,255 @@ export class PaymentsService {
   // maqsad kod o'qilishini osonlashtirish, va tartibli bo'lishi uchun
 
   public async payForInstallment(installmentDto: NewPaymentDto) {
+    // Kiritilgan summa (so'mda)
     let money =
       installmentDto.paymentmethods === Paymentmethods.USD
-        ? Math.round(Number(installmentDto.amount))
-        : Number(installmentDto.amount);
+        ? Math.round(Number(installmentDto.amount) * Number(installmentDto.currency_value))
+        : Math.round(Number(installmentDto.amount));
 
-    while (money > 0) {
-      const nextPaid = await CreditTable.findOne({
-        where: { order_id: installmentDto.order_id, status: 'waiting' },
-        order: { due_date: 'ASC' },
-        relations: ['orders'],
-      });
+    const currencyValue = Number(installmentDto.currency_value);
 
-      if (!nextPaid) {
-        break;
-      }
-      const amount =
-        nextPaid.orders.payment_method_id === 6
-          ? nextPaid.usd_due_amount
-          : nextPaid.due_amount;
+    // Barcha to'lovlarni olish va tartib bilan ishlash
+    const payments = await CreditTable.find({
+      where: { order_id: installmentDto.order_id },
+      order: { due_date: 'ASC' },
+      relations: ['orders'],
+    });
 
-      const left_amount =
-        nextPaid.orders.payment_method_id === 6
-          ? nextPaid.left_amount_usd
-          : nextPaid.left_amount;
+    // Umumiy qarzdorlikni hisoblash
+    let totalDueAmount = payments.reduce((sum, payment) => sum + Number(payment.due_amount), 0);
+    let totalPaidAmount = payments.reduce((sum, payment) => sum + Number(payment.paid_amount || 0), 0);
 
-      if (money >= amount) {
-        if (!left_amount) {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            {
-              status: 'paid',
-              left_amount: 0,
-              left_amount_usd:0,
-              currency_value: installmentDto.currency_value,
-              paid_amount: money,
-              // usd_due_amount: amount_usd,
-            },
-          );
-          money -= Math.round(Number(amount));
-        } else {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            {
-              status: 'paid',
-              left_amount: 0,
-              left_amount_usd: 0,
-              currency_value: installmentDto.currency_value,
-              paid_amount: money,
-              //usd_due_amount: amount_usd,
-            },
-          );
-          money -= Math.round(Number(left_amount));
+    // To'lov jarayoni
+    for (let i = 0; i < payments.length && money > 0; i++) {
+      const payment = payments[i];
+
+      // Agar joriy qator allaqachon to'langan bo'lsa, o'tkazib yuboramiz
+      if (payment.status === 'paid') continue;
+
+      // Joriy qatorning qarzdorlik summasi
+      const amount = Number(payment.due_amount);
+
+      console.log(`Qator ${i + 1}: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`);
+
+      // To'lov miqdorini hisoblash
+      const amountToPay = Math.min(money, amount);
+      const remainingAmount = amount - amountToPay;
+      const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
+
+      // To'lov holatini yangilash
+      await CreditTable.update(
+        { id: payment.id },
+        {
+          status: remainingAmount <= 0 ? 'paid' : 'waiting',
+          paid_amount: (Number(payment.paid_amount || 0) + amountToPay),
+          left_amount: remainingAmount,
+          left_amount_usd: remainingAmountUsd,
+          currency_value: currencyValue,
         }
-      } else {
-        if (!left_amount) {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            {
-              status:
-                Math.round(
-                  Number(amount) - money,
-                ) > 0
-                  ? 'waiting'
-                  : 'paid',
-              left_amount: (nextPaid.orders.payment_method_id === 6)? Math.round(Number(amount*installmentDto.currency_value) - Number(money*installmentDto.currency_value)):Math.round(Number(amount) - Number(money)),
-              left_amount_usd: (nextPaid.orders.payment_method_id === 6)? Math.round(Number(amount) - Number(money)):Math.round(Number(amount/installmentDto.currency_value) - Number(money/installmentDto.currency_value)),
-              currency_value: installmentDto.currency_value,
-              paid_amount: money,
-            },
-          );
-          break;
-        } else {
-          if (money >= Number(left_amount)) {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              {
-                status: 'paid',
-                left_amount: 0,
-                left_amount_usd: 0,
-                currency_value: Number(installmentDto.currency_value),
-                paid_amount: money,
+      );
 
-              },
-            );
-            money -= Number(left_amount);
-          } else {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              {
-                status: 'paid',
-                left_amount: Math.round(Number(left_amount* installmentDto.currency_value) - Number(money* installmentDto.currency_value)),
-                left_amount_usd: Math.round(Number(left_amount) - Number(money)),
-                currency_value: installmentDto.currency_value,
-                paid_amount: money,
-              },
-            );
-            break;
-          }
-        }
+      money -= amountToPay;
+      totalPaidAmount += amountToPay;
+
+      console.log(
+        `Qator ${i + 1}: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`
+      );
+    }
+
+    // Umumiy qoldiqni qayta hisoblash
+    const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
+    const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
+
+    // Grafik holatini tekshirish va yakunlash
+    const updatedPayments = await CreditTable.find({
+      where: { order_id: installmentDto.order_id },
+      order: { due_date: 'ASC' },
+    });
+
+    const allPaid = updatedPayments.every((payment) => payment.status === 'paid');
+
+    if (allPaid || remainingTotal <= 0) {
+      console.log("Grafik to'liq yopildi.");
+      // Qoldiq summalarni 0 ga tenglashtirish
+      await CreditTable.update(
+        { order_id: installmentDto.order_id },
+        { left_amount: 0, left_amount_usd: 0,status:'paid' }
+      );
+      // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
+      // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
+    } else {
+      console.log(`To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`);
+
+      // Qoldiq summalarni oxirgi waiting qatorida yangilash
+      const lastWaitingPayment = updatedPayments.find((payment) => payment.status === 'waiting');
+      if (lastWaitingPayment) {
+        await CreditTable.update(
+          { id: lastWaitingPayment.id },
+          { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd }
+        );
       }
     }
+
+    console.log("To'lov jarayoni yakunlandi.");
     return await this.doPayment(installmentDto);
   }
+
+  // public async payForInstallment(installmentDto: NewPaymentDto) {
+  //   let money =
+  //     installmentDto.paymentmethods === Paymentmethods.USD
+  //       ? Math.round(Number(installmentDto.amount))
+  //       : Math.round(Number(installmentDto.amount));
+  //
+  //   while (money > 0) {
+  //     const nextPaid = await CreditTable.findOne({
+  //       where: { order_id: installmentDto.order_id, status: 'waiting' },
+  //       order: { due_date: 'ASC' },
+  //       relations: ['orders'],
+  //     });
+  //
+  //     if (!nextPaid) {
+  //       break;
+  //     }
+  //
+  //     const amount =
+  //       nextPaid.orders.payment_method_id === 6
+  //         ? installmentDto.paymentmethods === Paymentmethods.USD
+  //           ? nextPaid.usd_due_amount
+  //           : Number(nextPaid.due_amount)
+  //         : installmentDto.paymentmethods === Paymentmethods.USD
+  //         ? Number(nextPaid.usd_due_amount)
+  //         : Number(nextPaid.due_amount);
+  //
+  //     const left_amount =
+  //       nextPaid.orders.payment_method_id === 6
+  //         ? installmentDto.paymentmethods === Paymentmethods.USD
+  //           ? nextPaid.left_amount_usd
+  //           : Number(nextPaid.left_amount) /
+  //             Number(installmentDto.currency_value)
+  //         : installmentDto.paymentmethods === Paymentmethods.USD
+  //         ? nextPaid.left_amount_usd
+  //         : nextPaid.left_amount;
+  //
+  //     console.log(
+  //       'money: ' +
+  //         money +
+  //         ' paymentmethods: ' +
+  //         installmentDto.paymentmethods +
+  //         ' amount ' +
+  //         amount +
+  //         '  left_amount ' +
+  //         left_amount +
+  //         ' payment_method_id ' +
+  //         nextPaid.orders.payment_method_id,
+  //     );
+  //     if (money >= amount) {
+  //       if (!left_amount) {
+  //         await CreditTable.update(
+  //           { id: nextPaid.id },
+  //           {
+  //             status: 'paid',
+  //             left_amount: 0,
+  //             left_amount_usd: 0,
+  //             currency_value: installmentDto.currency_value,
+  //             paid_amount: money,
+  //             // usd_due_amount: amount_usd,
+  //           },
+  //         );
+  //         money -= Math.round(Number(amount));
+  //       } else {
+  //         await CreditTable.update(
+  //           { id: nextPaid.id },
+  //           {
+  //             status: 'paid',
+  //             left_amount: 0,
+  //             left_amount_usd: 0,
+  //             currency_value: installmentDto.currency_value,
+  //             paid_amount: money,
+  //             //usd_due_amount: amount_usd,
+  //           },
+  //         );
+  //         money -= Math.round(Number(left_amount));
+  //       }
+  //     } else {
+  //       if (!left_amount) {
+  //         await CreditTable.update(
+  //           { id: nextPaid.id },
+  //           {
+  //             status:
+  //               Math.round(Number(amount) - money) > 0 ? 'waiting' : 'paid',
+  //             left_amount:
+  //               nextPaid.orders.payment_method_id === 6
+  //                 ? installmentDto.paymentmethods === Paymentmethods.USD
+  //                   ? Math.round(
+  //                       Number(amount * installmentDto.currency_value) -
+  //                         Number(money * installmentDto.currency_value),
+  //                     )
+  //                   : Math.round(Number(amount) - Number(money))
+  //                 : installmentDto.paymentmethods === Paymentmethods.USD
+  //                 ? Math.round(
+  //                     Number(amount * installmentDto.currency_value) -
+  //                       Number(money * installmentDto.currency_value),
+  //                   )
+  //                 : Math.round(Number(amount) - Number(money)),
+  //             left_amount_usd:
+  //               nextPaid.orders.payment_method_id === 6
+  //                 ? installmentDto.paymentmethods === Paymentmethods.USD
+  //                   ? Math.round(Number(amount) - Number(money))
+  //                   : Math.round(
+  //                       Number(amount / installmentDto.currency_value) -
+  //                         Number(money / installmentDto.currency_value),
+  //                     )
+  //                 : installmentDto.paymentmethods === Paymentmethods.USD
+  //                 ? Math.round(Number(amount) - Number(money))
+  //                 : Math.round(
+  //                     Number(amount / installmentDto.currency_value) -
+  //                       Number(money / installmentDto.currency_value),
+  //                   ),
+  //             currency_value: installmentDto.currency_value,
+  //             paid_amount: money,
+  //           },
+  //         );
+  //         break;
+  //       } else {
+  //         if (money >= Number(left_amount)) {
+  //           await CreditTable.update(
+  //             { id: nextPaid.id },
+  //             {
+  //               status:
+  //                "paid",
+  //               left_amount: 0,
+  //               left_amount_usd: 0,
+  //               currency_value: Number(installmentDto.currency_value),
+  //               paid_amount: money,
+  //             },
+  //           );
+  //           money -= Number(left_amount);
+  //         } else {
+  //           await CreditTable.update(
+  //             { id: nextPaid.id },
+  //             {
+  //               status: 'paid',
+  //               // Math.round(Number(money <= Number(left_amount))) > 0
+  //               //   ? 'waiting':
+  //               left_amount: Math.round(Number(left_amount) - Number(money)),
+  //               left_amount_usd: Math.round(
+  //                 Number(left_amount / installmentDto.currency_value) -
+  //                   Number(money / installmentDto.currency_value),
+  //               ),
+  //               currency_value: installmentDto.currency_value,
+  //               paid_amount: money,
+  //             },
+  //           );
+  //           money = 0;
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   }
+  //
+  //   return await this.doPayment(installmentDto);
+  // }
 
   public async updatepayForInstallment(installmentDto: NewPaymentDto) {
     await this.doPaymentUpdate(installmentDto);
