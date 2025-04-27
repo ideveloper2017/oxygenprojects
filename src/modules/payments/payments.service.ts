@@ -436,7 +436,9 @@ export class PaymentsService {
 
       if (
         (paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
-          paymentMethods.name_alias.toLowerCase() == 'subsidia') &&
+          paymentMethods.name_alias.toLowerCase() == 'subsidia' ||
+          paymentMethods.name_alias.toLowerCase() == 'nasiya_naqd' ||
+          paymentMethods.name_alias.toLowerCase() == 'nasiya_dollar') &&
         newPaymentDto.caishertype === Caishertype.IN
       ) {
         newPay = await this.updatepayForInstallment(newPaymentDto);
@@ -519,7 +521,10 @@ export class PaymentsService {
     // Kiritilgan summa (so'mda)
     let money =
       installmentDto.paymentmethods === Paymentmethods.USD
-        ? Math.round(Number(installmentDto.amount) * Number(installmentDto.currency_value))
+        ? Math.round(
+            Number(installmentDto.amount) *
+              Number(installmentDto.currency_value),
+          )
         : Math.round(Number(installmentDto.amount));
 
     const currencyValue = Number(installmentDto.currency_value);
@@ -532,8 +537,14 @@ export class PaymentsService {
     });
 
     // Umumiy qarzdorlikni hisoblash
-    let totalDueAmount = payments.reduce((sum, payment) => sum + Number(payment.due_amount), 0);
-    let totalPaidAmount = payments.reduce((sum, payment) => sum + Number(payment.paid_amount || 0), 0);
+    const totalDueAmount = payments.reduce(
+      (sum, payment) => sum + Number(payment.due_amount),
+      0,
+    );
+    let totalPaidAmount = payments.reduce(
+      (sum, payment) => sum + Number(payment.paid_amount || 0),
+      0,
+    );
 
     // To'lov jarayoni
     for (let i = 0; i < payments.length && money > 0; i++) {
@@ -545,7 +556,11 @@ export class PaymentsService {
       // Joriy qatorning qarzdorlik summasi
       const amount = Number(payment.due_amount);
 
-      console.log(`Qator ${i + 1}: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`);
+      console.log(
+        `Qator ${
+          i + 1
+        }: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`,
+      );
 
       // To'lov miqdorini hisoblash
       const amountToPay = Math.min(money, amount);
@@ -557,18 +572,20 @@ export class PaymentsService {
         { id: payment.id },
         {
           status: remainingAmount <= 0 ? 'paid' : 'waiting',
-          paid_amount: (Number(payment.paid_amount || 0) + amountToPay),
+          paid_amount: Number(payment.paid_amount || 0) + amountToPay,
           left_amount: remainingAmount,
           left_amount_usd: remainingAmountUsd,
           currency_value: currencyValue,
-        }
+        },
       );
 
       money -= amountToPay;
       totalPaidAmount += amountToPay;
 
       console.log(
-        `Qator ${i + 1}: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`
+        `Qator ${
+          i + 1
+        }: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`,
       );
     }
 
@@ -582,26 +599,32 @@ export class PaymentsService {
       order: { due_date: 'ASC' },
     });
 
-    const allPaid = updatedPayments.every((payment) => payment.status === 'paid');
+    const allPaid = updatedPayments.every(
+      (payment) => payment.status === 'paid',
+    );
 
     if (allPaid || remainingTotal <= 0) {
       console.log("Grafik to'liq yopildi.");
       // Qoldiq summalarni 0 ga tenglashtirish
       await CreditTable.update(
         { order_id: installmentDto.order_id },
-        { left_amount: 0, left_amount_usd: 0,status:'paid' }
+        { left_amount: 0, left_amount_usd: 0, status: 'paid' },
       );
       // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
       // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
     } else {
-      console.log(`To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`);
+      console.log(
+        `To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`,
+      );
 
       // Qoldiq summalarni oxirgi waiting qatorida yangilash
-      const lastWaitingPayment = updatedPayments.find((payment) => payment.status === 'waiting');
+      const lastWaitingPayment = updatedPayments.find(
+        (payment) => payment.status === 'waiting',
+      );
       if (lastWaitingPayment) {
         await CreditTable.update(
           { id: lastWaitingPayment.id },
-          { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd }
+          { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
         );
       }
     }
@@ -782,101 +805,215 @@ export class PaymentsService {
       })
       .getRawOne();
 
+    // Kiritilgan summa (so'mda)
     let money =
-      installmentDto.paymentmethods === Paymentmethods.USD
-        ? Math.round(
-            Math.abs(Number(payment.amount - orders.initial_pay)) *
-              Number(installmentDto.currency_value),
-          )
-        : Math.abs(Number(payment.amount - orders.initial_pay));
+        installmentDto.paymentmethods === Paymentmethods.USD
+            ? Math.round(
+                Number(payment.amount - orders.initial_pay) *
+                Number(installmentDto.currency_value),
+            )
+            : Math.round(Number(payment.amount-orders.initial_pay));
 
-    console.log(money);
-    while (money > 0) {
-      const nextPaid = await CreditTable.findOne({
-        where: { order_id: installmentDto.order_id, status: 'waiting' },
-        order: { due_date: 'ASC' },
-      });
+    const currencyValue = Number(installmentDto.currency_value);
 
-      if (!nextPaid) {
-        break;
-      }
-      const amount_usd = Math.round(
-        Math.round(Number(nextPaid.due_amount)) /
-          Math.round(Number(installmentDto.currency_value)),
+    // Barcha to'lovlarni olish va tartib bilan ishlash
+    const payments = await CreditTable.find({
+      where: { order_id: installmentDto.order_id },
+      order: { due_date: 'ASC' },
+      relations: ['orders'],
+    });
+
+    // Umumiy qarzdorlikni hisoblash
+    const totalDueAmount = payments.reduce(
+        (sum, payment) => sum + Number(payment.due_amount),
+        0,
+    );
+    let totalPaidAmount = payments.reduce(
+        (sum, payment) => sum + Number(payment.paid_amount || 0),
+        0,
+    );
+
+    // To'lov jarayoni
+    for (let i = 0; i < payments.length && money > 0; i++) {
+      const payment = payments[i];
+
+      // Agar joriy qator allaqachon to'langan bo'lsa, o'tkazib yuboramiz
+      if (payment.status === 'paid') continue;
+
+      // Joriy qatorning qarzdorlik summasi
+      const amount = Number(payment.due_amount);
+
+      console.log(
+          `Qator ${
+              i + 1
+          }: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`,
       );
 
-      if (money >= nextPaid.due_amount) {
-        if (!nextPaid.left_amount) {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            {
-              status: 'paid',
-              left_amount: 0,
-              currency_value: installmentDto.currency_value,
-              // usd_due_amount: amount_usd,
-            },
-          );
-          money -= Math.round(Number(nextPaid.due_amount));
-        } else {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            {
-              status: 'paid',
-              left_amount: 0,
-              currency_value: installmentDto.currency_value,
-              //    usd_due_amount: amount_usd,
-            },
-          );
-          money -= Math.round(Number(nextPaid.left_amount));
-        }
-      } else {
-        if (!nextPaid.left_amount) {
-          await CreditTable.update(
-            { id: nextPaid.id },
-            {
-              status:
-                Math.round(Number(nextPaid.due_amount) - money) > 0
-                  ? 'waiting'
-                  : 'paid',
-              left_amount: Math.round(Number(nextPaid.due_amount) - money),
-              currency_value: installmentDto.currency_value,
-              // usd_due_amount: Math.round(
-              //   (Number(nextPaid.due_amount) - money) /
-              //     Number(installmentDto.currency_value),
-              // ),
-            },
-          );
-          break;
-        } else {
-          if (money >= nextPaid.left_amount) {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              {
-                status: 'paid',
-                left_amount: 0,
-                currency_value: Number(installmentDto.currency_value),
-                // usd_due_amount: amount_usd,
-              },
-            );
-            money -= nextPaid.left_amount;
-          } else {
-            await CreditTable.update(
-              { id: nextPaid.id },
-              {
-                status: 'paid',
-                left_amount: Math.round(Number(nextPaid.left_amount) - money),
-                currency_value: installmentDto.currency_value,
-                // usd_due_amount: Math.round(
-                //   (Number(nextPaid.left_amount) - money) /
-                //     Number(installmentDto.currency_value),
-                // ),
-              },
-            );
-            break;
-          }
-        }
+      // To'lov miqdorini hisoblash
+      const amountToPay = Math.min(money, amount);
+      const remainingAmount = amount - amountToPay;
+      const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
+
+      // To'lov holatini yangilash
+      await CreditTable.update(
+          { id: payment.id },
+          {
+            status: remainingAmount <= 0 ? 'paid' : 'waiting',
+            paid_amount: Number(payment.paid_amount || 0) + amountToPay,
+            left_amount: remainingAmount,
+            left_amount_usd: remainingAmountUsd,
+            currency_value: currencyValue,
+          },
+      );
+
+      money -= amountToPay;
+      totalPaidAmount += amountToPay;
+
+      console.log(
+          `Qator ${
+              i + 1
+          }: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`,
+      );
+    }
+
+    // Umumiy qoldiqni qayta hisoblash
+    const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
+    const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
+
+    // Grafik holatini tekshirish va yakunlash
+    const updatedPayments = await CreditTable.find({
+      where: { order_id: installmentDto.order_id },
+      order: { due_date: 'ASC' },
+    });
+
+    const allPaid = updatedPayments.every(
+        (payment) => payment.status === 'paid',
+    );
+
+    if (allPaid || remainingTotal <= 0) {
+      console.log("Grafik to'liq yopildi.");
+      // Qoldiq summalarni 0 ga tenglashtirish
+      await CreditTable.update(
+          { order_id: installmentDto.order_id },
+          { left_amount: 0, left_amount_usd: 0, status: 'paid' },
+      );
+      // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
+      // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
+    } else {
+      console.log(
+          `To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`,
+      );
+
+      // Qoldiq summalarni oxirgi waiting qatorida yangilash
+      const lastWaitingPayment = updatedPayments.find(
+          (payment) => payment.status === 'waiting',
+      );
+      if (lastWaitingPayment) {
+        await CreditTable.update(
+            { id: lastWaitingPayment.id },
+            { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
+        );
       }
     }
+
+    console.log("To'lov jarayoni yakunlandi.");
+    // return await this.doPayment(installmentDto);
+
+    // let money =
+    //   installmentDto.paymentmethods === Paymentmethods.USD
+    //     ? Math.round(
+    //         Math.abs(Number(payment.amount - orders.initial_pay)) *
+    //           Number(installmentDto.currency_value),
+    //       )
+    //     : Math.abs(Number(payment.amount - orders.initial_pay));
+    //
+    // console.log(money);
+    // while (money > 0) {
+    //   const nextPaid = await CreditTable.findOne({
+    //     where: { order_id: installmentDto.order_id, status: 'waiting' },
+    //     order: { due_date: 'ASC' },
+    //   });
+    //
+    //   if (!nextPaid) {
+    //     break;
+    //   }
+    //   const amount_usd = Math.round(
+    //     Math.round(Number(nextPaid.due_amount)) /
+    //       Math.round(Number(installmentDto.currency_value)),
+    //   );
+    //
+    //   if (money >= nextPaid.due_amount) {
+    //     if (!nextPaid.left_amount) {
+    //       await CreditTable.update(
+    //         { id: nextPaid.id },
+    //         {
+    //           status: 'paid',
+    //           left_amount: 0,
+    //           currency_value: installmentDto.currency_value,
+    //           // usd_due_amount: amount_usd,
+    //         },
+    //       );
+    //       money -= Math.round(Number(nextPaid.due_amount));
+    //     } else {
+    //       await CreditTable.update(
+    //         { id: nextPaid.id },
+    //         {
+    //           status: 'paid',
+    //           left_amount: 0,
+    //           currency_value: installmentDto.currency_value,
+    //           //    usd_due_amount: amount_usd,
+    //         },
+    //       );
+    //       money -= Math.round(Number(nextPaid.left_amount));
+    //     }
+    //   } else {
+    //     if (!nextPaid.left_amount) {
+    //       await CreditTable.update(
+    //         { id: nextPaid.id },
+    //         {
+    //           status:
+    //             Math.round(Number(nextPaid.due_amount) - money) > 0
+    //               ? 'waiting'
+    //               : 'paid',
+    //           left_amount: Math.round(Number(nextPaid.due_amount) - money),
+    //           currency_value: installmentDto.currency_value,
+    //           // usd_due_amount: Math.round(
+    //           //   (Number(nextPaid.due_amount) - money) /
+    //           //     Number(installmentDto.currency_value),
+    //           // ),
+    //         },
+    //       );
+    //       break;
+    //     } else {
+    //       if (money >= nextPaid.left_amount) {
+    //         await CreditTable.update(
+    //           { id: nextPaid.id },
+    //           {
+    //             status: 'paid',
+    //             left_amount: 0,
+    //             currency_value: Number(installmentDto.currency_value),
+    //             // usd_due_amount: amount_usd,
+    //           },
+    //         );
+    //         money -= nextPaid.left_amount;
+    //       } else {
+    //         await CreditTable.update(
+    //           { id: nextPaid.id },
+    //           {
+    //             status: 'paid',
+    //             left_amount: Math.round(Number(nextPaid.left_amount) - money),
+    //             currency_value: installmentDto.currency_value,
+    //             // usd_due_amount: Math.round(
+    //             //   (Number(nextPaid.left_amount) - money) /
+    //             //     Number(installmentDto.currency_value),
+    //             // ),
+    //           },
+    //         );
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
     // return await this.doPaymentUpdate(installmentDto);
   }
 

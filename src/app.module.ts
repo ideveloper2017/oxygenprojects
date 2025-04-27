@@ -48,6 +48,10 @@ import { ReportModule } from './modules/report/report.module';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads', // API orqali kirish uchun yo'l
+    }),
+    ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
       exclude: ['/api/(.*)'],
     }),
@@ -55,9 +59,7 @@ import { ReportModule } from './modules/report/report.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads/images'),
-    }),
+
     ScheduleModule.forRoot(),
     // TypeOrmModule.forRoot({
     //   type: process.env.DB_TYPE as any,

@@ -12,13 +12,20 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   app.setGlobalPrefix('/api');
   app.enableCors({
-    origin: ['http://localhost:5173', 'https://uy.brainsmart.uz','https://afsonasales.uz'],
+    origin: [
+      'http://localhost:5173',
+      'https://uy.brainsmart.uz',
+      'https://afsonasales.uz',
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
     exposedHeaders: ['set-cookie'],
   });
   app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
-
+  app.use('/uploads', (req, res, next) => {
+    next();
+  });
   const config = new DocumentBuilder()
     .setTitle('Sales Appartment API Documentation')
     .setVersion('1.0')
