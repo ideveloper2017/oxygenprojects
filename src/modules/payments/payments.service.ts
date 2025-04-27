@@ -414,9 +414,9 @@ export class PaymentsService {
         relations: ['paymentMethods'],
       });
       //await Payments.delete({ id: id });
-      const usdRate = await ExchangRates.findOne({
-        where: { is_default: true },
-      });
+      // const usdRate = await ExchangRates.findOne({
+      //   where: { is_default: true },
+      // });
 
       await CreditTable.update(
         { order_id: newPaymentDto.order_id },
