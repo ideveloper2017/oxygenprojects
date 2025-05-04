@@ -407,7 +407,7 @@ export class PaymentsService {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     try {
-      await Payments.delete({ id: id });
+
 
       const { paymentMethods } = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
@@ -420,8 +420,22 @@ export class PaymentsService {
 
       await CreditTable.update(
         { order_id: newPaymentDto.order_id },
-        { status: 'waiting', left_amount: 0 },
+        {
+          status: 'waiting',
+          left_amount: 0,
+          left_amount_usd: 0,
+          paid_amount: 0,
+        },
       );
+
+      // const credit_tb_id = await CreditTable.findOne({
+      //   where: { order_id: newPaymentDto.order_id, status: 'waiting' },
+      //   order: { due_date: 'ASC' },
+      // });
+      // credit_tb_id
+
+      // newPaymentDto.credit_table_id = credit_tb_id?.id || 0;
+
       let newPay;
 
       // if (
@@ -441,23 +455,126 @@ export class PaymentsService {
           paymentMethods.name_alias.toLowerCase() == 'nasiya_dollar') &&
         newPaymentDto.caishertype === Caishertype.IN
       ) {
-        newPay = await this.updatepayForInstallment(newPaymentDto);
+        newPay = await this.updatepayForInstallment(id,newPaymentDto);
       } else {
         newPay = await this.doUpdatePayment(id, newPaymentDto);
       }
+      const credit_summa = await CreditTable.find({
+        where: { order_id: newPaymentDto.order_id, status: 'paid' },
+        order: { due_date: 'ASC' },
+      });
 
+      const { creditSum } = credit_summa.reduce(
+        (acc, curr) => {
+          acc.creditSum += +Number(curr.due_amount);
+          return acc;
+        },
+        {
+          creditSum: 0,
+        },
+      );
+      const result = [];
+      const orders = await Orders.createQueryBuilder('orders')
+        .addSelect('orders.id')
+        .addSelect('orders.order_date')
+        .leftJoinAndSelect(
+          'orders.clients',
+          'clients',
+          'clients.id=orders.client_id',
+        )
+        .leftJoinAndSelect(
+          'orders.payments',
+          'payments',
+          'payments.order_id=orders.id',
+        )
+        .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
+        .andWhere('orders.id =:order_id', { order_id: newPaymentDto.order_id })
+        .getOne();
+      console.log(
+        Number(orders?.total_amount) +
+          ' - ' +
+          Number(creditSum) +
+          '+' +
+          Number(orders?.initial_pay),
+      );
       if (
+        Number(orders?.total_amount) -
+          (Number(creditSum) + Number(orders?.initial_pay)) ===
+          0 &&
         newPaymentDto.is_completed &&
         newPaymentDto.caishertype === Caishertype.IN
       ) {
-        await Orders.update(
-          { id: newPaymentDto.order_id },
-          { order_status: OrderStatus.COMPLETED },
-        );
-        await OrderItems.update(
-          { order_id: newPaymentDto.order_id },
-          { order_status: OrderStatus.COMPLETED },
-        );
+        if (paymentMethods.name_alias.toLowerCase() == 'nasiya_dollar') {
+          const payments = await Payments.find({
+            where: { order_id: newPaymentDto.order_id },
+          });
+
+          const orders = await Orders.findOne({
+            where: { id: newPaymentDto.order_id },
+          });
+          const total_amount_usd = orders.total_amount_usd;
+
+          const { incomingSum, incomingSum_usd, outgoingSum_usd, outgoingSum } =
+            payments.reduce(
+              (acc, curr) => {
+                if (curr.caisher_type === Caishertype.IN) {
+                  acc.incomingSum += +curr.amount;
+                  acc.incomingSum_usd += +curr.amount_usd;
+                } else {
+                  acc.outgoingSum += +curr.amount;
+                  acc.outgoingSum_usd += +curr.amount_usd;
+                }
+                return acc;
+              },
+              {
+                incomingSum: 0,
+                incomingSum_usd: 0,
+                outgoingSum_usd: 0,
+                outgoingSum: 0,
+              },
+            );
+
+          const aprt_id = await OrderItems.findOne({
+            where: { order_id: newPaymentDto.order_id },
+            relations: ['apartments'],
+          });
+
+          const kv_price = Number(
+            incomingSum / aprt_id?.apartments?.room_space,
+          );
+          const kv_price_usd = Number(
+            incomingSum_usd / aprt_id?.apartments?.room_space,
+          );
+          const total_amount = kv_price * aprt_id?.apartments?.room_space;
+          // const total_amount_usd =
+          //   kv_price_usd * aprt_id?.apartments?.room_space;
+
+          await Orders.update(
+            { id: newPaymentDto.order_id },
+            {
+              total_amount: total_amount,
+              total_amount_usd: incomingSum_usd,
+              order_status: OrderStatus.COMPLETED,
+            },
+          );
+          await OrderItems.update(
+            { order_id: newPaymentDto.order_id },
+            {
+              price: kv_price,
+              price_usd: kv_price_usd,
+              order_status: OrderStatus.COMPLETED,
+            },
+          );
+        } else {
+          await Orders.update(
+            { id: newPaymentDto.order_id },
+            { order_status: OrderStatus.COMPLETED },
+          );
+          await OrderItems.update(
+            { order_id: newPaymentDto.order_id },
+            { order_status: OrderStatus.COMPLETED },
+          );
+        }
       } else if (
         newPaymentDto.is_completed &&
         newPaymentDto.caishertype === Caishertype.OUT
@@ -471,7 +588,6 @@ export class PaymentsService {
           { order_status: OrderStatus.REFUNDED },
         );
       }
-
       await queryRunner.commitTransaction();
 
       return {
@@ -789,12 +905,13 @@ export class PaymentsService {
   //   return await this.doPayment(installmentDto);
   // }
 
-  public async updatepayForInstallment(installmentDto: NewPaymentDto) {
+  public async updatepayForInstallment(id:number,installmentDto: NewPaymentDto) {
+    await Payments.delete({ id: id });
     await this.doPaymentUpdate(installmentDto);
 
-    const orders = await Orders.findOne({
-      where: { id: installmentDto.order_id },
-    });
+    // const orders = await Orders.findOne({
+    //   where: { id: installmentDto.order_id },
+    // });
     const payment = await this.paymentRepo.manager
       .getRepository(Payments)
       .createQueryBuilder('payments')
@@ -803,59 +920,62 @@ export class PaymentsService {
       .where('payments.order_id=:order_id', {
         order_id: installmentDto.order_id,
       })
+      .andWhere('payments.credit_table_id=:credit_table_id', {
+        credit_table_id: installmentDto.credit_table_id,
+      })
       .getRawOne();
 
-    // Kiritilgan summa (so'mda)
-    let money =
+    if (installmentDto.credit_table_id != 0) {
+      // Kiritilgan summa (so'mda)
+      let money =
         installmentDto.paymentmethods === Paymentmethods.USD
-            ? Math.round(
-                Number(payment.amount - orders.initial_pay) *
-                Number(installmentDto.currency_value),
+          ? Math.round(
+              Number(payment.amount) * Number(installmentDto.currency_value),
             )
-            : Math.round(Number(payment.amount-orders.initial_pay));
+          : Math.round(Number(payment.amount));
 
-    const currencyValue = Number(installmentDto.currency_value);
+      const currencyValue = Number(installmentDto.currency_value);
 
-    // Barcha to'lovlarni olish va tartib bilan ishlash
-    const payments = await CreditTable.find({
-      where: { order_id: installmentDto.order_id },
-      order: { due_date: 'ASC' },
-      relations: ['orders'],
-    });
+      // Barcha to'lovlarni olish va tartib bilan ishlash
+      const payments = await CreditTable.find({
+        where: { order_id: installmentDto.order_id },
+        order: { due_date: 'ASC' },
+        relations: ['orders'],
+      });
 
-    // Umumiy qarzdorlikni hisoblash
-    const totalDueAmount = payments.reduce(
+      // Umumiy qarzdorlikni hisoblash
+      const totalDueAmount = payments.reduce(
         (sum, payment) => sum + Number(payment.due_amount),
         0,
-    );
-    let totalPaidAmount = payments.reduce(
+      );
+      let totalPaidAmount = payments.reduce(
         (sum, payment) => sum + Number(payment.paid_amount || 0),
         0,
-    );
-
-    // To'lov jarayoni
-    for (let i = 0; i < payments.length && money > 0; i++) {
-      const payment = payments[i];
-
-      // Agar joriy qator allaqachon to'langan bo'lsa, o'tkazib yuboramiz
-      if (payment.status === 'paid') continue;
-
-      // Joriy qatorning qarzdorlik summasi
-      const amount = Number(payment.due_amount);
-
-      console.log(
-          `Qator ${
-              i + 1
-          }: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`,
       );
 
-      // To'lov miqdorini hisoblash
-      const amountToPay = Math.min(money, amount);
-      const remainingAmount = amount - amountToPay;
-      const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
+      // To'lov jarayoni
+      for (let i = 0; i < payments.length && money > 0; i++) {
+        const payment = payments[i];
 
-      // To'lov holatini yangilash
-      await CreditTable.update(
+        // Agar joriy qator allaqachon to'langan bo'lsa, o'tkazib yuboramiz
+        if (payment.status === 'paid') continue;
+
+        // Joriy qatorning qarzdorlik summasi
+        const amount = Number(payment.due_amount);
+
+        console.log(
+          `Qator ${
+            i + 1
+          }: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`,
+        );
+
+        // To'lov miqdorini hisoblash
+        const amountToPay = Math.min(money, amount);
+        const remainingAmount = amount - amountToPay;
+        const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
+
+        // To'lov holatini yangilash
+        await CreditTable.update(
           { id: payment.id },
           {
             status: remainingAmount <= 0 ? 'paid' : 'waiting',
@@ -864,58 +984,58 @@ export class PaymentsService {
             left_amount_usd: remainingAmountUsd,
             currency_value: currencyValue,
           },
-      );
+        );
 
-      money -= amountToPay;
-      totalPaidAmount += amountToPay;
+        money -= amountToPay;
+        totalPaidAmount += amountToPay;
 
-      console.log(
+        console.log(
           `Qator ${
-              i + 1
+            i + 1
           }: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`,
-      );
-    }
-
-    // Umumiy qoldiqni qayta hisoblash
-    const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
-    const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
-
-    // Grafik holatini tekshirish va yakunlash
-    const updatedPayments = await CreditTable.find({
-      where: { order_id: installmentDto.order_id },
-      order: { due_date: 'ASC' },
-    });
-
-    const allPaid = updatedPayments.every(
-        (payment) => payment.status === 'paid',
-    );
-
-    if (allPaid || remainingTotal <= 0) {
-      console.log("Grafik to'liq yopildi.");
-      // Qoldiq summalarni 0 ga tenglashtirish
-      await CreditTable.update(
-          { order_id: installmentDto.order_id },
-          { left_amount: 0, left_amount_usd: 0, status: 'paid' },
-      );
-      // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
-      // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
-    } else {
-      console.log(
-          `To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`,
-      );
-
-      // Qoldiq summalarni oxirgi waiting qatorida yangilash
-      const lastWaitingPayment = updatedPayments.find(
-          (payment) => payment.status === 'waiting',
-      );
-      if (lastWaitingPayment) {
-        await CreditTable.update(
-            { id: lastWaitingPayment.id },
-            { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
         );
       }
-    }
 
+      // Umumiy qoldiqni qayta hisoblash
+      const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
+      const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
+
+      // Grafik holatini tekshirish va yakunlash
+      const updatedPayments = await CreditTable.find({
+        where: { order_id: installmentDto.order_id },
+        order: { due_date: 'ASC' },
+      });
+
+      const allPaid = updatedPayments.every(
+        (payment) => payment.status === 'paid',
+      );
+
+      if (allPaid || remainingTotal <= 0) {
+        console.log("Grafik to'liq yopildi.");
+        // Qoldiq summalarni 0 ga tenglashtirish
+        await CreditTable.update(
+          { order_id: installmentDto.order_id },
+          { left_amount: 0, left_amount_usd: 0, status: 'paid' },
+        );
+        // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
+        // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
+      } else {
+        console.log(
+          `To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`,
+        );
+
+        // Qoldiq summalarni oxirgi waiting qatorida yangilash
+        const lastWaitingPayment = updatedPayments.find(
+          (payment) => payment.status === 'waiting',
+        );
+        if (lastWaitingPayment) {
+          await CreditTable.update(
+            { id: lastWaitingPayment.id },
+            { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
+          );
+        }
+      }
+    }
     console.log("To'lov jarayoni yakunlandi.");
     // return await this.doPayment(installmentDto);
 
@@ -1128,19 +1248,12 @@ export class PaymentsService {
     // return await this.doPaymentUpdate(installmentDto);
   }
   async doUpdatePayment(id: number, payDto: NewPaymentDto) {
-    // const payments = await this.paymentRepo.createQueryBuilder('payments')
-    // .leftJoin('payments.orders', 'order')
-    // .addSelect('SUM(payments.amount)', 'sumPayment')
-    // .addSelect('order.total_amount', 'total_amount')
-    // .where('order.id = :id', {id: payDto.order_id})
-    // .groupBy('payments.id')
-    // .getRawMany()
-    // console.log(payments[0].sumPayment,payments[0].total_amount );
-
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     let amountToUsd, amountToUzs;
-
+    let credit_tb_id: number;
+    // eslint-disable-next-line prefer-const
+    credit_tb_id = payDto.credit_table_id;
     try {
       if (payDto.paymentmethods === Paymentmethods.USD) {
         amountToUsd = payDto.amount;
@@ -1166,7 +1279,14 @@ export class PaymentsService {
       payment.caisher_type = payDto.caishertype;
       payment.pay_note = payDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
-
+      payment.credit_table_id = credit_tb_id
+        ? credit_tb_id
+        : await CreditTable.findOne({
+            where: { order_id: payDto.order_id, status: 'waiting' },
+            order: { id: 'asc' },
+          }).then((res) => {
+            return res?.id ? res.id : null;
+          });
       await queryRunner.commitTransaction();
       return await this.paymentRepo.update({ id: id }, payment);
     } catch (error) {
@@ -1228,19 +1348,13 @@ export class PaymentsService {
     }
   }
   async doPaymentUpdate(payDto: NewPaymentDto) {
-    // const payments = await this.paymentRepo.createQueryBuilder('payments')
-    // .leftJoin('payments.orders', 'order')
-    // .addSelect('SUM(payments.amount)', 'sumPayment')
-    // .addSelect('order.total_amount', 'total_amount')
-    // .where('order.id = :id', {id: payDto.order_id})
-    // .groupBy('payments.id')
-    // .getRawMany()
-    // console.log(payments[0].sumPayment,payments[0].total_amount );
-
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     let amountToUsd, amountToUzs;
+    let credit_tb_id: number;
 
+    // eslint-disable-next-line prefer-const
+    credit_tb_id = payDto.credit_table_id;
     try {
       if (payDto.paymentmethods === Paymentmethods.USD) {
         amountToUsd = payDto.amount;
@@ -1266,7 +1380,7 @@ export class PaymentsService {
       payment.caisher_type = payDto.caishertype;
       payment.pay_note = payDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
-
+      payment.credit_table_id = credit_tb_id;
       await queryRunner.commitTransaction();
       return await this.paymentRepo.save(payment);
     } catch (error) {
