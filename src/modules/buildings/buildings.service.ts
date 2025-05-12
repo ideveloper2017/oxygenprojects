@@ -181,9 +181,9 @@ export class BuildingsService {
     return result;
   }
   async changeBuildingPrice(createbuildingitems: CreateBuildingitemsDto) {
-    const usdRate = await ExchangRates.findOne({
-      where: { is_default: true },
-    });
+    // const usdRate = await ExchangRates.findOne({
+    //   where: { is_default: true },
+    // });
 
     BuildingItems.update(
       { building_id: createbuildingitems.building_id, is_active: true },
@@ -194,9 +194,7 @@ export class BuildingsService {
     buildingItems.createBuildingDate = new Date();
     // createbuildingitems.createBuildingDate;
     buildingItems.mk_price = createbuildingitems.mk_price;
-    buildingItems.mk_price_usd = Math.round(
-      Number(createbuildingitems.mk_price) / Number(usdRate.rate_value),
-    );
+    buildingItems.mk_price_usd = Math.round(Number(createbuildingitems.mk_price));
     buildingItems.is_active = true;
     buildingItems.note_action = createbuildingitems.note_action;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);
