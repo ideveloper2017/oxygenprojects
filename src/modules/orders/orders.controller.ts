@@ -189,7 +189,5 @@ export class OrdersController {
     @AuthUser() user_id: any,
     @Body() createOrderDto: TransferOrderDto,
     @Res() res: Response)
-   {
-
-   }
+  ) {}
 }
