@@ -20,7 +20,8 @@ import { OrderStatus } from '../../common/enums/order-status';
 import { PaymentStatus } from 'src/common/enums/payment-status';
 import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { RefundDto } from './dto/refund.dto';
-import { NewPaymentDto } from '../payments/dto/create-payment.dto';
+import { TransferOrderDto } from './dto/tramsfer-order.dto';
+import { Clients } from '../clients/entities/client.entity';
 
 @Injectable()
 export class OrdersService {
@@ -52,7 +53,7 @@ export class OrdersService {
   // =================== Yangi shartnoma tuzisha ===================================//
   async createOrder(createOrderDto: CreateOrderDto, users: any) {
     //shartnoma tuziliyotgan vaqtdagi dollar kursi
-    const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
+    // const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
     const payment_method = await PaymentMethods.findOne({
       where: { id: +createOrderDto.payment_method_id },
     });
@@ -148,13 +149,30 @@ export class OrdersService {
       const oneMonthDue = Math.round(Number(createOrderDto.initial_pay))
         ? Math.round(
             payment_method.name_alias === 'nasiya_dollar'
-              ? ((Number(total) - (Number(createOrderDto.initial_pay)*Number(createOrderDto.currency_value))))/Number(createOrderDto.installment_month)
+              ? (Number(total) -
+                  Number(createOrderDto.initial_pay) *
+                    Number(createOrderDto.currency_value)) /
+                  Number(createOrderDto.installment_month)
               : (Number(total) - Number(createOrderDto.initial_pay)) /
                   Number(createOrderDto.installment_month),
           )
         : Math.round(Number(total) / Number(createOrderDto.installment_month));
       const creditSchedule = [];
-      console.log("Total " +total +" oneMonthDue "+oneMonthDue+ " "+payment_method.name_alias+ ((Number(total)+"-"+ Number(createOrderDto.initial_pay))+ "*"+Number(createOrderDto.currency_value))+ "/"+    Number(createOrderDto.installment_month))
+      console.log(
+        'Total ' +
+          total +
+          ' oneMonthDue ' +
+          oneMonthDue +
+          ' ' +
+          payment_method.name_alias +
+          (Number(total) +
+            '-' +
+            Number(createOrderDto.initial_pay) +
+            '*' +
+            Number(createOrderDto.currency_value)) +
+          '/' +
+          Number(createOrderDto.installment_month),
+      );
       for (let i = 1; i <= createOrderDto.installment_month; i++) {
         //const mon = createOrderDto.order_date
         const baseDate = new Date(createOrderDto.order_date);
@@ -844,6 +862,37 @@ export class OrdersService {
     } else {
       return { success: false, message: 'completed order not found' };
     }
+  }
+
+  async createTransfer(createOrderDto: TransferOrderDto, users: any) {
+    const order = await Orders.findOne({
+      where: {
+        client_id: createOrderDto.client_id,
+        order_status: OrderStatus.ACTIVE,
+      },
+    });
+
+    await this.ordersRepository
+      .createQueryBuilder()
+      .update(Orders)
+      .set({
+        user_id: users.userId,
+        client_id: createOrderDto.client_id,
+        to_client_id: createOrderDto.to_client_id,
+      })
+      .where({ id: order.id })
+      .execute();
+    // if (order) {
+    //   order.user_id = users.userId;
+    //   order.id = createOrderDto.order_id;
+    //   order.client_id = createOrderDto.client_id;
+    //   order.to_client_id = createOrderDto.to_client_id;
+    //   await order.save();
+    // } else {
+    //   throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    // }
+
+    return order;
   }
 
   // async findLeftAmountsOfReturningOrders() {

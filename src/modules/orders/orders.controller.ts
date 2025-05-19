@@ -21,7 +21,7 @@ import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Users } from '../users/entities/user.entity';
 import { RefundDto } from './dto/refund.dto';
-import {TransferOrderDto} from "./dto/tramsfer-order.dto";
+import { TransferOrderDto } from './dto/tramsfer-order.dto';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -188,27 +188,27 @@ export class OrdersController {
   createTrasnform(
     @AuthUser() user_id: any,
     @Body() createOrderDto: TransferOrderDto,
-    @Res() res: Response)
-  )  {
+    @Res() res: Response,
+  ) {
     return this.orderService
-.createOrder(createOrderDto, user_id)
-.then((response) => {
-    if (response.affected) {
-    res.send({
-                 success: true,
-                 data: response,
-                 message: 'Order created successfully',
-             });
-} else {
-    res.send({
-        success: false,
-        data: response,
-        message: 'No order created successfully',
-    });
-}
-})
-.catch((error) => {
-    res.send({ status: 409, success: false, message: error.message });
-});
-}
+      .createTransfer(createOrderDto, user_id)
+      .then((response) => {
+        if (response) {
+          res.send({
+            success: true,
+            data: response,
+            message: 'Order created successfully',
+          });
+        } else {
+          res.send({
+            success: false,
+            data: response,
+            message: 'No order created successfully',
+          });
+        }
+      })
+      .catch((error) => {
+        res.send({ status: 409, success: false, message: error.message });
+      });
+  }
 }
