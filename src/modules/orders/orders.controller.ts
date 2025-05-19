@@ -189,5 +189,26 @@ export class OrdersController {
     @AuthUser() user_id: any,
     @Body() createOrderDto: TransferOrderDto,
     @Res() res: Response)
-  ) {}
+  )  {
+    return this.orderService
+.createOrder(createOrderDto, user_id)
+.then((response) => {
+    if (response.affected) {
+    res.send({
+                 success: true,
+                 data: response,
+                 message: 'Order created successfully',
+             });
+} else {
+    res.send({
+        success: false,
+        data: response,
+        message: 'No order created successfully',
+    });
+}
+})
+.catch((error) => {
+    res.send({ status: 409, success: false, message: error.message });
+});
+}
 }
