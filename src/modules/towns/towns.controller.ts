@@ -91,7 +91,7 @@ export class TownController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('/get-count')
-  getCountOfBuildingsAndApartmentsInTown(@AuthUser() user:any) {
+  getCountOfBuildingsAndApartmentsInTown(@AuthUser() user: any) {
     return this.townService
       .getCountOfBuildingsAndApartmentsInTown(user)
       .then((data) => {
@@ -100,9 +100,10 @@ export class TownController {
         } else {
           return { success: false, message: "Turar-joy ma'lumotlari yoq" };
         }
-      }).catch((error)=>{
-          return { status: error.code, message: error.message };
-        });
+      })
+      .catch((error) => {
+        return { status: error.code, message: error.message };
+      });
   }
   @ApiOperation({ summary: 'Home page infolar' })
   @Get('/homepage')

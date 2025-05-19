@@ -90,6 +90,7 @@ export class OrdersController {
       }
     });
   }
+
   @UseGuards(JwtAuthGuard)
   //@Roles('admin', 'manager')
   @ApiBearerAuth()
@@ -177,4 +178,15 @@ export class OrdersController {
   // getLeftAmountsOfReturningOrders() {
   //   return this.orderService.findLeftAmountsOfReturningOrders();
   // }
+
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Order qo'shishi" })
+  @Post('/transfer')
+  createTrasnform( @AuthUser() user_id: any,
+                   @Body() crea teOrderDto: CreateOrderDto,
+                   @Res() res: Response,) {
+
+  }
 }

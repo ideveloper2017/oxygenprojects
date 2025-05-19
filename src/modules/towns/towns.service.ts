@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import {In, Repository} from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Towns } from './entities/town.entity';
 import { RegionsService } from '../region/region.service';
 import { DistrictsService } from '../district/district.service';
@@ -55,7 +55,6 @@ export class TownService {
 
   async findAllTowns(user_id: any, id: number) {
     let towns;
-    
 
     if (id != 0) {
       towns = await this.townRepository
@@ -90,56 +89,62 @@ export class TownService {
     return await this.townRepository.delete(id);
   }
 
-  async getCountOfBuildingsAndApartmentsInTown(user:any) {
-    let result
-    const users=await Users.findOne({where:{id:user.userId},relations:['roles']});
-    const temp_array=users.town_access?.split(',');
-    const town_access:number[]=temp_array?.map((str)=>Number(str))
+  async getCountOfBuildingsAndApartmentsInTown(user: any) {
+    let result;
+    const users = await Users.findOne({
+      where: { id: user.userId },
+      relations: ['roles'],
+    });
+    const temp_array = users.town_access?.split(',');
+    const town_access: number[] = temp_array?.map((str) => Number(str));
 
-   if  (users.roles.role_name=='SuperAdmin'){
-     result = this.townRepository
-         .createQueryBuilder()
-         .select('town.id, town.name, town.created_at')
-         .addSelect('COUNT(DISTINCT buildings.id)', 'buildingCount')
-         .addSelect('COUNT(DISTINCT apartments.id)', 'apartmentCount')
-         .from(Towns, 'town')
-         .leftJoin('town.buildings', 'buildings')
-         .leftJoin('buildings.entrances', 'entrances')
-         .leftJoin('entrances.floors', 'floors')
-         .leftJoin('floors.apartments', 'apartments')
-         .groupBy('town.id').getRawMany();
-   }
+    if (users.roles.role_name == 'SuperAdmin') {
+      result = this.townRepository
+        .createQueryBuilder()
+        .select('town.id, town.name, town.created_at')
+        .addSelect('COUNT(DISTINCT buildings.id)', 'buildingCount')
+        .addSelect('COUNT(DISTINCT apartments.id)', 'apartmentCount')
+        .from(Towns, 'town')
+        .leftJoin('town.buildings', 'buildings')
+        .leftJoin('buildings.entrances', 'entrances')
+        .leftJoin('entrances.floors', 'floors')
+        .leftJoin('floors.apartments', 'apartments')
+        .groupBy('town.id')
+        .getRawMany();
+    }
 
-   if  (users.roles.role_name=='manager'){
-     result = this.townRepository
-         .createQueryBuilder()
-         .select('town.id, town.name, town.created_at')
-         .addSelect('COUNT(DISTINCT buildings.id)', 'buildingCount')
-         .addSelect('COUNT(DISTINCT apartments.id)', 'apartmentCount')
-         .from(Towns, 'town')
-         .leftJoin('town.buildings', 'buildings')
-         .leftJoin('buildings.entrances', 'entrances')
-         .leftJoin('entrances.floors', 'floors')
-         .leftJoin('floors.apartments', 'apartments')
-         .where("town.id In(:...town_access)",{town_access})
-         .groupBy('town.id').getRawMany();
-   }
+    if (users.roles.role_name == 'manager') {
+      result = this.townRepository
+        .createQueryBuilder()
+        .select('town.id, town.name, town.created_at')
+        .addSelect('COUNT(DISTINCT buildings.id)', 'buildingCount')
+        .addSelect('COUNT(DISTINCT apartments.id)', 'apartmentCount')
+        .from(Towns, 'town')
+        .leftJoin('town.buildings', 'buildings')
+        .leftJoin('buildings.entrances', 'entrances')
+        .leftJoin('entrances.floors', 'floors')
+        .leftJoin('floors.apartments', 'apartments')
+        .where('town.id In(:...town_access)', { town_access })
+        .groupBy('town.id')
+        .getRawMany();
+    }
 
-   if (users.roles.role_name=='Seller'){
-     result = this.townRepository
-         .createQueryBuilder()
-         .select('town.id, town.name, town.created_at')
-         .addSelect('COUNT(DISTINCT buildings.id)', 'buildingCount')
-         .addSelect('COUNT(DISTINCT apartments.id)', 'apartmentCount')
-         .from(Towns, 'town')
-         .leftJoin('town.buildings', 'buildings')
-         .leftJoin('buildings.entrances', 'entrances')
-         .leftJoin('entrances.floors', 'floors')
-         .leftJoin('floors.apartments', 'apartments')
-         .where("town.id In(:...town_access)",{town_access})
-         .groupBy('town.id').getRawMany();
-   }
-   return result;
+    if (users.roles.role_name == 'Seller') {
+      result = this.townRepository
+        .createQueryBuilder()
+        .select('town.id, town.name, town.created_at')
+        .addSelect('COUNT(DISTINCT buildings.id)', 'buildingCount')
+        .addSelect('COUNT(DISTINCT apartments.id)', 'apartmentCount')
+        .from(Towns, 'town')
+        .leftJoin('town.buildings', 'buildings')
+        .leftJoin('buildings.entrances', 'entrances')
+        .leftJoin('entrances.floors', 'floors')
+        .leftJoin('floors.apartments', 'apartments')
+        .where('town.id In(:...town_access)', { town_access })
+        .groupBy('town.id')
+        .getRawMany();
+    }
+    return result;
   }
   async homePageDatas() {
     const towns = await this.townRepository.count();
@@ -205,6 +210,6 @@ export class TownService {
     await this.currencyServ.createDefault();
     await this.paymentMethodServ.createDefault();
 
-    return table_names.length == check.length
+    return table_names.length == check.length;
   }
 }

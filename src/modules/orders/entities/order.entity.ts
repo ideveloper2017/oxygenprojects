@@ -14,11 +14,18 @@ export class Orders extends Model {
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 
+  @Column()
+  client_id: number;
+
   @Column({ nullable: true })
   contract_number: string;
 
-  @Column()
-  client_id: number;
+  @ManyToOne((type) => Clients, (clients) => clients.orders)
+  @JoinColumn({ name: 'to_client_id' })
+  toclients: Clients;
+
+  @Column({ nullable: true })
+  to_client_id: number;
 
   @ManyToOne((type) => Users, (users) => users.orders)
   @JoinColumn({ name: 'user_id' })

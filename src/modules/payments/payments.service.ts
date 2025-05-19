@@ -905,7 +905,10 @@ export class PaymentsService {
   //   return await this.doPayment(installmentDto);
   // }
 
-  public async updatepayForInstallment(id:number,installmentDto: NewPaymentDto) {
+  public async updatepayForInstallment(
+    id: number,
+    installmentDto: NewPaymentDto,
+  ) {
     await Payments.delete({ id: id });
     await this.doPaymentUpdate(installmentDto);
 
@@ -919,6 +922,7 @@ export class PaymentsService {
       .addSelect('SUM(payments.amount_usd)', 'amount_usd')
       .where('payments.order_id=:order_id', {
         order_id: installmentDto.order_id,
+        credit_table_id: installmentDto.credit_table_id,
       })
       .andWhere('payments.credit_table_id=:credit_table_id', {
         credit_table_id: installmentDto.credit_table_id,
