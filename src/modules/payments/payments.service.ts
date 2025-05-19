@@ -1312,9 +1312,11 @@ export class PaymentsService {
     try {
       if (payDto.paymentmethods === Paymentmethods.USD) {
         amountToUsd = payDto.amount;
-        amountToUzs = Math.floor(payDto.amount * payDto.currency_value);
+        amountToUzs = Math.round(Number(payDto.amount) *  Number(payDto.currency_value));
       } else {
-        amountToUsd = Math.floor(payDto.amount / payDto.currency_value);
+        amountToUsd = Math.round(
+          Number(payDto.amount) / Number(payDto.currency_value),
+        );
         amountToUzs = payDto.amount;
       }
 
