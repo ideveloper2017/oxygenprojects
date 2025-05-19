@@ -21,6 +21,7 @@ import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Users } from '../users/entities/user.entity';
 import { RefundDto } from './dto/refund.dto';
+import {TransferOrderDto} from "./dto/tramsfer-order.dto";
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -184,9 +185,11 @@ export class OrdersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: "Order qo'shishi" })
   @Post('/transfer')
-  createTrasnform( @AuthUser() user_id: any,
-                   @Body() crea teOrderDto: CreateOrderDto,
-                   @Res() res: Response,) {
+  createTrasnform(
+    @AuthUser() user_id: any,
+    @Body() createOrderDto: TransferOrderDto,
+    @Res() res: Response)
+   {
 
-  }
+   }
 }
