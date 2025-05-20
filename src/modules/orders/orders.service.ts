@@ -877,8 +877,9 @@ export class OrdersService {
       .update(Orders)
       .set({
         user_id: users.userId,
-        client_id: createOrderDto.client_id,
-        to_client_id: createOrderDto.to_client_id,
+
+        client_id:   createOrderDto.to_client_id,
+        to_client_id: createOrderDto.client_id
       })
       .where({ id: order.id })
       .execute();
