@@ -15,12 +15,17 @@ import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { find } from 'rxjs';
+import { RefundDto } from '../orders/dto/refund.dto';
+import { PaymentOutDto } from './dto/create-payment-out.dto';
+import { PaymentOut } from './entities/paymentout.entity';
 
 @Injectable()
 export class PaymentsService {
   constructor(
     @InjectRepository(Payments)
     private readonly paymentRepo: Repository<Payments>,
+    @InjectRepository(PaymentOut)
+    private readonly paymentOutRepo: Repository<PaymentOut>,
   ) {}
 
   // ========================== To'lov qabul qilish ==========================================
@@ -1454,13 +1459,84 @@ export class PaymentsService {
       payment.caisher_type = payDto.caishertype;
       payment.pay_note = payDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
-      payment.credit_table_id = credit_tb_id?credit_tb_id:null;
+      payment.credit_table_id = credit_tb_id ? credit_tb_id : null;
 
       return await this.paymentRepo.update(id, payment);
       await queryRunner.commitTransaction();
     } catch (error) {
       console.log(error);
       await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getPaymetList() {
+    const result = await this.paymentRepo
+      .createQueryBuilder('payments')
+      .leftJoinAndSelect(
+        'payments.orders',
+        'orders',
+        'payments.order_id=orders.id',
+      )
+      .leftJoinAndSelect(
+        'orders.clients',
+        'clients',
+        'clients.id=orders.client_id',
+      )
+      .select('payments.id', 'id')
+      .addSelect('clients.id', 'client_id')
+      .addSelect('orders.contract_number', 'contract_number')
+      .addSelect('clients.first_name', 'first_name')
+      .addSelect('clients.last_name', 'last_name')
+      .addSelect('payments.amount', 'amount')
+      .addSelect('payments.amount_usd', 'amount_usd')
+      .addSelect('payments.payment_date', 'payment_date')
+      // .where('payments.order_id=:order_id', { order_id: order_id })
+      .andWhere('payments.caisher_type=:type', { type: Caishertype.IN })
+      .andWhere('orders.order_status=:status', { status: OrderStatus.ACTIVE })
+      .getRawMany();
+
+    return result;
+  }
+
+  async newPaymentOut(newPaymentDto: PaymentOutDto) {
+    const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
+    queryRunner.startTransaction();
+    try {
+      const payment = await Payments.findOne({
+        where: { id: newPaymentDto.payment_id },
+      });
+
+      payment.amount-=Number(newPaymentDto.amount);
+      payment.amount_usd-=Number(newPaymentDto.amount_usd)
+
+      Payments.update(newPaymentDto.payment_id,payment);
+
+      const paymentOut=new PaymentOut();
+      paymentOut.payment_id=newPaymentDto.payment_id;
+      paymentOut.amount=newPaymentDto.amount;
+      paymentOut.amount_usd=newPaymentDto.amount_usd;
+      paymentOut.payment_date=newPaymentDto.payment_date;
+      paymentOut.paymentmethods=newPaymentDto.paymentmethods;
+      paymentOut.client_id=newPaymentDto.client_id;
+      paymentOut.caisher_id=newPaymentDto.caisher_id;
+      paymentOut.caisher_type=newPaymentDto.caishertype;
+      paymentOut.pay_note=newPaymentDto.pay_note;
+      paymentOut.user_id=newPaymentDto.user_id;
+      paymentOut.payment_id=newPaymentDto.payment_id;
+
+      await this.paymentOutRepo.save(paymentOut);
+      await queryRunner.commitTransaction();
+
+      return {
+        success: true,
+        message: 'Transaction committed / payment completed',
+      };
+    } catch (error) {
+      console.log(error);
+      await queryRunner.rollbackTransaction();
+      return { message: `Transaction failed: ${error}` };
     } finally {
       await queryRunner.release();
     }

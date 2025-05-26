@@ -16,11 +16,13 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Paymentmethods } from '../../common/enums/paymentmethod';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PaymentOutDto } from './dto/create-payment-out.dto';
 
 @ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(private readonly paymentsService: PaymentsService) {
+  }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -104,10 +106,13 @@ export class PaymentsController {
         return { success: false, message: error.message };
       });
   }
+
   @ApiOperation({ summary: "To'lov amalga oshirish" })
   @Post('/new-payment')
   newPayment(@Body() newPaymentDto: NewPaymentDto) {
     return this.paymentsService.newPayment(newPaymentDto);
+
+
     // .then((data) => {
     //   if (!data) {
     //     return { success: false, message: 'Payment was not created' };
@@ -118,5 +123,27 @@ export class PaymentsController {
     // .catch((error) => {
     //   return { success: false, message: error.message };
     // });
+  }
+
+    @Get("/client-payments")
+  getClientPayments() {
+
+    return this.paymentsService.getPaymetList().then((data) => {
+      if (data.length != 0) {
+        return { success: true, data: data, message: 'success' };
+      } else {
+        return { success: false, message: 'not found record!!!' };
+      }
+    }).catch((error) => {
+      return { success: false, message: error.message };
+    });
+  }
+
+
+
+  @ApiOperation({ summary: "To'lov amalga oshirish" })
+  @Post('/new-payment-out')
+  newTakeOffPayment(@Body() newPaymentDto: PaymentOutDto) {
+    return this.paymentsService.newPaymentOut(newPaymentDto);
   }
 }

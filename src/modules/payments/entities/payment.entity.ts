@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import Model from '../../model/model.module';
 import { Orders } from '../../orders/entities/order.entity';
 import { Caisher } from '../../caisher/entities/caisher.entity';
@@ -7,6 +7,7 @@ import { Caishertype } from '../../../common/enums/caishertype';
 import { Users } from '../../users/entities/user.entity';
 import { PaymentStatus } from '../../../common/enums/payment-status';
 import { CreditTable } from '../../credit-table/entities/credit-table.entity';
+import { PaymentOut } from './paymentout.entity';
 
 @Entity('Payments')
 export class Payments extends Model {
@@ -24,6 +25,12 @@ export class Payments extends Model {
   @ManyToOne(() => CreditTable, (credittable) => credittable.payments, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'credit_table_id' })
   credittable: CreditTable;
+
+  @OneToMany(() => PaymentOut, (paymentOut) => paymentOut.payment,{nullable: true,
+    onDelete: 'CASCADE'})
+  paymentOut: PaymentOut[];
+
+
 
   @Column({ nullable: true})
   credit_table_id: number;
