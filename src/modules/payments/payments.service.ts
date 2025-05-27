@@ -407,8 +407,6 @@ export class PaymentsService {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     try {
-
-
       const { paymentMethods } = await Orders.findOne({
         where: { id: newPaymentDto.order_id },
         relations: ['paymentMethods'],
@@ -455,7 +453,7 @@ export class PaymentsService {
           paymentMethods.name_alias.toLowerCase() == 'nasiya_dollar') &&
         newPaymentDto.caishertype === Caishertype.IN
       ) {
-        newPay = await this.updatepayForInstallment(id,newPaymentDto);
+        newPay = await this.updatepayForInstallment(id, newPaymentDto);
       } else {
         newPay = await this.doUpdatePayment(id, newPaymentDto);
       }
@@ -909,8 +907,8 @@ export class PaymentsService {
     id: number,
     installmentDto: NewPaymentDto,
   ) {
-    await Payments.delete({ id: id });
-    await this.doPaymentUpdate(installmentDto);
+    // await Payments.delete({ id: id });
+    await this.doPaymentUpdate(id, installmentDto);
 
     // const orders = await Orders.findOne({
     //   where: { id: installmentDto.order_id },
@@ -1312,7 +1310,9 @@ export class PaymentsService {
     try {
       if (payDto.paymentmethods === Paymentmethods.USD) {
         amountToUsd = payDto.amount;
-        amountToUzs = Math.round(Number(payDto.amount) *  Number(payDto.currency_value));
+        amountToUzs = Math.round(
+          Number(payDto.amount) * Number(payDto.currency_value),
+        );
       } else {
         amountToUsd = Math.round(
           Number(payDto.amount) / Number(payDto.currency_value),
@@ -1353,7 +1353,75 @@ export class PaymentsService {
       await queryRunner.release();
     }
   }
-  async doPaymentUpdate(payDto: NewPaymentDto) {
+  // async doPaymentUpdate(id: number, payDto: NewPaymentDto) {
+  //   const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
+  //   await queryRunner.connect();
+  //   await queryRunner.startTransaction();
+  //
+  //   let amountToUsd, amountToUzs;
+  //   let credit_tb_id: number;
+  //   credit_tb_id = payDto.credit_table_id;
+  //
+  //   try {
+  //     // Mavjud to'lovni ID bo'yicha topish
+  //     const existingPayment = await this.paymentRepo.findOne({
+  //       where: { id: id },
+  //     });
+  //
+  //     if (!existingPayment) {
+  //       throw new Error('Payment not found');
+  //     }
+  //
+  //     // Valyuta konvertatsiyasi
+  //     if (payDto.paymentmethods === Paymentmethods.USD) {
+  //       amountToUsd = payDto.amount;
+  //       amountToUzs = Math.floor(payDto.amount * payDto.currency_value);
+  //     } else {
+  //       amountToUsd = Math.floor(payDto.amount / payDto.currency_value);
+  //       amountToUzs = payDto.amount;
+  //     }
+  //
+  //     // Yangilangan ma'lumotlarni tayyorlash
+  //     const updatedPayment = {
+  //       orders: await Orders.findOne({
+  //         where: { id: +payDto.order_id },
+  //       }),
+  //       users: await Users.findOne({
+  //         where: { id: +payDto.user_id },
+  //       }),
+  //       amount: amountToUzs,
+  //       amount_usd: amountToUsd,
+  //       currency_value: payDto.currency_value,
+  //       payment_date: payDto.payment_date,
+  //       paymentmethods: payDto.paymentmethods,
+  //       caishers: await Caisher.findOne({
+  //         where: { id: payDto.caisher_id },
+  //       }),
+  //       caisher_type: payDto.caishertype,
+  //       pay_note: payDto.pay_note,
+  //       payment_status: PaymentStatus.PAID,
+  //       credit_table_id: credit_tb_id,
+  //     };
+  //
+  //     // To'lovni yangilash
+  //     await queryRunner.manager.update(Payments, { id: id }, updatedPayment);
+  //
+  //     await queryRunner.commitTransaction();
+  //
+  //     // Yangilangan to'lovni qaytarish
+  //     return await this.paymentRepo.findOne({
+  //       where: { id: id },
+  //     });
+  //   } catch (error) {
+  //     console.log('Payment update error:', error);
+  //     await queryRunner.rollbackTransaction();
+  //     throw error;
+  //   } finally {
+  //     await queryRunner.release();
+  //   }
+  // }
+
+  async doPaymentUpdate(id: number, payDto: NewPaymentDto) {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
     let amountToUsd, amountToUzs;
@@ -1386,9 +1454,10 @@ export class PaymentsService {
       payment.caisher_type = payDto.caishertype;
       payment.pay_note = payDto.pay_note;
       payment.payment_status = PaymentStatus.PAID;
-      payment.credit_table_id = credit_tb_id;
+      payment.credit_table_id = credit_tb_id?credit_tb_id:null;
+
+      return await this.paymentRepo.update(id, payment);
       await queryRunner.commitTransaction();
-      return await this.paymentRepo.save(payment);
     } catch (error) {
       console.log(error);
       await queryRunner.rollbackTransaction();
