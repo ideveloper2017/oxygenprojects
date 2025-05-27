@@ -1,23 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { NewPaymentDto } from './dto/create-payment.dto';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Payments } from './entities/payment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
 import { CreditTable } from '../credit-table/entities/credit-table.entity';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { Caisher } from '../caisher/entities/caisher.entity';
 import { Users } from '../users/entities/user.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
 import { OrderStatus } from 'src/common/enums/order-status';
-import { ExchangRates } from '../exchang-rates/entities/exchang-rate.entity';
 import { Caishertype } from 'src/common/enums/caishertype';
 import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { OrderItems } from '../order-items/entities/order-item.entity';
-import { find } from 'rxjs';
-import { RefundDto } from '../orders/dto/refund.dto';
 import { PaymentOutDto } from './dto/create-payment-out.dto';
 import { PaymentOut } from './entities/paymentout.entity';
+import {AuthUser} from "../../common/decorators/auth-user.decorator";
 
 @Injectable()
 export class PaymentsService {
@@ -403,6 +400,26 @@ export class PaymentsService {
     }
 
     return orders_res;
+  }
+
+  async getAllPaymentsOut(users: any) {
+    const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const payment = await queryRunner.manager.find(PaymentOut, {
+        relations: ['clients','caishers','users'],order:{id:'DESC'}
+      });
+
+      await queryRunner.commitTransaction();
+      return payment;
+    } catch (error) {
+      console.log(error);
+      await queryRunner.rollbackTransaction();
+      return { message: `Transaction failed: ${error}` };
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // ========================== To'lovni tahrirlash ===========================================
@@ -1500,33 +1517,49 @@ export class PaymentsService {
     return result;
   }
 
-  async newPaymentOut(newPaymentDto: PaymentOutDto) {
+  async newPaymentOut(newPaymentDto: PaymentOutDto,user: any) {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
-    queryRunner.startTransaction();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const payment = await Payments.findOne({
-        where: { id: newPaymentDto.payment_id },
+      const payment = await queryRunner.manager.findOne(Payments, {
+        where: {
+          id: newPaymentDto.payment_id,
+          orders: {
+            order_status: OrderStatus.ACTIVE,
+          },
+        },
+        relations: ['orders'],
       });
 
-      payment.amount-=Number(newPaymentDto.amount);
-      payment.amount_usd-=Number(newPaymentDto.amount_usd)
+      if (!payment) {
+        throw new Error('Payment not found or not active');
+      }
 
-      Payments.update(newPaymentDto.payment_id,payment);
+      console.log(payment);
+      payment.amount -= Number(newPaymentDto.amount);
+      payment.amount_usd -= Number(newPaymentDto.amount_usd);
 
-      const paymentOut=new PaymentOut();
-      paymentOut.payment_id=newPaymentDto.payment_id;
-      paymentOut.amount=newPaymentDto.amount;
-      paymentOut.amount_usd=newPaymentDto.amount_usd;
-      paymentOut.payment_date=newPaymentDto.payment_date;
-      paymentOut.paymentmethods=newPaymentDto.paymentmethods;
-      paymentOut.client_id=newPaymentDto.client_id;
-      paymentOut.caisher_id=newPaymentDto.caisher_id;
-      paymentOut.caisher_type=newPaymentDto.caishertype;
-      paymentOut.pay_note=newPaymentDto.pay_note;
-      paymentOut.user_id=newPaymentDto.user_id;
-      paymentOut.payment_id=newPaymentDto.payment_id;
+      await queryRunner.manager.save(Payments, payment);
 
-      await this.paymentOutRepo.save(paymentOut);
+      const paymentOut = new PaymentOut();
+      paymentOut.payment = payment; // Pass the actual `payment` entity, not just ID
+      paymentOut.amount = newPaymentDto.amount;
+      paymentOut.amount_usd = newPaymentDto.amount_usd;
+      paymentOut.payment_date = newPaymentDto.payment_date;
+      paymentOut.paymentmethods = newPaymentDto.paymentmethods;
+      paymentOut.currency_value = newPaymentDto.currency_value;
+      paymentOut.client_id = newPaymentDto.client_id;
+      paymentOut.caisher_id = newPaymentDto.caisher_id;
+      paymentOut.caisher_type = newPaymentDto.caishertype;
+      paymentOut.pay_note = newPaymentDto.pay_note || 'null';
+      paymentOut.user_id = newPaymentDto.user_id
+        ? newPaymentDto.user_id
+        : user.userId;
+
+      await queryRunner.manager.save(PaymentOut, paymentOut);
+
       await queryRunner.commitTransaction();
 
       return {
@@ -1534,9 +1567,12 @@ export class PaymentsService {
         message: 'Transaction committed / payment completed',
       };
     } catch (error) {
-      console.log(error);
+      console.error(error);
       await queryRunner.rollbackTransaction();
-      return { message: `Transaction failed: ${error}` };
+      return {
+        success: false,
+        message: `Transaction failed: ${error.message}`,
+      };
     } finally {
       await queryRunner.release();
     }

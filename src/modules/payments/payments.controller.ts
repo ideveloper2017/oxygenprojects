@@ -45,6 +45,24 @@ export class PaymentsController {
       });
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get('/paymentOutlist')
+  public getAllPaymentOut(@AuthUser() user: any) {
+    return this.paymentsService
+      .getAllPaymentsOut(user)
+      .then((data) => {
+        if (data) {
+          return { success: true, data: data, message: 'success' };
+        } else {
+          return { success: false, message: 'not found record!!!' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
+  }
+
   @Patch('/update/:id')
   public updatePayment(
     @Param('id', ParseIntPipe) id: number,
@@ -142,8 +160,9 @@ export class PaymentsController {
 
 
   @ApiOperation({ summary: "To'lov amalga oshirish" })
+  @ApiBearerAuth()
   @Post('/new-payment-out')
-  newTakeOffPayment(@Body() newPaymentDto: PaymentOutDto) {
-    return this.paymentsService.newPaymentOut(newPaymentDto);
+  newTakeOffPayment(@Body() newPaymentDto: PaymentOutDto,@AuthUser() user: any) {
+    return this.paymentsService.newPaymentOut(newPaymentDto,user);
   }
 }
