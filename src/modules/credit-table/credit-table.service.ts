@@ -48,9 +48,9 @@ export class CreditTableService {
     const { incomingSum_usd, outgoingSum_usd } = order.payments.reduce(
       (acc, curr) => {
         if (curr.caisher_type === Caishertype.IN) {
-          acc.incomingSum_usd += +curr.amount_usd;
+          acc.incomingSum_usd += Math.round(Number(curr.amount_usd));
         } else {
-          acc.outgoingSum_usd += +curr.amount_usd;
+          acc.outgoingSum_usd += Math.round(Number(curr.amount_usd));
         }
         return acc;
       },

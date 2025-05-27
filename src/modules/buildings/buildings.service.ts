@@ -1,4 +1,4 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Buildings } from './entities/building.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -135,21 +135,57 @@ export class BuildingsService {
   }
 
   async updateBuilding(id: number, updateBuildingDto: UpdateBuildingDto) {
-    const building = await this.buildingRepository.findOne({
-      where: { id },
-      relations: ['buildingItems'],
-    });
+    try {
+      // Обновляем основные данные здания
+      await this.buildingRepository.update(id, {
+        name: updateBuildingDto.name,
+        town_id: updateBuildingDto.town_id,
+        entrance_number: updateBuildingDto.entrance_number,
+        floor_number: updateBuildingDto.floor_number,
+        apartment_number: updateBuildingDto.apartment_number,
+        mk_price: updateBuildingDto.mk_price,
+      });
 
-    Object.assign(building, updateBuildingDto);
+      // Если есть данные для buildingItems
+      if (updateBuildingDto.mk_price) {
+        await this.buildingItemsRepository.update(
+          { building_id: id, is_active: true },
+          { mk_price: updateBuildingDto.mk_price },
+        );
+      }
 
+      // Возвращаем обновленные данные
+      const updatedBuilding = await this.buildingRepository.findOne({
+        where: { id },
+        relations: ['buildingItems'],
+      });
 
-    // const building = await this.buildingRepository.update(
-    //   { id: id },
-    //   updateBuildingDto,
-    // );
-    //
-    return await this.buildingRepository.save(building);
+      if (!updatedBuilding) {
+        throw new NotFoundException(`Building with ID ${id} not found`);
+      }
+
+      return updatedBuilding;
+    } catch (error) {
+      throw new Error(`Ошибка при обновлении здания: ${error.message}`);
+    }
   }
+
+  // async updateBuilding(id: number, updateBuildingDto: UpdateBuildingDto) {
+  //   const building = await this.buildingRepository.findOne({
+  //     where: { id },
+  //     relations: ['buildingItems'],
+  //   });
+  //
+  //   Object.assign(building, updateBuildingDto);
+  //
+  //
+  //   // const building = await this.buildingRepository.update(
+  //   //   { id: id },
+  //   //   updateBuildingDto,
+  //   // );
+  //   //
+  //   return await this.buildingRepository.save(building);
+  // }
 
   async deleteBuilding(id: number) {
     await this.buildingItemsRepository
@@ -194,7 +230,9 @@ export class BuildingsService {
     buildingItems.createBuildingDate = new Date();
     // createbuildingitems.createBuildingDate;
     buildingItems.mk_price = createbuildingitems.mk_price;
-    buildingItems.mk_price_usd = Math.round(Number(createbuildingitems.mk_price));
+    buildingItems.mk_price_usd = Math.round(
+      Number(createbuildingitems.mk_price),
+    );
     buildingItems.is_active = true;
     buildingItems.note_action = createbuildingitems.note_action;
     buildingItems = await this.buildingItemsRepository.save(buildingItems);

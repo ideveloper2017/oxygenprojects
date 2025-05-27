@@ -197,9 +197,7 @@ export class OrdersService {
       { id: savedOrder.id },
       {
         total_amount: total_floored,
-        total_amount_usd: Math.floor(
-          Number(total / createOrderDto.currency_value),
-        ),
+        total_amount_usd: Math.round(Number(total / createOrderDto.currency_value)),
         order_status:
           total_floored == initial_floored
             ? OrderStatus.COMPLETED
