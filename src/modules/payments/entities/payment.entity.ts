@@ -8,6 +8,7 @@ import { Users } from '../../users/entities/user.entity';
 import { PaymentStatus } from '../../../common/enums/payment-status';
 import { CreditTable } from '../../credit-table/entities/credit-table.entity';
 import { PaymentOut } from './paymentout.entity';
+import { Clients } from '../../clients/entities/client.entity';
 
 @Entity('Payments')
 export class Payments extends Model {
@@ -21,6 +22,13 @@ export class Payments extends Model {
 
   @Column()
   order_id: number;
+
+  @ManyToOne(() => Clients, (clients) => clients.paymentsout, {nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'client_id' })
+  clients: Clients;
+
+  @Column({nullable: true})
+  client_id: number;
 
   @ManyToOne(() => CreditTable, (credittable) => credittable.payments, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'credit_table_id' })

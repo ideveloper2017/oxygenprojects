@@ -15,6 +15,7 @@ import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentOutDto } from './dto/create-payment-out.dto';
 import { PaymentOut } from './entities/paymentout.entity';
 import { AuthUser } from '../../common/decorators/auth-user.decorator';
+import { Clients } from '../clients/entities/client.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -1342,10 +1343,13 @@ export class PaymentsService {
         );
         amountToUzs = payDto.amount;
       }
-
-      const payment = new Payments();
-      payment.orders = await Orders.findOne({
+      const order=await Orders.findOne({
         where: { id: +payDto.order_id },
+      });
+      const payment = new Payments();
+      payment.orders =order
+      payment.clients = await Clients.findOne({
+        where: { id: +order.client_id },
       });
       payment.users = await Users.findOne({ where: { id: +payDto.user_id } });
       payment.amount = amountToUzs;
@@ -1570,7 +1574,7 @@ export class PaymentsService {
         : user.userId;
 
       await queryRunner.manager.save(PaymentOut, paymentOut);
-
+1
       await queryRunner.commitTransaction();
 
       return {

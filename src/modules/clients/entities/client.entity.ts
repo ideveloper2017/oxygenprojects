@@ -80,6 +80,9 @@ export class Clients extends Model {
   @OneToMany(() => PaymentOut, (payments) => payments.clients)
   paymentsout: PaymentOut[];
 
+  @OneToMany(() => Payments, (payments) => payments.clients)
+  payments: PaymentOut[];
+
   @ManyToOne((type) => Users, (users) => users.clients)
   @JoinColumn({ name: 'user_id' })
   users: Users;
