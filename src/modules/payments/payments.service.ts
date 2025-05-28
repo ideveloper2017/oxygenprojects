@@ -14,7 +14,7 @@ import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentOutDto } from './dto/create-payment-out.dto';
 import { PaymentOut } from './entities/paymentout.entity';
-import {AuthUser} from "../../common/decorators/auth-user.decorator";
+import { AuthUser } from '../../common/decorators/auth-user.decorator';
 
 @Injectable()
 export class PaymentsService {
@@ -408,7 +408,8 @@ export class PaymentsService {
     await queryRunner.startTransaction();
     try {
       const payment = await queryRunner.manager.find(PaymentOut, {
-        relations: ['clients','caishers','users'],order:{id:'DESC'}
+        relations: ['clients', 'caishers', 'users'],
+        order: { id: 'DESC' },
       });
 
       await queryRunner.commitTransaction();
@@ -1517,7 +1518,7 @@ export class PaymentsService {
     return result;
   }
 
-  async newPaymentOut(newPaymentDto: PaymentOutDto,user: any) {
+  async newPaymentOut(newPaymentDto: PaymentOutDto, user: any) {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -1537,11 +1538,21 @@ export class PaymentsService {
         throw new Error('Payment not found or not active');
       }
 
-      console.log(payment);
-      payment.amount -= Number(newPaymentDto.amount);
-      payment.amount_usd -= Number(newPaymentDto.amount_usd);
-
-      await queryRunner.manager.save(Payments, payment);
+      const outpayment = new Payments();
+      outpayment.order_id = payment.order_id;
+      outpayment.users = await Users.findOne({
+        where: {
+          id: newPaymentDto.user_id ? newPaymentDto.user_id : user.userId,
+        },
+      });
+      outpayment.amount=Number(newPaymentDto.amount);
+      outpayment.amount_usd=Number(newPaymentDto.amount_usd);
+      outpayment.currency_value=Number(newPaymentDto.currency_value);
+      outpayment.paymentmethods = newPaymentDto.paymentmethods;
+      outpayment.payment_date = newPaymentDto.payment_date;
+      outpayment.caisher_id = newPaymentDto.caisher_id;
+      outpayment.caisher_type = newPaymentDto.caishertype;
+      await queryRunner.manager.save(Payments, outpayment);
 
       const paymentOut = new PaymentOut();
       paymentOut.payment = payment; // Pass the actual `payment` entity, not just ID

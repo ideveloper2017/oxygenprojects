@@ -22,7 +22,6 @@ export class NewPaymentDto {
   @ApiProperty({ example: 12000 })
   currency_value: number;
 
- 
   @ApiProperty({example: "cash"})
   paymentmethods: Paymentmethods;
 
