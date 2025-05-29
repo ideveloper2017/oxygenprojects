@@ -1496,27 +1496,27 @@ export class PaymentsService {
   async getPaymetList() {
     const result = await this.paymentRepo
       .createQueryBuilder('payments')
-      .leftJoinAndSelect(
-        'payments.orders',
-        'orders',
-        'payments.order_id=orders.id',
-      )
-      .leftJoinAndSelect(
-        'orders.clients',
-        'clients',
-        'clients.id=orders.client_id',
-      )
-      .select('payments.id', 'id')
-      .addSelect('clients.id', 'client_id')
-      .addSelect('orders.contract_number', 'contract_number')
+      .leftJoinAndSelect('payments.orders', 'orders', 'payments.order_id = orders.id')
+      .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
+      .select('clients.id', 'client_id')
       .addSelect('clients.first_name', 'first_name')
       .addSelect('clients.last_name', 'last_name')
-      .addSelect('payments.amount', 'amount')
-      .addSelect('payments.amount_usd', 'amount_usd')
-      .addSelect('payments.payment_date', 'payment_date')
-      // .where('payments.order_id=:order_id', { order_id: order_id })
-      .andWhere('payments.caisher_type=:type', { type: Caishertype.IN })
-      .andWhere('orders.order_status=:status', { status: OrderStatus.ACTIVE })
+      .addSelect(
+        'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
+        'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END)',
+        'total_amount'
+      )
+      .addSelect(
+        'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
+        'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END)',
+        'total_amount_usd'
+      )
+      .addSelect('MIN(payments.payment_date)', 'earliest_payment_date') // Optional
+      .where('orders.order_status = :status', { status: OrderStatus.ACTIVE })
+      .andWhere('payments.caisher_type IN (:inType, :outType)', { inType: Caishertype.IN, outType: Caishertype.OUT })
+      .groupBy('clients.id')
+      .addGroupBy('clients.first_name')
+      .addGroupBy('clients.last_name')
       .getRawMany();
 
     return result;
@@ -1528,14 +1528,12 @@ export class PaymentsService {
     await queryRunner.startTransaction();
 
     try {
-      const payment = await queryRunner.manager.findOne(Payments, {
+      const payment = await queryRunner.manager.findOne(Orders, {
         where: {
-          id: newPaymentDto.payment_id,
-          orders: {
-            order_status: OrderStatus.ACTIVE,
-          },
+          client_id: newPaymentDto.client_id,
+          order_status: OrderStatus.ACTIVE,
         },
-        relations: ['orders'],
+        relations: ['payments'],
       });
 
       if (!payment) {
@@ -1543,7 +1541,7 @@ export class PaymentsService {
       }
 
       const outpayment = new Payments();
-      outpayment.order_id = payment.order_id;
+      outpayment.order_id = payment.id;
       outpayment.users = await Users.findOne({
         where: {
           id: newPaymentDto.user_id ? newPaymentDto.user_id : user.userId,
@@ -1559,7 +1557,7 @@ export class PaymentsService {
       await queryRunner.manager.save(Payments, outpayment);
 
       const paymentOut = new PaymentOut();
-      paymentOut.payment = payment; // Pass the actual `payment` entity, not just ID
+      // paymentOut.payment = payment; // Pass the actual `payment` entity, not just ID
       paymentOut.amount = newPaymentDto.amount;
       paymentOut.amount_usd = newPaymentDto.amount_usd;
       paymentOut.payment_date = newPaymentDto.payment_date;
@@ -1574,7 +1572,7 @@ export class PaymentsService {
         : user.userId;
 
       await queryRunner.manager.save(PaymentOut, paymentOut);
-1
+
       await queryRunner.commitTransaction();
 
       return {

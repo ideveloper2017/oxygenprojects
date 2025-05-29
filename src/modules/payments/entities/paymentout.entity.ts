@@ -26,12 +26,12 @@ export  class PaymentOut extends Model {
   @Column()
   client_id: number;
 
-  @ManyToOne(() => Payments, (payment) => payment.paymentOut, { nullable: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'payment_id' })
-  payment: Payments;
-
-  @Column({nullable:true})
-  payment_id: number;
+  // @ManyToOne(() => Payments, (payment) => payment.paymentOut, { nullable: true, onDelete: 'CASCADE' })
+  // @JoinColumn({ name: 'payment_id' })
+  // payment: Payments;
+  //
+  // @Column({nullable:true})
+  // payment_id: number;
 
 
   @ManyToOne(() => Caisher, (caisher) => caisher.payments, {

@@ -34,9 +34,9 @@ export class Payments extends Model {
   @JoinColumn({ name: 'credit_table_id' })
   credittable: CreditTable;
 
-  @OneToMany(() => PaymentOut, (paymentOut) => paymentOut.payment,{nullable: true,
-    onDelete: 'CASCADE'})
-  paymentOut: PaymentOut[];
+  // @OneToMany(() => PaymentOut, (paymentOut) => paymentOut.payment,{nullable: true,
+  //   onDelete: 'CASCADE'})
+  // paymentOut: PaymentOut[];
 
 
 

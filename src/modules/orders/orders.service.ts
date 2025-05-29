@@ -253,6 +253,115 @@ export class OrdersService {
 
   // ===================== active shartnomalar ro'yxatini olish =============================
 
+  // async getActiveOrdersList(id: number, user_id: any) {
+  //   let order;
+  //   if (id == 0) {
+  //     order = await this.ordersRepository.find({
+  //       where: {
+  //         order_status: In([OrderStatus.ACTIVE, OrderStatus.COMPLETED]),
+  //       },
+  //       order: { id: 'desc', order_status: 'ASC' },
+  //       relations: [
+  //         'clients',
+  //         'users',
+  //         'payments.caishers',
+  //         'paymentMethods',
+  //         'orderItems.apartments.floor.entrance.buildings.towns',
+  //       ],
+  //     });
+  //
+  //     order.forEach((orderItem) => {
+  //       orderItem.total_amount = Math.round(Number(orderItem.total_amount));
+  //       orderItem.total_amount_usd = Math.round(Number(orderItem.total_amount_usd));
+  //
+  //       // Calculate sum of IN and OUT payments
+  //       const sumOfInPayments = orderItem.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.IN
+  //             ? accumulator + Number(currentPayment.amount)
+  //             : accumulator,
+  //         0,
+  //       );
+  //       const sumOfOutPayments = orderItem.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.OUT
+  //             ? accumulator + Number(currentPayment.amount)
+  //             : accumulator,
+  //         0,
+  //       );
+  //       const sumOfInPaymentsUsd = orderItem.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.IN
+  //             ? accumulator + Number(currentPayment.amount_usd)
+  //             : accumulator,
+  //         0,
+  //       );
+  //       const sumOfOutPaymentsUsd = orderItem.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.OUT
+  //             ? accumulator + Number(currentPayment.amount_usd)
+  //             : accumulator,
+  //         0,
+  //       );
+  //
+  //       // Net amounts (IN - OUT)
+  //       orderItem.net_amount = sumOfInPayments - sumOfOutPayments;
+  //       orderItem.net_amount_usd = sumOfInPaymentsUsd - sumOfOutPaymentsUsd;
+  //
+  //       // Optional: Keep total sums if needed
+  //       orderItem.sumOfpayments = sumOfInPayments - sumOfOutPayments;
+  //       orderItem.sumOfpayments_usd = sumOfInPaymentsUsd - sumOfOutPaymentsUsd;
+  //     });
+  //   } else {
+  //     order = await this.ordersRepository.findOne({
+  //       where: { id: id },
+  //       order: { id: 'desc', order_status: 'ASC' },
+  //       relations: ['clients', 'payments.caishers', 'users', 'paymentMethods'],
+  //     });
+  //
+  //     if (order) {
+  //       // Calculate sum of IN and OUT payments
+  //       const sumOfInPayments = order.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.IN
+  //             ? accumulator + Number(currentPayment.amount)
+  //             : accumulator,
+  //         0,
+  //       );
+  //       const sumOfOutPayments = order.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.OUT
+  //             ? accumulator + Number(currentPayment.amount)
+  //             : accumulator,
+  //         0,
+  //       );
+  //       const sumOfInPaymentsUsd = order.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.IN
+  //             ? accumulator + Number(currentPayment.amount_usd)
+  //             : accumulator,
+  //         0,
+  //       );
+  //       const sumOfOutPaymentsUsd = order.payments.reduce(
+  //         (accumulator, currentPayment) =>
+  //           currentPayment.caishers?.type === Caishertype.OUT
+  //             ? accumulator + Number(currentPayment.amount_usd)
+  //             : accumulator,
+  //         0,
+  //       );
+  //
+  //       // Net amounts (IN - OUT)
+  //       order.net_amount = sumOfInPayments - sumOfOutPayments;
+  //       order.net_amount_usd = sumOfInPaymentsUsd - sumOfOutPaymentsUsd;
+  //
+  //       // Optional: Keep total sums if needed
+  //       order.sumOfpayments = sumOfInPayments - sumOfOutPayments;
+  //       order.sumOfpayments_usd = sumOfInPaymentsUsd - sumOfOutPaymentsUsd;
+  //     }
+  //   }
+  //   return order;
+  // }
+
   async getActiveOrdersList(id: number, user_id: any) {
     let order;
     if (id == 0) {
@@ -271,21 +380,45 @@ export class OrdersService {
       });
 
       order.forEach((orderItem) => {
-        orderItem.total_amount = Math.round(Number(orderItem.total_amount));
-        orderItem.tot_amount_usd = Math.round(
-          Number(orderItem.total_amount_usd),
-        );
+        // orderItem.total_amount = Math.round(Number(orderItem.total_amount));
+        // orderItem.total_amount_usd = Math.round(
+        //   Number(orderItem.total_amount_usd),
+        // );
         const sumOfPayments = orderItem.payments.reduce(
-          (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+          (accumulator, currentPayment) =>
+            currentPayment.caishers?.type === Caishertype.IN
+              ? accumulator + Number(currentPayment.amount)
+              : accumulator,
           0,
         );
         const sumOfPayments_usd = orderItem.payments.reduce(
           (accumulator, currentPayment) =>
-            accumulator + +currentPayment.amount_usd,
+            currentPayment.caishers?.type === Caishertype.IN?
+               accumulator + +currentPayment.amount_usd
+              : accumulator,
           0,
         );
+
+        const sumOfOutPayments = orderItem.payments.reduce(
+          (accumulator, currentPayment) =>
+            currentPayment.caishers?.type === Caishertype.OUT
+              ? accumulator + Number(currentPayment.amount)
+              : accumulator,
+          0,
+        );
+        const sumOfOutPayments_usd = orderItem.payments.reduce(
+          (accumulator, currentPayment) =>
+            currentPayment.caishers?.type === Caishertype.OUT?
+                 accumulator + +currentPayment.amount_usd
+                : accumulator,
+          0,
+        );
+
+
         orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
         orderItem.sumOfpayments_usd = sumOfPayments_usd ? sumOfPayments_usd : 0;
+        orderItem.sumOfOutPayments = sumOfOutPayments ? sumOfOutPayments : 0;
+        orderItem.sumOfOutPayments_usd = sumOfOutPayments_usd ? sumOfOutPayments_usd : 0;
       });
     } else {
       order = await this.ordersRepository.findOne({
@@ -294,18 +427,37 @@ export class OrdersService {
         relations: ['clients', 'payments', 'users', 'paymentMethods'],
       });
 
-      const sum = order['payments'].reduce(
+      const sumOfPayments = order['payments'].reduce(
         (accumulator, currentValue) =>
           accumulator + Number(currentValue.amount),
         0,
       );
-      const sum_usd = order['payments'].reduce(
+      const sumOfPayments_usd = order['payments'].reduce(
         (accumulator, currentValue) =>
           accumulator + Number(currentValue.amount_usd),
         0,
       );
-      order['sumOfpayments'] = sum ? sum : 0;
-      order['sumOfpayments_usd'] = sum_usd ? sum_usd : 0;
+
+      const sumOfOutPayments = order['payments'].payments.reduce(
+        (accumulator, currentPayment) =>
+          currentPayment.caishers?.type === Caishertype.OUT
+            ? accumulator + Number(currentPayment.amount)
+            : accumulator,
+        0,
+      );
+      const sumOfOutPayments_usd = order['payments'].payments.reduce(
+        (accumulator, currentPayment) =>
+          currentPayment.caishers?.type === Caishertype.OUT?
+               accumulator + +currentPayment.amount_usd
+              : accumulator,
+        0,
+      );
+
+
+      order['sumOfpayments'] = sumOfPayments ? sumOfPayments : 0;
+      order['sumOfpayments_usd'] = sumOfPayments_usd ? sumOfPayments_usd : 0;
+      order['sumOfOutPayments'] = sumOfOutPayments ? sumOfOutPayments : 0;
+      order['sumOfOutPayments_usd'] = sumOfOutPayments_usd ? sumOfOutPayments_usd : 0;
     }
     return order;
   }
