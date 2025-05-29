@@ -386,14 +386,15 @@ export class OrdersService {
         // );
         const sumOfPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) =>
-            currentPayment.caishers?.type === Caishertype.IN
+            currentPayment?.caisher_type === Caishertype.IN
               ? accumulator + Number(currentPayment.amount)
               : accumulator,
           0,
         );
+
         const sumOfPayments_usd = orderItem.payments.reduce(
           (accumulator, currentPayment) =>
-            currentPayment.caishers?.type === Caishertype.IN?
+            currentPayment?.caisher_type === Caishertype.IN?
                accumulator + +currentPayment.amount_usd
               : accumulator,
           0,
@@ -401,14 +402,14 @@ export class OrdersService {
 
         const sumOfOutPayments = orderItem.payments.reduce(
           (accumulator, currentPayment) =>
-            currentPayment.caishers?.type === Caishertype.OUT
+            currentPayment?.caisher_type === Caishertype.OUT
               ? accumulator + Number(currentPayment.amount)
               : accumulator,
           0,
         );
         const sumOfOutPayments_usd = orderItem.payments.reduce(
           (accumulator, currentPayment) =>
-            currentPayment.caishers?.type === Caishertype.OUT?
+            currentPayment?.caisher_type === Caishertype.OUT?
                  accumulator + +currentPayment.amount_usd
                 : accumulator,
           0,
