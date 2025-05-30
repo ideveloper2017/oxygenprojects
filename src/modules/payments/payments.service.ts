@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { Repository } from 'typeorm';
 import { Payments } from './entities/payment.entity';
@@ -14,7 +14,6 @@ import { Paymentmethods } from 'src/common/enums/paymentmethod';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentOutDto } from './dto/create-payment-out.dto';
 import { PaymentOut } from './entities/paymentout.entity';
-import { AuthUser } from '../../common/decorators/auth-user.decorator';
 import { Clients } from '../clients/entities/client.entity';
 
 @Injectable()
@@ -24,6 +23,9 @@ export class PaymentsService {
     private readonly paymentRepo: Repository<Payments>,
     @InjectRepository(PaymentOut)
     private readonly paymentOutRepo: Repository<PaymentOut>,
+
+    @InjectRepository(Orders)
+    private readonly orderRepo: Repository<Orders>,
   ) {}
 
   // ========================== To'lov qabul qilish ==========================================
@@ -115,13 +117,7 @@ export class PaymentsService {
         .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
         .andWhere('orders.id =:order_id', { order_id: newPaymentDto.order_id })
         .getOne();
-      console.log(
-        Number(orders?.total_amount) +
-          ' - ' +
-          Number(creditSum) +
-          '+' +
-          Number(orders?.initial_pay),
-      );
+
       if (
         Number(orders?.total_amount) -
           (Number(creditSum) + Number(orders?.initial_pay)) ===
@@ -512,13 +508,7 @@ export class PaymentsService {
         .where('orders.order_status =:logic', { logic: OrderStatus.ACTIVE })
         .andWhere('orders.id =:order_id', { order_id: newPaymentDto.order_id })
         .getOne();
-      console.log(
-        Number(orders?.total_amount) +
-          ' - ' +
-          Number(creditSum) +
-          '+' +
-          Number(orders?.initial_pay),
-      );
+
       if (
         Number(orders?.total_amount) -
           (Number(creditSum) + Number(orders?.initial_pay)) ===
@@ -927,81 +917,74 @@ export class PaymentsService {
   //   return await this.doPayment(installmentDto);
   // }
 
-  public async updatepayForInstallment(
-    id: number,
-    installmentDto: NewPaymentDto,
-  ) {
-    // await Payments.delete({ id: id });
+  public async updatepayForInstallment(id: number, installmentDto: NewPaymentDto) {
+    // Validate input
+    if (
+      !installmentDto.order_id ||
+      !installmentDto.amount ||
+      !installmentDto.currency_value
+    ) {
+      throw new HttpException(
+        'Invalid payment data provided',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (installmentDto.currency_value <= 0) {
+      throw new HttpException(
+        'Currency value must be positive',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (installmentDto.amount < 0) {
+      throw new HttpException('Payment amount cannot be negative', HttpStatus.BAD_REQUEST);
+    }
+
+    // Find order
+    const order = await this.orderRepo.findOne({
+      where: { id: installmentDto.order_id, order_status: OrderStatus.ACTIVE },
+    });
+
+    if (!order) {
+      throw new HttpException('Order not found or inactive', HttpStatus.NOT_FOUND);
+    }
+
+    // Update or create payment
     await this.doPaymentUpdate(id, installmentDto);
 
-    // const orders = await Orders.findOne({
-    //   where: { id: installmentDto.order_id },
-    // });
-    const payment = await this.paymentRepo.manager
-      .getRepository(Payments)
-      .createQueryBuilder('payments')
-      .select('SUM(payments.amount)', 'amount')
-      .addSelect('SUM(payments.amount_usd)', 'amount_usd')
-      .where('payments.order_id=:order_id', {
-        order_id: installmentDto.order_id,
-        credit_table_id: installmentDto.credit_table_id,
-      })
-      .andWhere('payments.credit_table_id=:credit_table_id', {
-        credit_table_id: installmentDto.credit_table_id,
-      })
-      .getRawOne();
+    // Calculate payment amount in base currency (so'm)
+    const money =
+        installmentDto.paymentmethods.toLowerCase() === 'usd'
+            ? Math.round(Number(installmentDto.amount) * Number(installmentDto.currency_value))
+            : Math.round(Number(installmentDto.amount));
 
-    if (installmentDto.credit_table_id != 0) {
-      // Kiritilgan summa (so'mda)
-      let money =
-        installmentDto.paymentmethods === Paymentmethods.USD
-          ? Math.round(
-              Number(payment.amount) * Number(installmentDto.currency_value),
-            )
-          : Math.round(Number(payment.amount));
+    const currencyValue = Number(installmentDto.currency_value);
 
-      const currencyValue = Number(installmentDto.currency_value);
+    // Fetch credit schedule
+    const payments = await CreditTable.find({
+      where: { order_id: installmentDto.order_id },
+      order: { due_date: 'ASC' },
+      relations: ['orders'],
+    });
 
-      // Barcha to'lovlarni olish va tartib bilan ishlash
-      const payments = await CreditTable.find({
-        where: { order_id: installmentDto.order_id },
-        order: { due_date: 'ASC' },
-        relations: ['orders'],
-      });
+    if (!payments.length) {
+      throw new HttpException('No credit schedule found for this order', HttpStatus.NOT_FOUND);
+    }
 
-      // Umumiy qarzdorlikni hisoblash
-      const totalDueAmount = payments.reduce(
-        (sum, payment) => sum + Number(payment.due_amount),
-        0,
-      );
-      let totalPaidAmount = payments.reduce(
-        (sum, payment) => sum + Number(payment.paid_amount || 0),
-        0,
-      );
+    // Calculate total due and paid amounts
+    const totalDueAmount = payments.reduce((sum, payment) => sum + Number(payment.due_amount), 0);
+    let totalPaidAmount = payments.reduce((sum, payment) => sum + Number(payment.paid_amount || 0), 0);
+    let remainingMoney = money;
 
-      // To'lov jarayoni
-      for (let i = 0; i < payments.length && money > 0; i++) {
-        const payment = payments[i];
+    // Process payments in order
+    for (const payment of payments) {
+      if (remainingMoney <= 0 || payment.status === 'paid') continue;
 
-        // Agar joriy qator allaqachon to'langan bo'lsa, o'tkazib yuboramiz
-        if (payment.status === 'paid') continue;
+      const amountDue = Number(payment.due_amount);
+      const amountToPay = Math.min(remainingMoney, amountDue);
+      const remainingAmount = amountDue - amountToPay;
+      const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
 
-        // Joriy qatorning qarzdorlik summasi
-        const amount = Number(payment.due_amount);
-
-        console.log(
-          `Qator ${
-            i + 1
-          }: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`,
-        );
-
-        // To'lov miqdorini hisoblash
-        const amountToPay = Math.min(money, amount);
-        const remainingAmount = amount - amountToPay;
-        const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
-
-        // To'lov holatini yangilash
-        await CreditTable.update(
+      await CreditTable.update(
           { id: payment.id },
           {
             status: remainingAmount <= 0 ? 'paid' : 'waiting',
@@ -1010,158 +993,189 @@ export class PaymentsService {
             left_amount_usd: remainingAmountUsd,
             currency_value: currencyValue,
           },
-        );
-
-        money -= amountToPay;
-        totalPaidAmount += amountToPay;
-
-        console.log(
-          `Qator ${
-            i + 1
-          }: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`,
-        );
-      }
-
-      // Umumiy qoldiqni qayta hisoblash
-      const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
-      const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
-
-      // Grafik holatini tekshirish va yakunlash
-      const updatedPayments = await CreditTable.find({
-        where: { order_id: installmentDto.order_id },
-        order: { due_date: 'ASC' },
-      });
-
-      const allPaid = updatedPayments.every(
-        (payment) => payment.status === 'paid',
       );
 
-      if (allPaid || remainingTotal <= 0) {
-        console.log("Grafik to'liq yopildi.");
-        // Qoldiq summalarni 0 ga tenglashtirish
-        await CreditTable.update(
+      remainingMoney -= amountToPay;
+      totalPaidAmount += amountToPay;
+    }
+
+    // Calculate total remaining balance
+    const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
+    const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
+
+    // Update credit schedule status
+    const updatedPayments = await CreditTable.find({
+      where: { order_id: installmentDto.order_id },
+      order: { due_date: 'ASC' },
+    });
+
+    const allPaid = updatedPayments.every((payment) => payment.status === 'paid');
+
+    if (allPaid || remainingTotal <= 0) {
+      await CreditTable.update(
           { order_id: installmentDto.order_id },
           { left_amount: 0, left_amount_usd: 0, status: 'paid' },
-        );
-        // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
-        // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
-      } else {
-        console.log(
-          `To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`,
-        );
-
-        // Qoldiq summalarni oxirgi waiting qatorida yangilash
-        const lastWaitingPayment = updatedPayments.find(
-          (payment) => payment.status === 'waiting',
-        );
-        if (lastWaitingPayment) {
-          await CreditTable.update(
-            { id: lastWaitingPayment.id },
+      );
+      await this.orderRepo.update(
+          { id: installmentDto.order_id },
+          { order_status: OrderStatus.COMPLETED },
+      );
+    } else {
+      // Update remaining balance on the first unpaid installment
+      const firstUnpaidPayment = updatedPayments.find((payment) => payment.status === 'waiting');
+      if (firstUnpaidPayment) {
+        await CreditTable.update(
+            { id: firstUnpaidPayment.id },
             { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
-          );
-        }
+        );
       }
     }
-    console.log("To'lov jarayoni yakunlandi.");
-    // return await this.doPayment(installmentDto);
 
-    // let money =
-    //   installmentDto.paymentmethods === Paymentmethods.USD
-    //     ? Math.round(
-    //         Math.abs(Number(payment.amount - orders.initial_pay)) *
-    //           Number(installmentDto.currency_value),
-    //       )
-    //     : Math.abs(Number(payment.amount - orders.initial_pay));
-    //
-    // console.log(money);
-    // while (money > 0) {
-    //   const nextPaid = await CreditTable.findOne({
-    //     where: { order_id: installmentDto.order_id, status: 'waiting' },
-    //     order: { due_date: 'ASC' },
-    //   });
-    //
-    //   if (!nextPaid) {
-    //     break;
-    //   }
-    //   const amount_usd = Math.round(
-    //     Math.round(Number(nextPaid.due_amount)) /
-    //       Math.round(Number(installmentDto.currency_value)),
-    //   );
-    //
-    //   if (money >= nextPaid.due_amount) {
-    //     if (!nextPaid.left_amount) {
-    //       await CreditTable.update(
-    //         { id: nextPaid.id },
-    //         {
-    //           status: 'paid',
-    //           left_amount: 0,
-    //           currency_value: installmentDto.currency_value,
-    //           // usd_due_amount: amount_usd,
-    //         },
-    //       );
-    //       money -= Math.round(Number(nextPaid.due_amount));
-    //     } else {
-    //       await CreditTable.update(
-    //         { id: nextPaid.id },
-    //         {
-    //           status: 'paid',
-    //           left_amount: 0,
-    //           currency_value: installmentDto.currency_value,
-    //           //    usd_due_amount: amount_usd,
-    //         },
-    //       );
-    //       money -= Math.round(Number(nextPaid.left_amount));
-    //     }
-    //   } else {
-    //     if (!nextPaid.left_amount) {
-    //       await CreditTable.update(
-    //         { id: nextPaid.id },
-    //         {
-    //           status:
-    //             Math.round(Number(nextPaid.due_amount) - money) > 0
-    //               ? 'waiting'
-    //               : 'paid',
-    //           left_amount: Math.round(Number(nextPaid.due_amount) - money),
-    //           currency_value: installmentDto.currency_value,
-    //           // usd_due_amount: Math.round(
-    //           //   (Number(nextPaid.due_amount) - money) /
-    //           //     Number(installmentDto.currency_value),
-    //           // ),
-    //         },
-    //       );
-    //       break;
-    //     } else {
-    //       if (money >= nextPaid.left_amount) {
-    //         await CreditTable.update(
-    //           { id: nextPaid.id },
-    //           {
-    //             status: 'paid',
-    //             left_amount: 0,
-    //             currency_value: Number(installmentDto.currency_value),
-    //             // usd_due_amount: amount_usd,
-    //           },
-    //         );
-    //         money -= nextPaid.left_amount;
-    //       } else {
-    //         await CreditTable.update(
-    //           { id: nextPaid.id },
-    //           {
-    //             status: 'paid',
-    //             left_amount: Math.round(Number(nextPaid.left_amount) - money),
-    //             currency_value: installmentDto.currency_value,
-    //             // usd_due_amount: Math.round(
-    //             //   (Number(nextPaid.left_amount) - money) /
-    //             //     Number(installmentDto.currency_value),
-    //             // ),
-    //           },
-    //         );
-    //         break;
-    //       }
-    //     }
-    //   }
-    // }
-    // return await this.doPaymentUpdate(installmentDto);
+    // Return updated order
+    const updatedOrder = await this.orderRepo.findOne({
+      where: { id: installmentDto.order_id },
+      relations: ['payments', 'clients', 'paymentMethods', 'orderItems', 'orderItems.apartments'],
+    });
+
+    return updatedOrder;
   }
+  // public async updatepayForInstallment(
+  //   id: number,
+  //   installmentDto: NewPaymentDto,
+  // ) {
+  //   // await Payments.delete({ id: id });
+  //   await this.doPaymentUpdate(id, installmentDto);
+  //
+  //   // const orders = await Orders.findOne({
+  //   //   where: { id: installmentDto.order_id },
+  //   // });
+  //   const payment = await this.paymentRepo.manager
+  //     .getRepository(Payments)
+  //     .createQueryBuilder('payments')
+  //     .select('SUM(payments.amount)', 'amount')
+  //     .addSelect('SUM(payments.amount_usd)', 'amount_usd')
+  //     .where('payments.order_id=:order_id', {
+  //       order_id: installmentDto.order_id,
+  //       credit_table_id: installmentDto.credit_table_id,
+  //     })
+  //     .andWhere('payments.credit_table_id=:credit_table_id', {
+  //       credit_table_id: installmentDto.credit_table_id,
+  //     })
+  //     .getRawOne();
+  //
+  //   if (installmentDto.credit_table_id != 0) {
+  //     // Kiritilgan summa (so'mda)
+  //     let money =
+  //       installmentDto.paymentmethods === Paymentmethods.USD
+  //         ? Math.round(
+  //             Number(payment.amount) * Number(installmentDto.currency_value),
+  //           )
+  //         : Math.round(Number(payment.amount));
+  //
+  //     const currencyValue = Number(installmentDto.currency_value);
+  //
+  //     // Barcha to'lovlarni olish va tartib bilan ishlash
+  //     const payments = await CreditTable.find({
+  //       where: { order_id: installmentDto.order_id },
+  //       order: { due_date: 'ASC' },
+  //       relations: ['orders'],
+  //     });
+  //
+  //     // Umumiy qarzdorlikni hisoblash
+  //     const totalDueAmount = payments.reduce(
+  //       (sum, payment) => sum + Number(payment.due_amount),
+  //       0,
+  //     );
+  //     let totalPaidAmount = payments.reduce(
+  //       (sum, payment) => sum + Number(payment.paid_amount || 0),
+  //       0,
+  //     );
+  //
+  //     // To'lov jarayoni
+  //     for (let i = 0; i < payments.length && money > 0; i++) {
+  //       const payment = payments[i];
+  //
+  //       // Agar joriy qator allaqachon to'langan bo'lsa, o'tkazib yuboramiz
+  //       if (payment.status === 'paid') continue;
+  //
+  //       // Joriy qatorning qarzdorlik summasi
+  //       const amount = Number(payment.due_amount);
+  //
+  //       console.log(
+  //         `Qator ${
+  //           i + 1
+  //         }: To'lov uchun mavjud pul: ${money}, Qarzdorlik: ${amount}`,
+  //       );
+  //
+  //       // To'lov miqdorini hisoblash
+  //       const amountToPay = Math.min(money, amount);
+  //       const remainingAmount = amount - amountToPay;
+  //       const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
+  //
+  //       // To'lov holatini yangilash
+  //       await CreditTable.update(
+  //         { id: payment.id },
+  //         {
+  //           status: remainingAmount <= 0 ? 'paid' : 'waiting',
+  //           paid_amount: Number(payment.paid_amount || 0) + amountToPay,
+  //           left_amount: remainingAmount,
+  //           left_amount_usd: remainingAmountUsd,
+  //           currency_value: currencyValue,
+  //         },
+  //       );
+  //
+  //       money -= amountToPay;
+  //       totalPaidAmount += amountToPay;
+  //
+  //       console.log(
+  //         `Qator ${
+  //           i + 1
+  //         }: To'landi: ${amountToPay}, Qoldiq: ${remainingAmount} so'm, ${remainingAmountUsd} USD`,
+  //       );
+  //     }
+  //
+  //     // Umumiy qoldiqni qayta hisoblash
+  //     const remainingTotal = Math.max(0, totalDueAmount - totalPaidAmount);
+  //     const remainingTotalUsd = Math.round(remainingTotal / currencyValue);
+  //
+  //     // Grafik holatini tekshirish va yakunlash
+  //     const updatedPayments = await CreditTable.find({
+  //       where: { order_id: installmentDto.order_id },
+  //       order: { due_date: 'ASC' },
+  //     });
+  //
+  //     const allPaid = updatedPayments.every(
+  //       (payment) => payment.status === 'paid',
+  //     );
+  //
+  //     if (allPaid || remainingTotal <= 0) {
+  //       console.log("Grafik to'liq yopildi.");
+  //       // Qoldiq summalarni 0 ga tenglashtirish
+  //       await CreditTable.update(
+  //         { order_id: installmentDto.order_id },
+  //         { left_amount: 0, left_amount_usd: 0, status: 'paid' },
+  //       );
+  //       // Orders jadvalida holatni yangilash (agar kerak bo'lsa)
+  //       // await Orders.update({ id: installmentDto.order_id }, { status: 'completed' });
+  //     } else {
+  //       console.log(
+  //         `To'lov yetmadi. Umumiy qoldiq: ${remainingTotal} so'm, ${remainingTotalUsd} USD`,
+  //       );
+  //
+  //       // Qoldiq summalarni oxirgi waiting qatorida yangilash
+  //       const lastWaitingPayment = updatedPayments.find(
+  //         (payment) => payment.status === 'waiting',
+  //       );
+  //       if (lastWaitingPayment) {
+  //         await CreditTable.update(
+  //           { id: lastWaitingPayment.id },
+  //           { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
+  //         );
+  //       }
+  //     }
+  //   }
+  //   console.log("To'lov jarayoni yakunlandi.");
+  // }
 
   public async updatepayForInstallment2(installmentDto: NewPaymentDto) {
     const orders = await Orders.findOne({
@@ -1273,6 +1287,7 @@ export class PaymentsService {
     }
     // return await this.doPaymentUpdate(installmentDto);
   }
+
   async doUpdatePayment(id: number, payDto: NewPaymentDto) {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
     queryRunner.startTransaction();
@@ -1343,11 +1358,11 @@ export class PaymentsService {
         );
         amountToUzs = payDto.amount;
       }
-      const order=await Orders.findOne({
+      const order = await Orders.findOne({
         where: { id: +payDto.order_id },
       });
       const payment = new Payments();
-      payment.orders =order
+      payment.orders = order;
       payment.clients = await Clients.findOne({
         where: { id: +order.client_id },
       });
@@ -1494,33 +1509,168 @@ export class PaymentsService {
   }
 
   async getPaymetList() {
-    const result = await this.paymentRepo
-      .createQueryBuilder('payments')
-      .leftJoinAndSelect('payments.orders', 'orders', 'payments.order_id = orders.id')
-      .leftJoinAndSelect('orders.clients', 'clients', 'clients.id = orders.client_id')
-      .select('clients.id', 'client_id')
-      .addSelect('clients.first_name', 'first_name')
-      .addSelect('clients.last_name', 'last_name')
-      .addSelect(
-        'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
-        'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END)',
-        'total_amount'
-      )
-      .addSelect(
-        'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
-        'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END)',
-        'total_amount_usd'
-      )
-      .addSelect('MIN(payments.payment_date)', 'earliest_payment_date') // Optional
-      .where('orders.order_status = :status', { status: OrderStatus.ACTIVE })
-      .andWhere('payments.caisher_type IN (:inType, :outType)', { inType: Caishertype.IN, outType: Caishertype.OUT })
-      .groupBy('clients.id')
-      .addGroupBy('clients.first_name')
-      .addGroupBy('clients.last_name')
-      .getRawMany();
+    const result = await this.orderRepo.find({
+      where: { order_status: OrderStatus.ACTIVE },
+      relations: ['orders.paymentMethods', 'payments', 'clients'],
+    });
 
-    return result;
+    const processedOrders = result
+      .map((order) => {
+        // Calculate incoming payments
+        const sumOfPayments = order.payments.reduce(
+          (accumulator, payment) =>
+            payment?.caisher_type === Caishertype.IN
+              ? accumulator + Number(payment.amount)
+              : accumulator,
+          0,
+        );
+
+        const sumOfPayments_usd = order.payments.reduce(
+          (accumulator, payment) =>
+            payment?.caisher_type === Caishertype.IN
+              ? accumulator + Number(payment.amount_usd)
+              : accumulator,
+          0,
+        );
+
+        // Calculate outgoing payments
+        const sumOfOutPayments = order.payments.reduce(
+          (accumulator, payment) =>
+            payment?.caisher_type === Caishertype.OUT
+              ? accumulator + Number(payment.amount)
+              : accumulator,
+          0,
+        );
+
+        const sumOfOutPayments_usd = order.payments.reduce(
+          (accumulator, payment) =>
+            payment?.caisher_type === Caishertype.OUT
+              ? accumulator + Number(payment.amount_usd)
+              : accumulator,
+          0,
+        );
+
+        // Calculate net payments
+        const net_payments = sumOfPayments - sumOfOutPayments;
+        const net_payments_usd = sumOfPayments_usd - sumOfOutPayments_usd;
+
+        // Calculate outstanding balance
+        const outstanding_balance = Number(order.total_amount) - net_payments;
+        const outstanding_balance_usd =
+          Number(order.total_amount_usd) - net_payments_usd;
+
+        // Return order with additional fields
+        return {
+          ...order,
+          sumOfPayments: sumOfPayments || 0,
+          sumOfPayments_usd: sumOfPayments_usd || 0,
+          sumOfOutPayments: sumOfOutPayments || 0,
+          sumOfOutPayments_usd: sumOfOutPayments_usd || 0,
+          net_payments,
+          net_payments_usd,
+          outstanding_balance,
+          outstanding_balance_usd,
+        };
+      })
+      // Filter for orders with both incoming and outgoing payments
+      .filter((order) => order.sumOfPayments > 0 && order.sumOfOutPayments > 0);
+
+    return processedOrders;
   }
+  // async getPaymetList() {
+  //   const result = await this.paymentRepo
+  //       .createQueryBuilder('payments')
+  //       .leftJoinAndSelect(
+  //           'payments.orders',
+  //           'orders',
+  //           'payments.order_id = orders.id',
+  //       )
+  //       .leftJoinAndSelect(
+  //           'orders.clients',
+  //           'clients',
+  //           'clients.id = orders.client_id',
+  //       )
+  //       .select('clients.id', 'client_id')
+  //       .addSelect('clients.first_name', 'first_name')
+  //       .addSelect('clients.last_name', 'last_name')
+  //       .addSelect(
+  //           'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
+  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END)',
+  //           'amount',
+  //       )
+  //       .addSelect(
+  //           'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
+  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END)',
+  //           'amount_usd',
+  //       )
+  //       .addSelect('SUM(orders.total_amount)', 'total_amount')
+  //       .addSelect('SUM(orders.total_amount_usd)', 'total_amount_usd')
+  //       .addSelect(
+  //           'SUM(orders.total_amount) - ' +
+  //           '(SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
+  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END))',
+  //           'outstanding_balance',
+  //       )
+  //       .addSelect(
+  //           'SUM(orders.total_amount_usd) - ' +
+  //           '(SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
+  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END))',
+  //           'outstanding_balance_usd',
+  //       )
+  //       .addSelect('MIN(payments.payment_date)', 'earliest_payment_date') // Optional
+  //       .where('orders.order_status = :status', { status: OrderStatus.ACTIVE })
+  //       .andWhere('payments.caisher_type IN (:inType, :outType)', {
+  //         inType: Caishertype.IN,
+  //         outType: Caishertype.OUT,
+  //       })
+  //       .groupBy('clients.id')
+  //       .addGroupBy('clients.first_name')
+  //       .addGroupBy('clients.last_name')
+  //       .getRawMany();
+  //
+  //   return result;
+  // }
+  // async getPaymetList() {
+  //   const result = await this.paymentRepo
+  //     .createQueryBuilder('payments')
+  //     .leftJoinAndSelect(
+  //       'payments.orders',
+  //       'orders',
+  //       'payments.order_id = orders.id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'orders.clients',
+  //       'clients',
+  //       'clients.id = orders.client_id',
+  //     )
+  //     .select('clients.id', 'client_id')
+  //     .addSelect('clients.first_name', 'first_name')
+  //     .addSelect('clients.last_name', 'last_name')
+  //     .addSelect(
+  //       'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
+  //         'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END)',
+  //       'amount',
+  //     )
+  //     .addSelect(
+  //       'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
+  //         'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END)',
+  //       'amount_usd',
+  //     )
+  //     .addSelect('SUM(orders.total_amount)', 'total_amount')
+  //     .addSelect('SUM(orders.total_amount_usd)', 'total_amount_usd')
+  //     .addSelect('MIN(payments.payment_date)', 'earliest_payment_date') // Optional
+  //     .where('orders.order_status = :status', { status: OrderStatus.ACTIVE })
+  //     .andWhere('payments.caisher_type IN (:inType, :outType)', {
+  //       inType: Caishertype.IN,
+  //       outType: Caishertype.OUT,
+  //     })
+  //     .groupBy('clients.id')
+  //     .addGroupBy('clients.first_name')
+  //     .addGroupBy('clients.last_name')
+  //     .getRawMany();
+  //
+  //   return result;
+  // }
 
   async newPaymentOut(newPaymentDto: PaymentOutDto, user: any) {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
@@ -1547,9 +1697,9 @@ export class PaymentsService {
           id: newPaymentDto.user_id ? newPaymentDto.user_id : user.userId,
         },
       });
-      outpayment.amount=Number(newPaymentDto.amount);
-      outpayment.amount_usd=Number(newPaymentDto.amount_usd);
-      outpayment.currency_value=Number(newPaymentDto.currency_value);
+      outpayment.amount = Number(newPaymentDto.amount);
+      outpayment.amount_usd = Number(newPaymentDto.amount_usd);
+      outpayment.currency_value = Number(newPaymentDto.currency_value);
       outpayment.paymentmethods = newPaymentDto.paymentmethods;
       outpayment.payment_date = newPaymentDto.payment_date;
       outpayment.caisher_id = newPaymentDto.caisher_id;

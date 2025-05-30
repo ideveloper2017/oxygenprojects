@@ -129,18 +129,6 @@ export class PaymentsController {
   @Post('/new-payment')
   newPayment(@Body() newPaymentDto: NewPaymentDto) {
     return this.paymentsService.newPayment(newPaymentDto);
-
-
-    // .then((data) => {
-    //   if (!data) {
-    //     return { success: false, message: 'Payment was not created' };
-    //   } else {
-    //     return { success: true, message: 'Payment created' };
-    //   }
-    // })
-    // .catch((error) => {
-    //   return { success: false, message: error.message };
-    // });
   }
 
     @Get("/client-payments")

@@ -22,6 +22,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Users } from '../users/entities/user.entity';
 import { RefundDto } from './dto/refund.dto';
 import { TransferOrderDto } from './dto/tramsfer-order.dto';
+import {ReCreateOrderDto} from "./dto/recreate-order.dto";
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -42,6 +43,38 @@ export class OrdersController {
       .createOrder(createOrderDto, user_id)
       .then((response) => {
         if (response.affected) {
+          res.send({
+            success: true,
+            data: response,
+            message: 'Order created successfully',
+          });
+        } else {
+          res.send({
+            success: false,
+            data: response,
+            message: 'No order created successfully',
+          });
+        }
+      })
+      .catch((error) => {
+        res.send({ status: 409, success: false, message: error.message });
+      });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Order qayta yaratish qo'shishi" })
+  @Post('/readd')
+  recreateOrder(
+    @AuthUser() user_id: any,
+    @Body() createOrderDto: ReCreateOrderDto,
+    @Res() res: Response,
+  ) {
+    return this.orderService
+      .reCreateOrder(createOrderDto, user_id)
+      .then((response) => {
+        if (response) {
           res.send({
             success: true,
             data: response,
@@ -209,6 +242,22 @@ export class OrdersController {
       })
       .catch((error) => {
         res.send({ status: 409, success: false, message: error.message });
+      });
+  }
+
+  @Get('/client-payments')
+  getClientOrderPayments() {
+    return this.orderService
+      .getOrderPaymetList()
+      .then((data) => {
+        if (data.length != 0) {
+          return { success: true, data: data, message: 'success' };
+        } else {
+          return { success: false, message: 'not found record!!!' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
       });
   }
 }

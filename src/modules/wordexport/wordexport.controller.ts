@@ -146,11 +146,20 @@ export class WordexportController {
           ')',
         percent: percent,
         apartment_image: fileobj,
-        total_sum: (summa ? Math.round(Number(summa.summa)) : 0) + Math.round(Number(order.initial_pay)),
-        totalsum: (summa ? Math.round(Number(summa.summa)) : 0) + Math.round(Number(order.initial_pay)),
-        totalsum_usd: Math.round((Number((summa_usd ? summa_usd.summa : 0)) + Number(initial_pay_usd))),
+        total_sum:
+          (summa ? Math.round(Number(summa.summa)) : 0) +
+          Math.round(Number(order.initial_pay)),
+        totalsum:
+          (summa ? Math.round(Number(summa.summa)) : 0) +
+          Math.round(Number(order.initial_pay)),
+        totalsum_usd: Math.round(
+          Number(summa_usd ? summa_usd.summa : 0) + Number(initial_pay_usd),
+        ),
         number_to_words_percent: this.numberToWords(percent),
-        number_to_words_sum: this.numberToWords((summa ? Math.round(Number(summa.summa)) : 0) + Math.round(Number(order.initial_pay))),
+        number_to_words_sum: this.numberToWords(
+          (summa ? Math.round(Number(summa.summa)) : 0) +
+            Math.round(Number(order.initial_pay)),
+        ),
       };
     });
     const data = {
