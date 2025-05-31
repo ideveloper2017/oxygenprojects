@@ -243,7 +243,6 @@ export class OrdersService {
   }
 
   async reCreateOrder(updateOrderDto: ReCreateOrderDto, users: any) {
-
     // Find the existing order with necessary relations
     const order = await this.ordersRepository.findOne({
       where: { id: updateOrderDto.order_id, order_status: OrderStatus.ACTIVE },
@@ -269,15 +268,15 @@ export class OrdersService {
     });
 
     // Calculate prices based on payment method
-      const payment_method = await PaymentMethods.findOne({
-          where: { id: Number(order.payment_method_id) },
-      });
+    const payment_method = await PaymentMethods.findOne({
+      where: { id: Number(order.payment_method_id) },
+    });
 
     let initial_pay, deal_price, kv_price, kv_price_usd, mk_price, mk_price_usd;
 
     if (
       ['dollar', 'nasiya_dollar'].includes(
-          payment_method.name_alias.toLowerCase(),
+        payment_method.name_alias.toLowerCase(),
       )
     ) {
       deal_price = Math.round(
@@ -314,7 +313,9 @@ export class OrdersService {
     const total = deal_price
       ? deal_price * apartment.room_space
       : updateOrderDto.price * apartment.room_space;
-    const total_floored = Math.round(updateOrderDto.price * apartment.room_space);
+    const total_floored = Math.round(
+      updateOrderDto.price * apartment.room_space,
+    );
     const total_in_usd = Math.round(total / updateOrderDto.currency_value);
 
     // Update order
@@ -340,24 +341,23 @@ export class OrdersService {
         delivery_time: order.delivery_time,
       },
     );
-      await CreditTable.delete({ order_id: updateOrderDto.order_id });
+    await CreditTable.delete({ order_id: updateOrderDto.order_id });
     // Create credit schedule for specific payment methods
     let schedule;
     if (
       ['subsidia', 'ipoteka', 'nasiya_naqd', 'nasiya_dollar'].includes(
-          payment_method.name_alias.toLowerCase(),
+        payment_method.name_alias.toLowerCase(),
       )
     ) {
-      const installment_month = updateOrderDto.initial_month ;
+      const installment_month = updateOrderDto.initial_month;
       const oneMonthDue = initial_floored
         ? Math.round(
-              payment_method.name_alias.toLowerCase() === 'nasiya_dollar'
-              ? (total_floored-initial_floored) / installment_month
-              : (total_floored-initial_floored) / installment_month,
+            payment_method.name_alias.toLowerCase() === 'nasiya_dollar'
+              ? (total_floored - initial_floored) / installment_month
+              : (total_floored - initial_floored) / installment_month,
           )
         : Math.round(total_floored / installment_month);
 
-      console.log((total_floored-initial_floored) + "/"+ installment_month + " "+updateOrderDto.price + " * "+ apartment.room_space);
       const creditSchedule = [];
       for (let i = 1; i <= installment_month; i++) {
         const baseDate = new Date(order.order_date);
@@ -379,30 +379,30 @@ export class OrdersService {
     }
 
     // Create new order item
-      const orderItemData = {
-          order_id: updateOrderDto.order_id,
-          apartments: apartment,
-          price: kv_price,
-          price_usd: kv_price_usd,
-          final_price: total_floored,
-          mk_price: mk_price,
-          mk_price_usd: mk_price_usd,
-      };
+    const orderItemData = {
+      order_id: updateOrderDto.order_id,
+      apartments: apartment,
+      price: kv_price,
+      price_usd: kv_price_usd,
+      final_price: total_floored,
+      mk_price: mk_price,
+      mk_price_usd: mk_price_usd,
+    };
 
-      const existingOrderItem = await OrderItems.findOne({
-          where: { order_id: updateOrderDto.order_id },
-      });
+    const existingOrderItem = await OrderItems.findOne({
+      where: { order_id: updateOrderDto.order_id },
+    });
 
-      if (existingOrderItem) {
-          await OrderItems.update(
-              { order_id: updateOrderDto.order_id },
-              orderItemData,
-          );
-      } else {
-          const newOrderItem = new OrderItems();
-          Object.assign(newOrderItem, orderItemData);
-          await OrderItems.save(newOrderItem);
-      }
+    if (existingOrderItem) {
+      await OrderItems.update(
+        { order_id: updateOrderDto.order_id },
+        orderItemData,
+      );
+    } else {
+      const newOrderItem = new OrderItems();
+      Object.assign(newOrderItem, orderItemData);
+      await OrderItems.save(newOrderItem);
+    }
 
     // Update apartment status
     await Apartments.update(
