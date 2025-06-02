@@ -131,7 +131,7 @@ export class PaymentsController {
     return this.paymentsService.newPayment(newPaymentDto);
   }
 
-    @Get("/client-payments")
+  @Get("/client-payments")
   getClientPayments() {
 
     return this.paymentsService.getPaymetList().then((data) => {

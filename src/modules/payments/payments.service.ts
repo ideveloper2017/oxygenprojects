@@ -1,4 +1,4 @@
-import {HttpException, HttpStatus, Injectable} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { NewPaymentDto } from './dto/create-payment.dto';
 import { Repository } from 'typeorm';
 import { Payments } from './entities/payment.entity';
@@ -23,7 +23,6 @@ export class PaymentsService {
     private readonly paymentRepo: Repository<Payments>,
     @InjectRepository(PaymentOut)
     private readonly paymentOutRepo: Repository<PaymentOut>,
-
     @InjectRepository(Orders)
     private readonly orderRepo: Repository<Orders>,
   ) {}
@@ -435,16 +434,6 @@ export class PaymentsService {
       // const usdRate = await ExchangRates.findOne({
       //   where: { is_default: true },
       // });
-
-      await CreditTable.update(
-        { order_id: newPaymentDto.order_id },
-        {
-          status: 'waiting',
-          left_amount: 0,
-          left_amount_usd: 0,
-          paid_amount: 0,
-        },
-      );
 
       // const credit_tb_id = await CreditTable.findOne({
       //   where: { order_id: newPaymentDto.order_id, status: 'waiting' },
@@ -917,7 +906,19 @@ export class PaymentsService {
   //   return await this.doPayment(installmentDto);
   // }
 
-  public async updatepayForInstallment(id: number, installmentDto: NewPaymentDto) {
+  public async updatepayForInstallment(
+    id: number,
+    installmentDto: NewPaymentDto,
+  ) {
+    await CreditTable.update(
+      { order_id: installmentDto.order_id },
+      {
+        status: 'waiting',
+        left_amount: 0,
+        left_amount_usd: 0,
+        paid_amount: 0,
+      },
+    );
     // Validate input
     if (
       !installmentDto.order_id ||
@@ -936,7 +937,10 @@ export class PaymentsService {
       );
     }
     if (installmentDto.amount < 0) {
-      throw new HttpException('Payment amount cannot be negative', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Payment amount cannot be negative',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Find order
@@ -945,7 +949,10 @@ export class PaymentsService {
     });
 
     if (!order) {
-      throw new HttpException('Order not found or inactive', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Order not found or inactive',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     // Update or create payment
@@ -953,9 +960,12 @@ export class PaymentsService {
 
     // Calculate payment amount in base currency (so'm)
     const money =
-        installmentDto.paymentmethods.toLowerCase() === 'usd'
-            ? Math.round(Number(installmentDto.amount) * Number(installmentDto.currency_value))
-            : Math.round(Number(installmentDto.amount));
+      installmentDto.paymentmethods.toLowerCase() === 'usd'
+        ? Math.round(
+            Number(installmentDto.amount) *
+              Number(installmentDto.currency_value),
+          )
+        : Math.round(Number(installmentDto.amount));
 
     const currencyValue = Number(installmentDto.currency_value);
 
@@ -967,12 +977,21 @@ export class PaymentsService {
     });
 
     if (!payments.length) {
-      throw new HttpException('No credit schedule found for this order', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'No credit schedule found for this order',
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     // Calculate total due and paid amounts
-    const totalDueAmount = payments.reduce((sum, payment) => sum + Number(payment.due_amount), 0);
-    let totalPaidAmount = payments.reduce((sum, payment) => sum + Number(payment.paid_amount || 0), 0);
+    const totalDueAmount = payments.reduce(
+      (sum, payment) => sum + Number(payment.due_amount),
+      0,
+    );
+    let totalPaidAmount = payments.reduce(
+      (sum, payment) => sum + Number(payment.paid_amount || 0),
+      0,
+    );
     let remainingMoney = money;
 
     // Process payments in order
@@ -985,14 +1004,14 @@ export class PaymentsService {
       const remainingAmountUsd = Math.round(remainingAmount / currencyValue);
 
       await CreditTable.update(
-          { id: payment.id },
-          {
-            status: remainingAmount <= 0 ? 'paid' : 'waiting',
-            paid_amount: Number(payment.paid_amount || 0) + amountToPay,
-            left_amount: remainingAmount,
-            left_amount_usd: remainingAmountUsd,
-            currency_value: currencyValue,
-          },
+        { id: payment.id },
+        {
+          status: remainingAmount <= 0 ? 'paid' : 'waiting',
+          paid_amount: Number(payment.paid_amount || 0) + amountToPay,
+          left_amount: remainingAmount,
+          left_amount_usd: remainingAmountUsd,
+          currency_value: currencyValue,
+        },
       );
 
       remainingMoney -= amountToPay;
@@ -1009,24 +1028,28 @@ export class PaymentsService {
       order: { due_date: 'ASC' },
     });
 
-    const allPaid = updatedPayments.every((payment) => payment.status === 'paid');
+    const allPaid = updatedPayments.every(
+      (payment) => payment.status === 'paid',
+    );
 
     if (allPaid || remainingTotal <= 0) {
       await CreditTable.update(
-          { order_id: installmentDto.order_id },
-          { left_amount: 0, left_amount_usd: 0, status: 'paid' },
+        { order_id: installmentDto.order_id },
+        { left_amount: 0, left_amount_usd: 0, status: 'paid' },
       );
       await this.orderRepo.update(
-          { id: installmentDto.order_id },
-          { order_status: OrderStatus.COMPLETED },
+        { id: installmentDto.order_id },
+        { order_status: OrderStatus.COMPLETED },
       );
     } else {
       // Update remaining balance on the first unpaid installment
-      const firstUnpaidPayment = updatedPayments.find((payment) => payment.status === 'waiting');
+      const firstUnpaidPayment = updatedPayments.find(
+        (payment) => payment.status === 'waiting',
+      );
       if (firstUnpaidPayment) {
         await CreditTable.update(
-            { id: firstUnpaidPayment.id },
-            { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
+          { id: firstUnpaidPayment.id },
+          { left_amount: remainingTotal, left_amount_usd: remainingTotalUsd },
         );
       }
     }
@@ -1034,7 +1057,13 @@ export class PaymentsService {
     // Return updated order
     const updatedOrder = await this.orderRepo.findOne({
       where: { id: installmentDto.order_id },
-      relations: ['payments', 'clients', 'paymentMethods', 'orderItems', 'orderItems.apartments'],
+      relations: [
+        'payments',
+        'clients',
+        'paymentMethods',
+        'orderItems',
+        'orderItems.apartments',
+      ],
     });
 
     return updatedOrder;
@@ -1511,69 +1540,66 @@ export class PaymentsService {
   async getPaymetList() {
     const result = await this.orderRepo.find({
       where: { order_status: OrderStatus.ACTIVE },
-      relations: ['orders.paymentMethods', 'payments', 'clients'],
+      relations: ['paymentMethods', 'payments', 'clients'], // Corrected relations
     });
 
-    const processedOrders = result
-      .map((order) => {
-        // Calculate incoming payments
-        const sumOfPayments = order.payments.reduce(
+    const processedOrders = result.map((order) => {
+      // Calculate incoming payments
+      const sumOfPayments = order.payments.reduce(
           (accumulator, payment) =>
-            payment?.caisher_type === Caishertype.IN
-              ? accumulator + Number(payment.amount)
-              : accumulator,
+              payment?.caisher_type === Caishertype.IN
+                  ? accumulator + Number(payment.amount)
+                  : accumulator,
           0,
-        );
+      );
 
-        const sumOfPayments_usd = order.payments.reduce(
+      const sumOfPayments_usd = order.payments.reduce(
           (accumulator, payment) =>
-            payment?.caisher_type === Caishertype.IN
-              ? accumulator + Number(payment.amount_usd)
-              : accumulator,
+              payment?.caisher_type === Caishertype.IN
+                  ? accumulator + Number(payment.amount_usd)
+                  : accumulator,
           0,
-        );
+      );
 
-        // Calculate outgoing payments
-        const sumOfOutPayments = order.payments.reduce(
+      // Calculate outgoing payments
+      const sumOfOutPayments = order.payments.reduce(
           (accumulator, payment) =>
-            payment?.caisher_type === Caishertype.OUT
-              ? accumulator + Number(payment.amount)
-              : accumulator,
+              payment?.caisher_type === Caishertype.OUT
+                  ? accumulator + Number(payment.amount)
+                  : accumulator,
           0,
-        );
+      );
 
-        const sumOfOutPayments_usd = order.payments.reduce(
+      const sumOfOutPayments_usd = order.payments.reduce(
           (accumulator, payment) =>
-            payment?.caisher_type === Caishertype.OUT
-              ? accumulator + Number(payment.amount_usd)
-              : accumulator,
+              payment?.caisher_type === Caishertype.OUT
+                  ? accumulator + Number(payment.amount_usd)
+                  : accumulator,
           0,
-        );
+      );
 
-        // Calculate net payments
-        const net_payments = sumOfPayments - sumOfOutPayments;
-        const net_payments_usd = sumOfPayments_usd - sumOfOutPayments_usd;
+      // Calculate net payments
+      const net_payments = sumOfPayments - sumOfOutPayments;
+      const net_payments_usd = sumOfPayments_usd - sumOfOutPayments_usd;
 
-        // Calculate outstanding balance
-        const outstanding_balance = Number(order.total_amount) - net_payments;
-        const outstanding_balance_usd =
+      // Calculate outstanding balance
+      const outstanding_balance = Number(order.total_amount) - net_payments;
+      const outstanding_balance_usd =
           Number(order.total_amount_usd) - net_payments_usd;
 
-        // Return order with additional fields
-        return {
-          ...order,
-          sumOfPayments: sumOfPayments || 0,
-          sumOfPayments_usd: sumOfPayments_usd || 0,
-          sumOfOutPayments: sumOfOutPayments || 0,
-          sumOfOutPayments_usd: sumOfOutPayments_usd || 0,
-          net_payments,
-          net_payments_usd,
-          outstanding_balance,
-          outstanding_balance_usd,
-        };
-      })
-      // Filter for orders with both incoming and outgoing payments
-      .filter((order) => order.sumOfPayments > 0 && order.sumOfOutPayments > 0);
+      // Return order with additional fields
+      return {
+        ...order,
+        sumOfPayments: sumOfPayments || 0,
+        sumOfPayments_usd: sumOfPayments_usd || 0,
+        sumOfOutPayments: sumOfOutPayments || 0,
+        sumOfOutPayments_usd: sumOfOutPayments_usd || 0,
+        net_payments,
+        net_payments_usd,
+        outstanding_balance,
+        outstanding_balance_usd,
+      };
+    });
 
     return processedOrders;
   }

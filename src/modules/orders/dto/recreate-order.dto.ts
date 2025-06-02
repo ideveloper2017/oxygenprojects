@@ -26,6 +26,19 @@ export class ReCreateOrderDto {
   })
   price?: number;
 
+  @ApiProperty({
+    example: 8_000_000,
+    description: 'kvartira kvadrat metr narxi',
+  })
+  paid_amount?: number;
+
+  @ApiProperty({
+    example: 8_000_000,
+    description: 'kvartira kvadrat metr narxi',
+  })
+  paid_amount_usd?: number;
+
+
   @ApiProperty({ example: 25_000_000, description: 'boshlangich tolov somda' })
   initial_pay: number;
 
