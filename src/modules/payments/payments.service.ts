@@ -1508,10 +1508,12 @@ export class PaymentsService {
     }
   }
 
-  async getPaymetList() {
+  async getPaymetList()   {
     const result = await this.orderRepo.find({
       where: { order_status: OrderStatus.ACTIVE },
-      relations: ['paymentMethods', 'payments', 'clients'], // Corrected relations
+      relations: ['paymentMethods', 'payments', 'clients',
+      'orderItems',
+    ],
     });
 
     const processedOrders = result.map((order) => {
@@ -1574,100 +1576,7 @@ export class PaymentsService {
 
     return processedOrders;
   }
-  // async getPaymetList() {
-  //   const result = await this.paymentRepo
-  //       .createQueryBuilder('payments')
-  //       .leftJoinAndSelect(
-  //           'payments.orders',
-  //           'orders',
-  //           'payments.order_id = orders.id',
-  //       )
-  //       .leftJoinAndSelect(
-  //           'orders.clients',
-  //           'clients',
-  //           'clients.id = orders.client_id',
-  //       )
-  //       .select('clients.id', 'client_id')
-  //       .addSelect('clients.first_name', 'first_name')
-  //       .addSelect('clients.last_name', 'last_name')
-  //       .addSelect(
-  //           'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
-  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END)',
-  //           'amount',
-  //       )
-  //       .addSelect(
-  //           'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
-  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END)',
-  //           'amount_usd',
-  //       )
-  //       .addSelect('SUM(orders.total_amount)', 'total_amount')
-  //       .addSelect('SUM(orders.total_amount_usd)', 'total_amount_usd')
-  //       .addSelect(
-  //           'SUM(orders.total_amount) - ' +
-  //           '(SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
-  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END))',
-  //           'outstanding_balance',
-  //       )
-  //       .addSelect(
-  //           'SUM(orders.total_amount_usd) - ' +
-  //           '(SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
-  //           'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END))',
-  //           'outstanding_balance_usd',
-  //       )
-  //       .addSelect('MIN(payments.payment_date)', 'earliest_payment_date') // Optional
-  //       .where('orders.order_status = :status', { status: OrderStatus.ACTIVE })
-  //       .andWhere('payments.caisher_type IN (:inType, :outType)', {
-  //         inType: Caishertype.IN,
-  //         outType: Caishertype.OUT,
-  //       })
-  //       .groupBy('clients.id')
-  //       .addGroupBy('clients.first_name')
-  //       .addGroupBy('clients.last_name')
-  //       .getRawMany();
-  //
-  //   return result;
-  // }
-  // async getPaymetList() {
-  //   const result = await this.paymentRepo
-  //     .createQueryBuilder('payments')
-  //     .leftJoinAndSelect(
-  //       'payments.orders',
-  //       'orders',
-  //       'payments.order_id = orders.id',
-  //     )
-  //     .leftJoinAndSelect(
-  //       'orders.clients',
-  //       'clients',
-  //       'clients.id = orders.client_id',
-  //     )
-  //     .select('clients.id', 'client_id')
-  //     .addSelect('clients.first_name', 'first_name')
-  //     .addSelect('clients.last_name', 'last_name')
-  //     .addSelect(
-  //       'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount ELSE 0 END) - ' +
-  //         'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount ELSE 0 END)',
-  //       'amount',
-  //     )
-  //     .addSelect(
-  //       'SUM(CASE WHEN payments.caisher_type = :inType THEN payments.amount_usd ELSE 0 END) - ' +
-  //         'SUM(CASE WHEN payments.caisher_type = :outType THEN payments.amount_usd ELSE 0 END)',
-  //       'amount_usd',
-  //     )
-  //     .addSelect('SUM(orders.total_amount)', 'total_amount')
-  //     .addSelect('SUM(orders.total_amount_usd)', 'total_amount_usd')
-  //     .addSelect('MIN(payments.payment_date)', 'earliest_payment_date') // Optional
-  //     .where('orders.order_status = :status', { status: OrderStatus.ACTIVE })
-  //     .andWhere('payments.caisher_type IN (:inType, :outType)', {
-  //       inType: Caishertype.IN,
-  //       outType: Caishertype.OUT,
-  //     })
-  //     .groupBy('clients.id')
-  //     .addGroupBy('clients.first_name')
-  //     .addGroupBy('clients.last_name')
-  //     .getRawMany();
-  //
-  //   return result;
-  // }
+
 
   async newPaymentOut(newPaymentDto: PaymentOutDto, user: any) {
     const queryRunner = this.paymentRepo.manager.connection.createQueryRunner();
@@ -1677,6 +1586,7 @@ export class PaymentsService {
     try {
       const payment = await queryRunner.manager.findOne(Orders, {
         where: {
+          id:newPaymentDto.order_id,
           client_id: newPaymentDto.client_id,
           order_status: OrderStatus.ACTIVE,
         },

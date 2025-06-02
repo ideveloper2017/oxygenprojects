@@ -12,7 +12,7 @@ export class PaymentOutDto {
 
 
   @ApiProperty({ example: 1 })
-  payment_id: number;
+  order_id: number;
 
   @ApiProperty({ example: '2023-12-06' })
   payment_date: Date;

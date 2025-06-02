@@ -949,8 +949,8 @@ export class OrdersService {
       .getMany();
 
     const result = orders.map((data) => {
-      const { incomingSum, outgoingSum, incomingSum_usd, outgoingSum_usd } =
-        data.payments.reduce(
+        const { incomingSum, outgoingSum, incomingSum_usd, outgoingSum_usd } =
+          data.payments.reduce(
           (accumulator, payment) => {
             if (payment?.caisher_type === Caishertype.IN) {
               accumulator.incomingSum += Number(payment.amount);
@@ -989,10 +989,7 @@ export class OrdersService {
         order_status: data.order_status,
       };
     });
-    // Filter for orders with both incoming and outgoing payments
-    // .filter(
-    //   (order) => order.incoming_amount > 0 && order.outgoing_amount > 0,
-    // );
+      // .filter((order) => order.incoming_amount > 0 && order.outgoing_amount > 0);
 
     return result;
   }
