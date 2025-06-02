@@ -119,7 +119,7 @@ export class OrdersService {
     order.currency_value = createOrderDto.currency_value;
     order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
-    order.contract_number = createOrderDto.contractNum;
+    order.contract_number =contractnumber;
     order.delivery_time = createOrderDto.delivery_time;
     order.initial_month = +createOrderDto.installment_month;
     const savedOrder = await this.ordersRepository.save(order);
@@ -814,20 +814,6 @@ export class OrdersService {
       const outstanding_balance_usd =
         Number(orderItem.total_amount_usd || 0) - net_payments_usd;
 
-      // const paymentsWithSummary = {
-      //      // transaction: orderItem.payments,
-      //      transaction:orderItem.payments.push([{
-      //       sumOfPayments: sumOfPayments || 0,
-      //       sumOfPayments_usd: sumOfPayments_usd || 0,
-      //       sumOfOutPayments: sumOfOutPayments || 0,
-      //       sumOfOutPayments_usd: sumOfOutPayments_usd || 0,
-      //       net_payments,
-      //       net_payments_usd,
-      //       outstanding_balance,
-      //       outstanding_balance_usd,
-      //     }]),
-      // };
-
       orderItem.sumOfpayments = sumOfPayments ? sumOfPayments : 0;
       orderItem.sumOfpayments_usd = sumOfPayments_usd ? sumOfPayments_usd : 0;
       orderItem.sumOfOutPayments = sumOfOutPayments ? sumOfOutPayments : 0;
@@ -870,19 +856,68 @@ export class OrdersService {
       .getOne();
 
     if (order) {
+      // const sumOfPayments = order.payments.reduce(
+      //   (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+      //   0,
+      // );
+      // const sumOfPayments_usd = order.payments.reduce(
+      //   (accumulator, currentPayment) =>
+      //     accumulator + +currentPayment.amount_usd,
+      //   0,
+      // );
+
       const sumOfPayments = order.payments.reduce(
-        (accumulator, currentPayment) => accumulator + +currentPayment.amount,
+        (accumulator, currentPayment) =>
+          currentPayment?.caisher_type === Caishertype.IN
+            ? accumulator + Number(currentPayment.amount)
+            : accumulator,
         0,
       );
+
       const sumOfPayments_usd = order.payments.reduce(
         (accumulator, currentPayment) =>
-          accumulator + +currentPayment.amount_usd,
+          currentPayment?.caisher_type === Caishertype.IN
+            ? accumulator + +currentPayment.amount_usd
+            : accumulator,
         0,
       );
+
+      const sumOfOutPayments = order.payments.reduce(
+        (accumulator, currentPayment) =>
+          currentPayment?.caisher_type === Caishertype.OUT
+            ? accumulator + Number(currentPayment.amount)
+            : accumulator,
+        0,
+      );
+      const sumOfOutPayments_usd = order.payments.reduce(
+        (accumulator, currentPayment) =>
+          currentPayment?.caisher_type === Caishertype.OUT
+            ? accumulator + +currentPayment.amount_usd
+            : accumulator,
+        0,
+      );
+      const net_payments = sumOfPayments - sumOfOutPayments;
+      const net_payments_usd = sumOfPayments_usd - sumOfOutPayments_usd;
+
+      const outstanding_balance =
+        Number(order.total_amount || 0) - net_payments;
+      const outstanding_balance_usd =
+        Number(order.total_amount_usd || 0) - net_payments_usd;
+
       order['sumOfpayments'] = sumOfPayments ? Math.floor(sumOfPayments) : 0;
       order['sumOfpayments_usd'] = sumOfPayments_usd
         ? Math.floor(sumOfPayments_usd)
         : 0;
+      // order['sumOfpayments'] = sumOfPayments ? sumOfPayments : 0;
+      // order['sumOfpayments_usd'] = sumOfPayments_usd ? sumOfPayments_usd : 0;
+      order['sumOfOutPayments'] = sumOfOutPayments ? sumOfOutPayments : 0;
+      order['sumOfOutPayments_usd'] = sumOfOutPayments_usd
+        ? sumOfOutPayments_usd
+        : 0;
+      order['net_payments'] = sumOfPayments - sumOfOutPayments;
+      order['net_payments_usd'] = sumOfPayments_usd - sumOfOutPayments_usd;
+
+
     }
     return order;
   }

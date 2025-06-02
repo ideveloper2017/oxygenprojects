@@ -42,37 +42,8 @@ export class PaymentsService {
         where: { order_id: newPaymentDto.order_id, status: 'waiting' },
         order: { due_date: 'ASC' },
       });
-
-      // orders.forEach((data) => {
-      //   const sum = data.payments.reduce((accumulator, currentValue) => {
-      //     return accumulator + Math.round(currentValue.amount);
-      //   }, 0);
-      //
-      //   const sum_usd = data.payments.reduce((accumulator, currentValue) => {
-      //     return accumulator + Math.round(currentValue.amount_usd);
-      //   }, 0);
-      //   // const filteredOrders = orders.filter((order) => order.id === newPaymentDto.order_id);
-      //   result.push({
-      //     contract_number: data.contract_number,
-      //     order_date: data.order_date,
-      //     // clients: data.clients.first_name + ' ' + data.clients.last_name,
-      //     totalsum: Math.floor(data.total_amount - sum),
-      //     totalsum_usd: Math.floor(data.total_amount_usd - sum_usd),
-      //     order_status: data.order_status,
-      //   });
-      // });
-
-      // const total_sum = result.map((item) => {
-      //   return Math.round(Number(item.totalsum));
-      // });
-
       newPaymentDto.credit_table_id = credit_tb_id?.id || 0;
-
-      // const usdRate = await ExchangRates.findOne({
-      //   where: { is_default: true },
-      // });
       let newPay;
-
       if (
         (paymentMethods.name_alias.toLowerCase() == 'ipoteka' ||
           paymentMethods.name_alias.toLowerCase() == 'subsidia' ||

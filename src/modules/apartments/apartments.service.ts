@@ -169,7 +169,7 @@ export class ApartmentsService {
 
   async getApartments(floor_id: number) {
     const apartments: Apartments[] = await this.apartmentRepository.find({
-      where: { floor_id: floor_id,status: ApartmentStatus.FREE },
+      where: { floor_id: floor_id, status: ApartmentStatus.FREE },
     });
     return apartments;
   }
@@ -243,6 +243,9 @@ export class ApartmentsService {
       .addSelect('buildings.name as buildingname')
       .addSelect('floor.floor_number as floor_number')
       .addSelect('apartments.*')
+      .where('apartments.status In(:...status)', {
+        status: [ApartmentStatus.BRON, ApartmentStatus.FREE],
+      })
       .orderBy('buildings.name', 'ASC')
       .addOrderBy('floor.floor_number', 'DESC')
       .getRawMany();
