@@ -10,7 +10,9 @@ import { OrderStatus } from '../../../common/enums/order-status';
 
 @Entity('Orders')
 export class Orders extends Model {
-  @ManyToOne((type) => Clients, (clients) => clients.orders)
+  @ManyToOne((type) => Clients, (clients) => clients.orders, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'client_id' })
   clients: Clients;
 

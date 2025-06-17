@@ -1,8 +1,17 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Param } from '@nestjs/common';
 import { ReportService } from './report.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Apartments } from '../apartments/entities/apartment.entity';
 import * as moment from 'moment';
+
+interface PaymentMethodReport {
+  paymentMethodId: number;
+  paymentMethodName: string;
+  orderCount: number;
+  totalAmount: number;
+  averageOrderAmount: number;
+  activeOrderCount: number;
+}
 
 @Controller('report')
 @ApiTags('Reports')
@@ -166,5 +175,14 @@ export class ReportController {
       .catch((error) => {
         return { status: error.code, message: error.message };
       });
+  }
+
+  @Get('orders-by-payment-method')
+  public getOrdersPaymentMethodsReport(): Promise<{
+    success: boolean;
+    data: PaymentMethodReport[];
+    message: string;
+  }> {
+    return this.reportService.getOrdersByPaymentMethodReport();
   }
 }

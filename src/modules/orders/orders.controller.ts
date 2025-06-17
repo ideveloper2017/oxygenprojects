@@ -260,4 +260,20 @@ export class OrdersController {
         return { success: false, message: error.message };
       });
   }
+
+  @Get('/check/:id')
+  getClientOrderCheck(@Param('id') id: number) {
+    return this.orderService
+      .getClientOrderCheck(id)
+      .then((data) => {
+        if (data) {
+          return { success: true, data: data, message: 'success' };
+        } else {
+          return { success: false, message: 'not found record!!!' };
+        }
+      })
+      .catch((error) => {
+        return { success: false, message: error.message };
+      });
+  }
 }

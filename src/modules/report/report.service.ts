@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
@@ -13,6 +13,15 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
+
+interface PaymentMethodReport {
+  paymentMethodId: number;
+  paymentMethodName: string;
+  orderCount: number;
+  totalAmount: number;
+  averageOrderAmount: number;
+  activeOrderCount: number;
+}
 
 @Injectable()
 export class ReportService {
@@ -2298,5 +2307,56 @@ export class ReportService {
       .where('credittable.order_id= :order_id', { order_id: order_id })
       .getRawMany();
     return result;
+  }
+
+  async getOrdersByPaymentMethodReport(): Promise<{
+    success: boolean;
+    data: PaymentMethodReport[];
+    message: string;
+  }> {
+    try {
+      // Query to group orders by payment method and calculate metrics
+      const report = await this.orderRepo
+        .createQueryBuilder('order')
+        .select('order.payment_method_id', 'paymentMethodId')
+        .addSelect('paymentMethod.name', 'paymentMethodName')
+        .addSelect('COUNT(order.id)', 'orderCount')
+        .addSelect('SUM(order.total_amount)', 'totalAmount')
+        .addSelect('AVG(order.total_amount)', 'averageOrderAmount')
+        .addSelect(
+          'SUM(CASE WHEN order.order_status = :activeStatus THEN 1 ELSE 0 END)',
+          'activeOrderCount',
+        )
+        .leftJoin('order.paymentMethods', 'paymentMethod')
+        .where('order.is_deleted = :isDeleted', { isDeleted: false })
+        .groupBy('order.payment_method_id, paymentMethod.name')
+        .setParameter('activeStatus', OrderStatus.ACTIVE)
+        .getRawMany();
+
+      // Format the report data
+      const formattedReport: PaymentMethodReport[] = report.map((item) => ({
+        paymentMethodId: item.paymentMethodId,
+        paymentMethodName: item.paymentMethodName || 'Unknown',
+        orderCount: Math.round(parseInt(item.orderCount, 10)),
+        totalAmount: Math.round(parseFloat(item.totalAmount) || 0),
+        averageOrderAmount: Math.round(parseInt(item.averageOrderAmount) || 0),
+        activeOrderCount: Math.round(parseInt(item.activeOrderCount, 10)),
+      }));
+
+      return {
+        success: true,
+        data: formattedReport,
+        message: 'Orders by payment method report generated successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Failed to generate payment method report',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

@@ -64,7 +64,7 @@ export class ClientsService {
   async findAllClients(offset: number, limit: number) {
     const clients = await this.clientRepo.find({
       order: { id: 'desc' },
-      relations: ['users'],
+      relations: ['users','orders'],
     });
     return { status: 200, data: clients, message: "Mijozlar ro'yxati" };
   }
@@ -78,15 +78,32 @@ export class ClientsService {
   }
 
   async deleteClient(id: number) {
-    const client = await this.clientRepo.find({ where: { id: id } });
-    if (!client) {
-      return { status: 400, message: 'client not fount' };
-    }
-    client.map((value) => {
-      this.clientRepo.delete({ id: value.id });
-    });
+    try {
+      const client = await this.clientRepo.findOne({
+        where: { id },
+        relations: ['orders'],
+      });
 
-    return { status: 200, message: 'success' };
+      if (!client) {
+        return { status: 400, message: 'Client not found' };
+      }
+
+      // if (client.orders && client.orders.length > 0) {
+      //   return {
+      //     status: 400,
+      //     message: 'Canno t delete client because they have associated orders',
+      //   };
+      // }
+
+      await this.clientRepo.delete({ id });
+
+      return { status: 200, message: 'Client deleted successfully' };
+    } catch (error) {
+      return {
+        status: 500,
+        message: `Error deleting client: ${error.message}`,
+      };
+    }
   }
 
   async editClientInfo(

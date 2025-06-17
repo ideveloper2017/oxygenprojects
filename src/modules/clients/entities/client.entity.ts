@@ -74,7 +74,7 @@ export class Clients extends Model {
   @Column({ nullable: true })
   description: string;
 
-  @OneToMany((type) => Orders, (orders) => orders.clients)
+  @OneToMany((type) => Orders, (orders) => orders.clients, { cascade: true })
   orders: Orders[];
 
   @OneToMany(() => PaymentOut, (payments) => payments.clients)

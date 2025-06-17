@@ -119,7 +119,7 @@ export class OrdersService {
     order.currency_value = createOrderDto.currency_value;
     order.users = await Users.findOne({ where: { id: users.userId } });
     order.quantity = 1;
-    order.contract_number =contractnumber;
+    order.contract_number = contractnumber;
     order.delivery_time = createOrderDto.delivery_time;
     order.initial_month = +createOrderDto.installment_month;
     const savedOrder = await this.ordersRepository.save(order);
@@ -916,8 +916,6 @@ export class OrdersService {
         : 0;
       order['net_payments'] = sumOfPayments - sumOfOutPayments;
       order['net_payments_usd'] = sumOfPayments_usd - sumOfOutPayments_usd;
-
-
     }
     return order;
   }
@@ -949,8 +947,8 @@ export class OrdersService {
       .getMany();
 
     const result = orders.map((data) => {
-        const { incomingSum, outgoingSum, incomingSum_usd, outgoingSum_usd } =
-          data.payments.reduce(
+      const { incomingSum, outgoingSum, incomingSum_usd, outgoingSum_usd } =
+        data.payments.reduce(
           (accumulator, payment) => {
             if (payment?.caisher_type === Caishertype.IN) {
               accumulator.incomingSum += Number(payment.amount);
@@ -989,7 +987,7 @@ export class OrdersService {
         order_status: data.order_status,
       };
     });
-      // .filter((order) => order.incoming_amount > 0 && order.outgoing_amount > 0);
+    // .filter((order) => order.incoming_amount > 0 && order.outgoing_amount > 0);
 
     return result;
   }
@@ -1647,5 +1645,17 @@ export class OrdersService {
     // .filter((order) => order.sumOfPayments > 0 && order.sumOfOutPayments > 0);
 
     return processedOrders;
+  }
+
+  async getClientOrderCheck(id: number) {
+    const order = await Orders.findOne({
+      where: {
+        client_id: id,
+        order_status: OrderStatus.ACTIVE,
+
+      },
+      relations:['orderItems','clients'],
+    });
+    return order;
   }
 }
