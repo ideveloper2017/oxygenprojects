@@ -21,6 +21,7 @@ import { PaymentMethodsService } from '../payment-method/payment-method.service'
 import { CurrenciesService } from '../currencies/currencies.service';
 import { Regions } from '../region/entities/region.entity';
 import { District } from '../district/entities/district.entity';
+import { OrderStatus } from '../../common/enums/order-status';
 
 @Injectable()
 export class TownService {
@@ -153,7 +154,10 @@ export class TownService {
       .count();
     const orders = await this.townRepository.manager
       .getRepository(Orders)
-      .count();
+      .count({ where: { order_status: In([OrderStatus.ACTIVE, OrderStatus.COMPLETED]) } });
+    const cancelorders = await this.townRepository.manager
+      .getRepository(Orders)
+      .count({ where: { order_status: In([OrderStatus.REFUNDED]) } });
     const clients = await this.townRepository.manager
       .getRepository(Clients)
       .count();
@@ -169,6 +173,10 @@ export class TownService {
     const apartments = await this.townRepository.manager
       .getRepository(Apartments)
       .count();
+    const freeapartments = await this.townRepository.manager
+      .getRepository(Apartments)
+      .count({where:{status:ApartmentStatus.FREE}});
+
     const bookedApartments = await this.townRepository.manager
       .getRepository(Apartments)
       .count({ where: { status: ApartmentStatus.BRON } });
@@ -176,7 +184,9 @@ export class TownService {
     return {
       towns,
       buildings,
+      freeapartments,
       apartments,
+      cancelorders,
       orders,
       users,
       roles,

@@ -9,12 +9,16 @@ import { Buildings } from '../buildings/entities/building.entity';
 import { Towns } from '../towns/entities/town.entity';
 import { ApartmentStatus } from 'src/common/enums/apartment-status';
 import { CreateApartmentPriceDto } from './dto/create-apartment-price';
+import { OrderItems } from '../order-items/entities/order-item.entity';
+import { Orders } from '../orders/entities/order.entity';
 
 @Injectable()
 export class ApartmentsService {
   constructor(
     @InjectRepository(Apartments)
     private readonly apartmentRepository: Repository<Apartments>,
+    @InjectRepository(OrderItems)
+    private readonly orderItemsRepository: Repository<OrderItems>,
   ) {}
 
   async addOneApartment(
@@ -139,6 +143,20 @@ export class ApartmentsService {
           positions: updateApartmentDto.positions,
         },
       );
+        const apartment_id = findapartment.id;
+        const orderItems = await this.orderItemsRepository.findOne({
+            where: { apartment_id },
+        });
+        if (orderItems) {
+            await Orders.update(
+                { id: orderItems.order_id },
+                {
+                    total_amount: Number(
+                        updateApartmentDto.room_space * orderItems.price,
+                    ),
+                },
+            );
+        }
       return {
         success: false,
         message:
@@ -151,6 +169,8 @@ export class ApartmentsService {
           '-xona mavjud !!!',
       };
     }
+
+
   }
 
   async getOneApartment(id: number) {

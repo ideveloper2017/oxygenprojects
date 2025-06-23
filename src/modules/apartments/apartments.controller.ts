@@ -32,7 +32,11 @@ export class ApartmentsController {
     @Param('floor_id') floor_id: number,
     @Body() createApartmentDto: CreateApartmentDto,
   ) {
-    return this.apartmentsService.addOneApartment(build_id,floor_id, createApartmentDto);
+    return this.apartmentsService.addOneApartment(
+      build_id,
+      floor_id,
+      createApartmentDto,
+    );
   }
 
   @ApiOperation({ summary: 'Kvartira tahrirlash' })
@@ -43,7 +47,11 @@ export class ApartmentsController {
     @Param('id') id: number,
     @Body() updateApartmentDto: UpdateApartmentDto,
   ) {
-    return this.apartmentsService.updateApartment(build_id,id, updateApartmentDto);
+    return this.apartmentsService.updateApartment(
+      build_id,
+      id,
+      updateApartmentDto,
+    );
   }
 
   @ApiOperation({ summary: "Kvartirani ro'yxatdan o'chirish" })
@@ -151,6 +159,23 @@ export class ApartmentsController {
       .then((data) => {
         if (data) {
           return { success: true, data, message: 'All Apartments ' };
+        } else {
+          return { success: false, message: 'No data found' };
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    //console.log(createapartmentpricedto);
+  }
+
+  @Get('/free-apartment')
+  async freeApartment() {
+    return this.apartmentsService
+      .findAllApartments()
+      .then((data) => {
+        if (data) {
+          return { success: true, data, message: 'All free Apartments ' };
         } else {
           return { success: false, message: 'No data found' };
         }

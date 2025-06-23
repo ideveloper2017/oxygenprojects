@@ -22,7 +22,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Users } from '../users/entities/user.entity';
 import { RefundDto } from './dto/refund.dto';
 import { TransferOrderDto } from './dto/tramsfer-order.dto';
-import {ReCreateOrderDto} from "./dto/recreate-order.dto";
+import { ReCreateOrderDto } from './dto/recreate-order.dto';
+import { ReCreateOrderFreeAppDto } from './dto/ReCreateOrderFreeApp.dto';
+import {ExchangeclientDto} from "./dto/exchangeclient.dto";
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -73,6 +75,79 @@ export class OrdersController {
   ) {
     return this.orderService
       .reCreateOrder(createOrderDto, user_id)
+      .then((response) => {
+        if (response) {
+          res.send({
+            success: true,
+            data: response,
+            message: 'Order created successfully',
+          });
+        } else {
+          res.send({
+            success: false,
+            data: response,
+            message: 'No order created successfully',
+          });
+        }
+      })
+      .catch((error) => {
+        res.send({ status: 409, success: false, message: error.message });
+      });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Order qayta yaratish qo'shishi" })
+  @Post('/order-chanage-app-free')
+  recreateOrderFreeAppr(
+    @AuthUser() user_id: any,
+    @Body() createOrderDto: ReCreateOrderFreeAppDto,
+    @Res() res: Response,
+  ) {
+    return this.orderService
+      .reChangeOrder(createOrderDto, user_id)
+      .then((response) => {
+        if (response) {
+          res.send({
+            success: true,
+            data: response,
+            message: 'Order created successfully',
+          });
+        } else {
+          res.send({
+            success: false,
+            data: response,
+            message: 'No order created successfully',
+          });
+        }
+      })
+      .catch((error) => {
+        res.send({ status: 409, success: false, message: error.message });
+      });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  //@Roles('admin', 'manager')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Order qayta yaratish qo'shishi" })
+  @Post('/exchange-client-to-client')
+  exchangeClientToClient(
+    @AuthUser() user_id: any,
+    @Body() exchangeclientDto: {
+      client_id?: number; // Optional for apartment swap only
+      order_id: number;
+      apartment_id: number; // New apartment ID for swap or same for client transfer
+      total_amount?: number;
+      price?: number;
+      paid_amount?: number;
+      paid_amount_usd?: number;
+      is_apartment_swap?: boolean; // Flag to indicate if apartment swap is required
+  },
+    @Res() res: Response,
+  ) {
+    return this.orderService
+      .exchangeClient(exchangeclientDto,user_id)
       .then((response) => {
         if (response) {
           res.send({

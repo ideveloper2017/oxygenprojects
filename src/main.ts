@@ -22,7 +22,7 @@ async function bootstrap() {
     credentials: true,
     exposedHeaders: ['set-cookie'],
   });
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // app.useGlobalInterceptors(new LoggingInterceptor());
   app.useGlobalPipes(new ValidationPipe());
   app.use('/uploads', (req, res, next) => {
     next();
