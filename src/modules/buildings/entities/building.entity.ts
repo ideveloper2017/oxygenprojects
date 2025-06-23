@@ -39,15 +39,12 @@ export class Buildings extends Model {
   @Column()
   mk_price: number;
 
-  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.building, {
-    onDelete: 'SET NULL',
-    onUpdate: 'CASCADE',
+  @OneToMany(() => FileUpload, (file) => file.building, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
   })
-  @JoinColumn({ name: 'file_id' })
-  file: FileUpload;
-
-  @Column({ nullable: true })
-  file_id: number;
+  files: FileUpload[];
 
   @OneToMany(() => BuildingItems, (buildingItems) => buildingItems.building)
   buildingItems: BuildingItems[];

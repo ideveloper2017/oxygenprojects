@@ -87,11 +87,10 @@ export class WordexportController {
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
     initial_pay_usd = Math.round(Number(order.initial_pay) /Number(order.currency_value));
     percent = Number(order?.percent);
-    const file_id = order?.orderItems?.map((data) => {
-      return data.apartments.file_id;
-    });
-
-    const file = await this.fileService.getFileById(file_id?file_id[0]:0);
+    // Get the first file ID from the apartments files array
+    const file_id = order?.orderItems?.[0]?.apartments?.files?.[0]?.id || 0;
+    
+    const file = await this.fileService.getFileById(file_id);
     const fileobj = {
       _type: 'image',
       source: existsSync(file.path) ? fs.readFileSync(file.path) : '',

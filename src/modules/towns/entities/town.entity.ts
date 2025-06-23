@@ -36,12 +36,12 @@ export class Towns extends Model {
   @OneToMany((type) => Buildings, (building) => building.towns)
   buildings: Buildings[];
 
-  @OneToOne((type) => FileUpload, (fileUpload) => fileUpload.town, {onDelete: "SET NULL", onUpdate: "CASCADE"})
-  @JoinColumn({ name: 'file_id' })
-  file: FileUpload;
-
-  @Column({ nullable: true })
-  file_id: number;
+  @OneToMany(() => FileUpload, (file) => file.town, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  })
+  files: FileUpload[];
 
   @ManyToOne((type) => Users, (users) => users.towns)
   @JoinColumn({ name: 'users_id' })

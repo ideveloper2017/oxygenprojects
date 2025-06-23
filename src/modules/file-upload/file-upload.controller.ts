@@ -72,7 +72,7 @@ export class FileUploadController {
       .then((data) => {
         if (data) {
           return { success: true, data, message: 'Rasm joylandi!!' };
-        } else if (data == false) {
+        } else if (data) {
           return { success: false, message: 'Rasm allaqachon mavjud' };
         } else {
           return { success: false, message: 'Rasm yuklashda xatolik' };

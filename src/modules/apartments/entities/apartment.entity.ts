@@ -48,12 +48,12 @@ export class Apartments extends Model {
   @OneToMany(() => OrderItems, (orderItems) => orderItems.apartments)
   orderItems: OrderItems[];
 
-  @OneToOne(() => FileUpload, (files) => files.apartment, {onDelete: "SET NULL", onUpdate: "CASCADE"})
-  @JoinColumn({ name: 'file_id' })
-  file: FileUpload;
-
-  @Column({ nullable: true })
-  file_id: number;
+  @OneToMany(() => FileUpload, (file) => file.apartment, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE'
+  })
+  files: FileUpload[];
 
   @OneToMany(() => Booking, (booking) => booking.apartments)
   bookings: Booking[];
