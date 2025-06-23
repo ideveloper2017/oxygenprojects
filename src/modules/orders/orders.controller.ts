@@ -25,6 +25,9 @@ import { TransferOrderDto } from './dto/tramsfer-order.dto';
 import { ReCreateOrderDto } from './dto/recreate-order.dto';
 import { ReCreateOrderFreeAppDto } from './dto/ReCreateOrderFreeApp.dto';
 import { SwapApartmentsDto } from './dto/swap-apartments.dto';
+import { SwapClientsDto } from './dto/swap-clients.dto';
+import { SwapOrderApartmentsDto } from './dto/swap-order-apartments.dto';
+import { ExchangeclientDto } from './dto/exchangeclient.dto';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -135,16 +138,7 @@ export class OrdersController {
   exchangeClientToClient(
     @AuthUser() user_id: any,
     @Body()
-    exchangeclientDto: {
-      client_id?: number; // Optional for apartment swap only
-      order_id: number;
-      apartment_id: number; // New apartment ID for swap or same for client transfer
-      total_amount?: number;
-      price?: number;
-      paid_amount?: number;
-      paid_amount_usd?: number;
-      is_apartment_swap?: boolean; // Flag to indicate if apartment swap is required
-  },
+    exchangeclientDto: ExchangeclientDto,
     @Res() res: Response,
   ) {
     return this.orderService
@@ -351,26 +345,5 @@ export class OrdersController {
       .catch((error) => {
         return { success: false, message: error.message };
       });
-  }
-
-  @ApiOperation({ summary: 'Swap apartments between two clients' })
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @Post('/swap-apartments')
-  async swapApartments(
-    @Body() swapDto: SwapApartmentsDto,
-    @AuthUser() user: any,
-  ) {
-    return this.orderService
-      .swapApartmentsBetweenClients(swapDto, user)
-      .then((response) => ({
-        success: true,
-        data: response,
-        message: 'Apartments swapped successfully',
-      }))
-      .catch((error) => ({
-        success: false,
-        message: error.message,
-      }));
   }
 }

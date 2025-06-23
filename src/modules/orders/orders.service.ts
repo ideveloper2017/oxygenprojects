@@ -25,12 +25,16 @@ import { ReCreateOrderDto } from './dto/recreate-order.dto';
 import { ReCreateOrderFreeAppDto } from './dto/ReCreateOrderFreeApp.dto';
 import { ExchangeclientDto } from './dto/exchangeclient.dto';
 import { SwapApartmentsDto } from './dto/swap-apartments.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsInt } from 'class-validator';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Orders)
     private readonly ordersRepository: Repository<Orders>,
+    @InjectRepository(Payments)
+    private readonly paymentRepository: Repository<Payments>,
     private readonly paymentService: PaymentsService,
   ) {}
 
@@ -242,340 +246,217 @@ export class OrdersService {
     return updatedOrder;
   }
 
-  async exchangeClient(
-    updateOrderDto: {
-      client_id?: number; // Optional for apartment swap only
-      order_id: number;
-      apartment_id: number; // New apartment ID for swap or same for client transfer
-      total_amount?: number;
-      price?: number;
-      paid_amount?: number;
-      paid_amount_usd?: number;
-      is_apartment_swap?: boolean; // Flag to indicate if apartment swap is required
-    },
-    users: any,
-  ) {
-    console.log(updateOrderDto);
-    const queryRunner =
-      this.ordersRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // Find the existing order with necessary relations
-      const order = await queryRunner.manager.findOne(Orders, {
-        where: {
-          id: updateOrderDto.order_id,
-          order_status: OrderStatus.ACTIVE,
-        },
-        relations: ['payments', 'clients', 'paymentMethods'],
-      });
-
-      if (!order) {
-        throw new HttpException(
-          'Bu shartnoma tugatilgan yoki topilmadi!',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Find the order item and current apartment
-      const orderItem = await queryRunner.manager.findOne(OrderItems, {
-        where: { order_id: updateOrderDto.order_id },
-        relations: ['apartments.floor.entrance.buildings'],
-      });
-
-      if (!orderItem) {
-        throw new HttpException(
-          'Order item not found!',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Handle apartment swap if required
-      const currentApartment = orderItem.apartments;
-      let newApartment = currentApartment;
-
-      if (updateOrderDto.is_apartment_swap) {
-        // Free the current apartment
-        await queryRunner.manager.update(
-          Apartments,
-          { id: currentApartment.id, status: ApartmentStatus.SOLD },
-          { status: ApartmentStatus.FREE },
-        );
-
-        // Find the new apartment
-        newApartment = await queryRunner.manager.findOne(Apartments, {
-          where: {
-            id: updateOrderDto.apartment_id,
-            status: ApartmentStatus.FREE,
-          },
-          relations: ['floor.entrance.buildings'],
-        });
-
-        if (!newApartment) {
-          throw new HttpException(
-            'New apartment not found or not available!',
-            HttpStatus.BAD_REQUEST,
-          );
-        }
-      }
-
-      // Fetch payment method
-      const paymentMethod = await queryRunner.manager.findOne(PaymentMethods, {
-        where: { id: Number(order.payment_method_id) },
-      });
-
-      if (!paymentMethod) {
-        throw new HttpException(
-          'Payment method not found!',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Calculate prices based on payment method
-      let initial_pay,
-        deal_price,
-        kv_price,
-        kv_price_usd,
-        mk_price,
-        mk_price_usd;
-
-      const isDollarBased = ['dollar', 'nasiya_dollar'].includes(
-        paymentMethod.name_alias.toLowerCase(),
-      );
-
-      if (isDollarBased) {
-        deal_price = Math.round(
-          Number(orderItem.price) * Number(order.currency_value),
-        );
-        initial_pay = Math.round(
-          Number(order.initial_pay) * Number(order.currency_value),
-        );
-        kv_price = Math.round(
-          Number(orderItem.price) * Number(order.currency_value),
-        );
-        kv_price_usd = Math.round(Number(orderItem.price));
-        mk_price = Math.round(Number(newApartment.mk_price) || 0);
-        mk_price_usd = Math.round(
-          Number(newApartment.mk_price || 0) / Number(order.currency_value),
-        );
-      } else {
-        deal_price = Math.round(Number(orderItem.price));
-        initial_pay = Math.round(Number(order.initial_pay));
-        kv_price_usd = Math.round(
-          Number(orderItem.price) / Number(order.currency_value),
-        );
-        kv_price = Math.round(Number(orderItem.price));
-        mk_price = Math.round(Number(orderItem.price) || 0);
-        mk_price_usd = Math.round(
-          Number(updateOrderDto.price || 0) / Number(order.currency_value),
-        );
-      }
-
-      const initial_floored = initial_pay;
-      const total = deal_price
-        ? deal_price * newApartment.room_space
-        : orderItem.price * newApartment.room_space;
-      const total_floored = Math.round(
-        orderItem.price * newApartment.room_space,
-      );
-      const total_in_usd = Math.round(total / order.currency_value);
-
-      // Update order
-      const updatedOrder = await queryRunner.manager.update(
-        Orders,
-        { id: updateOrderDto.order_id },
-        {
-          client_id: updateOrderDto.client_id || order.client_id,
-          payment_method_id: paymentMethod.id,
-          order_status:
-            total_floored === initial_floored
-              ? OrderStatus.COMPLETED
-              : OrderStatus.ACTIVE,
-          percent: order.percent,
-          order_date: order.order_date,
-          total_amount: total_floored,
-          total_amount_usd: total_in_usd,
-          initial_pay: initial_floored,
-          initial_month: order.initial_month,
-          currency_value: order.currency_value,
-          user_id: users.userId,
-          contract_number: updateOrderDto.is_apartment_swap
-            ? `${newApartment?.floor?.entrance?.buildings?.name}/${newApartment?.room_number}/Д`
-            : order.contract_number,
-          quantity: 1,
-          delivery_time: order.delivery_time,
-        },
-      );
-
-      // Create or update credit schedule for specific payment methods
-      const isInstallmentBased = [
-        'subsidia',
-        'ipoteka',
-        'nasiya_naqd',
-        'nasiya_dollar',
-      ].includes(paymentMethod.name_alias.toLowerCase());
-
-      if (isInstallmentBased) {
-        const installment_month = order.initial_month;
-        const oneMonthDue = initial_floored
-          ? Math.round(
-              paymentMethod.name_alias.toLowerCase() === 'nasiya_dollar'
-                ? (total_floored - initial_floored) / installment_month
-                : (total_floored - initial_floored > 0
-                    ? total_floored - initial_floored
-                    : total_floored) / installment_month,
-            )
-          : Math.round(total_floored / installment_month);
-
-        console.time('Fetch existing installments');
-        const existingInstallments = await queryRunner.manager.find(
-          CreditTable,
-          {
-            where: { order_id: updateOrderDto.order_id },
-            order: { due_date: 'ASC' },
-          },
-        );
-        console.timeEnd('Fetch existing installments');
-
-        // Batch update existing records
-        console.time('Batch update');
-        const updatePromises: Promise<any>[] = [];
-        for (
-          let i = 0;
-          i < existingInstallments.length && i < installment_month;
-          i++
-        ) {
-          const baseDate = new Date(order.order_date);
-          const dueDate = new Date(
-            baseDate.setMonth(baseDate.getMonth() + i + 1),
-          );
-
-          updatePromises.push(
-            queryRunner.manager.update(
-              CreditTable,
-              { id: existingInstallments[i].id },
-              {
-                order_id: updateOrderDto.order_id,
-                due_amount: oneMonthDue,
-                due_date: dueDate,
-                left_amount: 0,
-                paid_amount: 0,
-                usd_due_amount: Math.round(oneMonthDue / order.currency_value),
-                currency_value: order.currency_value,
-                status: 'waiting',
-              },
-            ),
-          );
-        }
-        await Promise.all(updatePromises);
-        console.timeEnd('Batch update');
-
-        // Create new records if needed
-        const creditSchedule: CreditTable[] = [];
-        for (let i = existingInstallments.length; i < installment_month; i++) {
-          const baseDate = new Date(order.order_date);
-          const dueDate = new Date(
-            baseDate.setMonth(baseDate.getMonth() + i + 1),
-          );
-
-          const installment = new CreditTable();
-          installment.order_id = updateOrderDto.order_id;
-          installment.due_amount = oneMonthDue;
-          installment.due_date = dueDate;
-          installment.left_amount = 0;
-          installment.paid_amount = 0;
-          installment.usd_due_amount = Math.round(
-            oneMonthDue / order.currency_value,
-          );
-          installment.currency_value = order.currency_value;
-          installment.status = 'waiting';
-
-          creditSchedule.push(installment);
-        }
-
-        if (creditSchedule.length > 0) {
-          console.time('Save new installments');
-          await queryRunner.manager.save(CreditTable, creditSchedule);
-          console.timeEnd('Save new installments');
-        }
-
-        if (existingInstallments.length > installment_month) {
-          console.warn(
-            `Found ${
-              existingInstallments.length - installment_month
-            } excess records. Deletion skipped to preserve payment schedules.`,
-          );
-        }
-      }
-
-      // Update or create order item
-      const orderItemData = {
-        order_id: updateOrderDto.order_id,
-        apartments: newApartment,
-        price: kv_price,
-        price_usd: kv_price_usd,
-        final_price: total_floored,
-        mk_price: mk_price,
-        mk_price_usd: mk_price_usd,
-      };
-
-      const existingOrderItem = await queryRunner.manager.findOne(OrderItems, {
-        where: { order_id: updateOrderDto.order_id },
-      });
-
-      if (existingOrderItem) {
-        await queryRunner.manager.update(
-          OrderItems,
-          { order_id: updateOrderDto.order_id },
-          orderItemData,
-        );
-      } else {
-        const newOrderItem = new OrderItems();
-        Object.assign(newOrderItem, orderItemData);
-        await queryRunner.manager.save(newOrderItem);
-      }
-
-      // Update apartment status
-      await queryRunner.manager.update(
-        Apartments,
-        { id: updateOrderDto.apartment_id },
-        { status: ApartmentStatus.SOLD },
-      );
-
-      // Update booking status
-      const inBooking = await queryRunner.manager.findOne(Booking, {
-        where: { apartment_id: newApartment.id },
-      });
-
-      if (inBooking) {
-        await queryRunner.manager.update(
-          Booking,
-          { id: inBooking.id },
-          { bron_is_active: false },
-        );
-      }
-
-      // Process installment payment
-      await this.payForInstallment({
-        order_id: updateOrderDto.order_id,
-        currency_value: order.currency_value,
-        amount: Math.round(Number(order.total_amount - order.initial_pay)),
-        paymentmethods: Paymentmethods.CASH,
-      });
-
-      await queryRunner.commitTransaction();
-      return updatedOrder;
-    } catch (error) {
-      console.error('Transaction failed:', error);
-      await queryRunner.rollbackTransaction();
-      throw new HttpException(
-        `Transaction failed: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
+  async exchangeClient(updateOrderDto: ExchangeclientDto, users: any) {
+    const order = await this.ordersRepository.findOne({
+      where: {
+        id: updateOrderDto.order_id,
+        client_id: updateOrderDto.client_id,
+      },
+      relations: [
+        'orderItems.apartments',
+        'payments',
+        'clients',
+        'paymentMethods',
+      ],
+    });
+    if (!order) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
     }
+    const newOrder = await this.ordersRepository.findOne({
+      where: {
+        id: updateOrderDto.new_order_id,
+        client_id: updateOrderDto.new_client_id,
+      },
+      relations: [
+        'orderItems.apartments',
+        'payments',
+        'clients',
+        'paymentMethods',
+      ],
+    });
+
+    const apartment = await Apartments.findOne({
+      where: { id: order.orderItems?.[0].apartment_id },
+    });
+
+    const newapartment = await Apartments.findOne({
+      where: { id: newOrder.orderItems?.[0].apartment_id },
+    });
+
+    const price = order.orderItems?.[0].price || 0;
+    const room_space = order.orderItems?.[0].apartments?.room_space || 0;
+    const summa_in =
+      order?.payments
+        ?.filter((payment) => payment.caisher_type === 'in')
+        ?.reduce(
+          (acc, payment) => acc + Math.round(Number(payment.amount)),
+          0,
+        ) || 0;
+    const summa_out =
+      order?.payments
+        ?.filter((payment) => payment.caisher_type === 'out')
+        ?.reduce(
+          (acc, payment) => acc + Math.round(Number(payment.amount)),
+          0,
+        ) || 0;
+    const new_price = newOrder.orderItems?.[0].price || 0;
+    const new_room_space = newOrder.orderItems?.[0].apartments?.room_space || 0;
+    const new_paid_summa =
+      newOrder?.payments
+        ?.filter((payment) => payment.caisher_type === 'in')
+        ?.reduce(
+          (acc, payment) => acc + Math.round(Number(payment.amount)),
+          0,
+        ) || 0;
+
+    Orders.update(
+      { id: updateOrderDto.order_id },
+      {
+        total_amount: new_room_space * new_price,
+        client_id: newOrder.clients?.id,
+        payment_method_id: newOrder.paymentMethods?.id,
+      },
+    );
+    Orders.update(
+      { id: updateOrderDto.new_order_id },
+      {
+        total_amount: room_space * price,
+        client_id: order.clients?.id,
+        payment_method_id: order.paymentMethods?.id,
+      },
+    );
+
+    // OrderItems.update(
+    //   { order_id: updateOrderDto.order_id },
+    //   {
+    //     price: new_price,
+    //     apartment_id: newapartment.id,
+    //   },
+    // );
+    //
+    // OrderItems.update(
+    //   { order_id: updateOrderDto.new_order_id },
+    //   { price: price, apartment_id: apartment.id },
+    // );
+
+    const orderItem = await OrderItems.findOne({
+      where: { order_id: updateOrderDto.order_id },
+    });
+    const newOrderItem = await OrderItems.findOne({
+      where: { order_id: updateOrderDto.new_order_id },
+    });
+
+    const changeOrder = await Orders.findOne({
+      where: {
+        id: updateOrderDto.order_id,
+        client_id: updateOrderDto.new_client_id,
+      },
+    });
+
+    const newchangeOrder = await Orders.findOne({
+      where: {
+        id: updateOrderDto.new_order_id,
+        client_id: updateOrderDto.client_id,
+      },
+    });
+
+    await OrderItems.update(
+      { id: orderItem.id },
+      {
+        price: new_price,
+        apartment_id: newapartment?.id,
+        order_id: newchangeOrder.id,
+      },
+    );
+
+    await OrderItems.update(
+      { id: newOrderItem.id },
+      {
+        price: price,
+        apartment_id: apartment?.id,
+        order_id: changeOrder.id,
+      },
+    );
+
+    for (const payment of order.payments) {
+      const newPayment = this.paymentRepository.create({
+        ...payment,
+        order_id: updateOrderDto.new_order_id,
+        created_at: new Date(),
+      });
+      await this.paymentRepository.save(newPayment);
+    }
+
+    // Endi newOrder dagi paymentlar eski orderga ko'chiriladi
+    for (const payment of newOrder.payments) {
+      const newPayment = this.paymentRepository.create({
+        ...payment,
+        order_id: updateOrderDto.order_id,
+        created_at: new Date(),
+      });
+      await this.paymentRepository.save(newPayment);
+    }
+
+    console.log(
+      { id: newOrderItem.id },
+      {
+        price: price,
+        apartment_id: apartment?.id,
+        order_id: updateOrderDto.order_id,
+      },
+      { id: orderItem.id },
+      {
+        price: new_price,
+        apartment_id: newapartment?.id,
+        order_id: updateOrderDto.new_order_id,
+      },
+    );
+
+    const orderDto = {
+      order_id: updateOrderDto.order_id,
+      client_id: newOrder.clients?.id,
+      currency_value: newOrder.currency_value,
+      total_amount: newOrder.total_amount,
+      price: newOrder?.orderItems?.[0]?.price,
+      paid_amount: new_paid_summa,
+      paid_amount_usd: Math.round(new_paid_summa / newOrder.currency_value),
+      initial_pay: newOrder.initial_pay,
+      initial_month: newOrder.initial_month,
+      order_date: newOrder.order_date,
+      installment_month: newOrder.initial_month,
+    };
+    await this.reCreateOrder(orderDto, users);
+
+    const orderDto2 = {
+      order_id: updateOrderDto.new_order_id,
+      client_id: order.clients?.id,
+      currency_value: order.currency_value,
+      total_amount: order.total_amount,
+      price: order?.orderItems?.[0]?.price,
+      paid_amount: new_paid_summa,
+      paid_amount_usd: Math.round(summa_in / order.currency_value),
+      initial_pay: order.initial_pay,
+      initial_month: order.initial_month,
+      order_date: order.order_date,
+      installment_month: order.initial_month,
+    };
+    await this.reCreateOrder(orderDto2, users);
+
+    // await this.exchangeClientToClient(
+    //   {
+    //     order_id: updateOrderDto.new_order_id,
+    //   },
+    //   users,
+    // );
+    //
+    // await this.exchangeClientToClient(
+    //   {
+    //     order_id: updateOrderDto.order_id,
+    //   },
+    //   users,
+    // );
+
+    return updateOrderDto;
   }
 
   /**
@@ -583,205 +464,10 @@ export class OrdersService {
    * @param swapDto Swap details including order IDs and new apartment IDs
    * @param users Current user performing the action
    */
-  async swapApartmentsBetweenClients(swapDto: SwapApartmentsDto, users: any) {
-    const queryRunner =
-      this.ordersRepository.manager.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      // Fetch both orders with their relations
-      const [firstOrder, secondOrder] = await Promise.all([
-        queryRunner.manager.findOne(Orders, {
-          where: { id: swapDto.firstOrderId, order_status: OrderStatus.ACTIVE },
-          relations: ['orderItems', 'payments', 'clients', 'paymentMethods'],
-        }),
-        queryRunner.manager.findOne(Orders, {
-          where: {
-            id: swapDto.secondOrderId,
-            order_status: OrderStatus.ACTIVE,
-          },
-          relations: ['orderItems', 'payments', 'clients', 'paymentMethods'],
-        }),
-      ]);
-
-      if (!firstOrder || !secondOrder) {
-        throw new HttpException(
-          'One or both orders not found or not active',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Fetch order items with apartment relations
-      const [firstOrderItem, secondOrderItem] = await Promise.all([
-        queryRunner.manager.findOne(OrderItems, {
-          where: { order_id: swapDto.firstOrderId },
-          relations: ['apartments'],
-        }),
-        queryRunner.manager.findOne(OrderItems, {
-          where: { order_id: swapDto.secondOrderId },
-          relations: ['apartments'],
-        }),
-      ]);
-
-      if (!firstOrderItem || !secondOrderItem) {
-        throw new HttpException(
-          'One or both order items not found',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Fetch new apartments
-      const [firstNewApartment, secondNewApartment] = await Promise.all([
-        queryRunner.manager.findOne(Apartments, {
-          where: {
-            id: swapDto.firstClientNewApartmentId,
-            status: ApartmentStatus.SOLD,
-          },
-        }),
-        queryRunner.manager.findOne(Apartments, {
-          where: {
-            id: swapDto.secondClientNewApartmentId,
-            status: ApartmentStatus.SOLD,
-          },
-        }),
-      ]);
-
-      if (!firstNewApartment || !secondNewApartment) {
-        throw new HttpException(
-          'One or both new apartments not found or not sold',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Calculate price differences if needed
-      let firstOrderPriceUpdate = {};
-      let secondOrderPriceUpdate = {};
-
-      if (swapDto.recalculatePayments) {
-        // Calculate price differences based on square meter prices and room space
-        const firstOrderNewPrice =
-          (firstNewApartment.room_space * firstOrderItem.price) /
-          firstOrderItem.apartments.room_space;
-        const secondOrderNewPrice =
-          (secondNewApartment.room_space * secondOrderItem.price) /
-          secondOrderItem.apartments.room_space;
-
-        firstOrderPriceUpdate = {
-          price: firstOrderNewPrice,
-          price_usd: firstOrderNewPrice / firstOrder.currency_value,
-          final_price:
-            firstOrderNewPrice * firstOrderItem.apartments.room_space,
-        };
-
-        secondOrderPriceUpdate = {
-          price: secondOrderNewPrice,
-          price_usd: secondOrderNewPrice / secondOrder.currency_value,
-          final_price:
-            secondOrderNewPrice * secondOrderItem.apartments.room_space,
-        };
-      }
-
-      // Update first order's apartment
-      await queryRunner.manager.update(
-        OrderItems,
-        { order_id: swapDto.firstOrderId },
-        {
-          apartment_id: swapDto.firstClientNewApartmentId,
-          ...firstOrderPriceUpdate,
-        },
-      );
-
-      // Update second order's apartment
-      await queryRunner.manager.update(
-        OrderItems,
-        { order_id: swapDto.secondOrderId },
-        {
-          apartment_id: swapDto.secondClientNewApartmentId,
-          ...secondOrderPriceUpdate,
-        },
-      );
-
-      // Update apartment statuses
-      await Promise.all([
-        queryRunner.manager.update(
-          Apartments,
-          { id: firstOrderItem.apartment_id },
-          { status: ApartmentStatus.SOLD },
-        ),
-        queryRunner.manager.update(
-          Apartments,
-          { id: secondOrderItem.apartment_id },
-          { status: ApartmentStatus.SOLD },
-        ),
-        queryRunner.manager.update(
-          Apartments,
-          { id: swapDto.firstClientNewApartmentId },
-          { status: ApartmentStatus.SOLD },
-        ),
-        queryRunner.manager.update(
-          Apartments,
-          { id: swapDto.secondClientNewApartmentId },
-          { status: ApartmentStatus.SOLD },
-        ),
-      ]);
-
-      // Update contract numbers if they include apartment info
-      await Promise.all([
-        queryRunner.manager.update(
-          Orders,
-          { id: swapDto.firstOrderId },
-          {
-            contract_number: `${
-              firstNewApartment.floor?.entrance?.buildings?.name || ''
-            }/${firstNewApartment.room_number}/Д`,
-            user_id: users.userId,
-          },
-        ),
-        queryRunner.manager.update(
-          Orders,
-          { id: swapDto.secondOrderId },
-          {
-            contract_number: `${
-              secondNewApartment.floor?.entrance?.buildings?.name || ''
-            }/${secondNewApartment.room_number}/Д`,
-            user_id: users.userId,
-          },
-        ),
-      ]);
-
-      await queryRunner.commitTransaction();
-
-      return {
-        success: true,
-        message: 'Apartments swapped successfully',
-        data: {
-          firstOrderId: swapDto.firstOrderId,
-          secondOrderId: swapDto.secondOrderId,
-          firstClientNewApartmentId: swapDto.firstClientNewApartmentId,
-          secondClientNewApartmentId: swapDto.secondClientNewApartmentId,
-        },
-      };
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw new HttpException(
-        `Failed to swap apartments: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    } finally {
-      await queryRunner.release();
-    }
-  }
 
   async exchangeClientToClient(
     updateOrderDto: {
-      client_id: number;
       order_id: number;
-      apparment_id: number;
-      total_amount?: number;
-      price?: number;
-      paid_amount?: number;
-      paid_amount_usd?: number;
     },
     users: any,
   ) {
@@ -859,7 +545,7 @@ export class OrdersService {
         kv_price = Math.round(Number(orderItem.price));
         mk_price = Math.round(Number(orderItem.price) || 0);
         mk_price_usd = Math.round(
-          Number(updateOrderDto.price || 0) / Number(order.currency_value),
+          Number(orderItem.price || 0) / Number(order.currency_value),
         );
       }
       const initial_floored = initial_pay;
@@ -874,7 +560,7 @@ export class OrdersService {
       const updatedOrder = await this.ordersRepository.update(
         { id: updateOrderDto.order_id },
         {
-          client_id: updateOrderDto.client_id,
+          client_id: order.client_id,
           payment_method_id: payment_method.id,
           order_status:
             total_floored === initial_floored
@@ -1022,7 +708,7 @@ export class OrdersService {
 
       // Update apartment status
       await Apartments.update(
-        { id: updateOrderDto.apparment_id },
+        { id: apartment.id },
         { status: ApartmentStatus.SOLD },
       );
 
