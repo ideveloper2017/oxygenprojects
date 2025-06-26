@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { OrdersService } from '../orders/orders.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Orders } from '../orders/entities/order.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { OrderStatus } from '../../common/enums/order-status';
 import { Payments } from '../payments/entities/payment.entity';
 import { Caishertype } from '../../common/enums/caishertype';
@@ -13,6 +13,8 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
+import { groupBy } from 'rxjs';
+import { Clients } from '../clients/entities/client.entity';
 
 interface PaymentMethodReport {
   paymentMethodId: number;
@@ -1962,56 +1964,40 @@ export class ReportService {
         'buildings.id = entrance.building_id',
       )
       .innerJoin('buildings.towns', 'towns', 'towns.id = buildings.town_id')
-      .leftJoin(
-        'orders.payments',
-        'payments',
-        'payments.order_id = orders.id AND payments.caisher_type = :cash',
-        {
-          cash: Caishertype.IN,
-        },
-      )
       .select([
-        'apartments.id AS apartment_id',
-        'apartments.room_number AS room_number',
-        'apartments.room_space AS room_space',
-        'floor.floor_number AS floor_number',
         'buildings.id AS building_id',
         'buildings.name AS building_name',
         'towns.id AS town_id',
         'towns.name AS town_name',
-        'MIN(clients.id) AS client_id', // Aggregate to avoid duplicates
-        'MIN(clients.first_name) AS client_first_name',
-        'MIN(clients.last_name) AS client_last_name',
-        'MIN(clients.middle_name) AS client_middle_name',
-        'MIN(clients.contact_number) AS client_contact_number',
-        "MIN(TO_CHAR(payments.payment_date, 'MM-YYYY')) AS payment_date", // Aggregate to avoid duplicates
-        `COALESCE(SUM(CASE WHEN payments.paymentMethods IN (:...cashMethods) THEN payments.amount ELSE 0 END), 0) AS payments_cash`,
-        `COALESCE(SUM(CASE WHEN payments.paymentMethods IN (:...cashMethods) THEN payments.amount_usd ELSE 0 END), 0) AS payments_cash_usd`,
-        `COALESCE(SUM(CASE WHEN payments.paymentMethods = :bankMethod THEN payments.amount ELSE 0 END), 0) AS payments_bank`,
-        `COALESCE(SUM(CASE WHEN payments.paymentMethods = :bankMethod THEN payments.amount_usd ELSE 0 END), 0) AS payments_bank_usd`,
       ])
       .where('orders.order_status = :orderStatus', {
         orderStatus: OrderStatus.REFUNDED,
       })
-      .setParameters({
-        cashMethods: [
-          Paymentmethods.CASH,
-          Paymentmethods.CARD,
-          Paymentmethods.USD,
-        ],
-        bankMethod: Paymentmethods.BANK,
-        cash: Caishertype.IN,
-      })
-      .groupBy('apartments.id')
-      .addGroupBy('floor.id')
-      .addGroupBy('buildings.id')
+      .groupBy('buildings.id')
       .addGroupBy('towns.id')
       .orderBy('buildings.name', 'ASC') // Sort by building name
-      .addOrderBy('floor.floor_number', 'ASC') // Then by floor number
-      .addOrderBy('apartments.room_number', 'ASC') // Then by room number
       .getRawMany();
 
-    return result;
+    const data = await Promise.all(
+      result.map(async (item) => {
+        const orders = await this.orderRepo.manager
+          .createQueryBuilder(Orders, 'orders')
+          .leftJoinAndSelect('orders.clients', 'clients')
+          .leftJoinAndSelect('orders.orderItems', 'orderItems')
+          .leftJoinAndSelect('orderItems.apartments', 'apartments')
+          .leftJoinAndSelect('apartments.floor', 'floor')
+          .leftJoinAndSelect('floor.entrance', 'entrance')
+          .leftJoinAndSelect('entrance.buildings', 'buildings')
+          .where('buildings.id = :clientId', { clientId: item.building_id })
+          .getOne();
+        item['orders'] = orders;
+       return {
+          ...item,
+        };
+      }),
+    );
+
+    return data;
   }
 
   async getApartment(building_id: number) {
