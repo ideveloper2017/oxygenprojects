@@ -17,10 +17,10 @@ export class FileUploadService {
     const file = await this.localFilesRepository.findOne({
       where: { id: fileId },
     });
-    if (!file) {
-      throw new NotFoundException('Image not found');
-    }
-    return file;
+    // if (!file) {
+    //   throw new NotFoundException('Image not found');
+    // }
+      return file ?? null; // Fayl topilmasa, null qaytaradi
   }
 
   async saveLocalFileData(fileDto: FileDto) {

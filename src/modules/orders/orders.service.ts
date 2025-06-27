@@ -312,71 +312,95 @@ export class OrdersService {
     Orders.update(
       { id: updateOrderDto.order_id },
       {
+        user_id: users.userId,
         total_amount: new_room_space * new_price,
+        total_amount_usd: Math.round(
+          (new_price * new_room_space) / newOrder.currency_value,
+        ),
         client_id: newOrder.clients?.id,
         payment_method_id: newOrder.paymentMethods?.id,
+        percent: newOrder.percent,
+        delivery_time: newOrder.delivery_time,
+        quantity: newOrder.quantity,
+        initial_pay: newOrder.initial_pay,
+        initial_month: newOrder.initial_month,
+        currency_value: newOrder.currency_value,
+        order_date: newOrder.order_date,
+        contract_number: newOrder.contract_number,
       },
     );
     Orders.update(
       { id: updateOrderDto.new_order_id },
       {
+        user_id: users.userId,
         total_amount: room_space * price,
+        total_amount_usd: Math.round(
+          (room_space * price) / order.currency_value,
+        ),
         client_id: order.clients?.id,
         payment_method_id: order.paymentMethods?.id,
+        percent: order.percent || 0,
+        delivery_time: order.delivery_time,
+        quantity: order.quantity,
+        initial_pay: order.initial_pay,
+        initial_month: order.initial_month,
+        currency_value: order.currency_value,
+        order_date: order.order_date,
+        contract_number: order.contract_number,
       },
     );
 
-    // OrderItems.update(
-    //   { order_id: updateOrderDto.order_id },
+    OrderItems.update(
+      { order_id: updateOrderDto.order_id },
+      {
+        price: new_price,
+        apartment_id: newapartment.id,
+      },
+    );
+
+    OrderItems.update(
+      { order_id: updateOrderDto.new_order_id },
+      { price: price, apartment_id: apartment.id },
+    );
+
+    // const orderItem = await OrderItems.findOne({
+    //   where: { order_id: updateOrderDto.order_id },
+    // });
+    // const newOrderItem = await OrderItems.findOne({
+    //   where: { order_id: updateOrderDto.new_order_id },
+    // });
+    //
+    // const changeOrder = await Orders.findOne({
+    //   where: {
+    //     id: updateOrderDto.order_id,
+    //     client_id: updateOrderDto.new_client_id,
+    //   },
+    // });
+    //
+    // const newchangeOrder = await Orders.findOne({
+    //   where: {
+    //     id: updateOrderDto.new_order_id,
+    //     client_id: updateOrderDto.client_id,
+    //   },
+    // });
+    //
+    // await OrderItems.update(
+    //   { id: orderItem.id },
     //   {
     //     price: new_price,
-    //     apartment_id: newapartment.id,
+    //     apartment_id: newapartment?.id,
+    //     order_id: newchangeOrder.id,
     //   },
     // );
     //
-    // OrderItems.update(
-    //   { order_id: updateOrderDto.new_order_id },
-    //   { price: price, apartment_id: apartment.id },
+    // await OrderItems.update(
+    //   { id: newOrderItem.id },
+    //   {
+    //     price: price,
+    //     apartment_id: apartment?.id,
+    //     order_id: changeOrder.id,
+    //   },
     // );
-
-    const orderItem = await OrderItems.findOne({
-      where: { order_id: updateOrderDto.order_id },
-    });
-    const newOrderItem = await OrderItems.findOne({
-      where: { order_id: updateOrderDto.new_order_id },
-    });
-
-    const changeOrder = await Orders.findOne({
-      where: {
-        id: updateOrderDto.order_id,
-        client_id: updateOrderDto.new_client_id,
-      },
-    });
-
-    const newchangeOrder = await Orders.findOne({
-      where: {
-        id: updateOrderDto.new_order_id,
-        client_id: updateOrderDto.client_id,
-      },
-    });
-
-    await OrderItems.update(
-      { id: orderItem.id },
-      {
-        price: new_price,
-        apartment_id: newapartment?.id,
-        order_id: newchangeOrder.id,
-      },
-    );
-
-    await OrderItems.update(
-      { id: newOrderItem.id },
-      {
-        price: price,
-        apartment_id: apartment?.id,
-        order_id: changeOrder.id,
-      },
-    );
 
     for (const payment of order.payments) {
       const newPayment = this.paymentRepository.create({
@@ -396,21 +420,21 @@ export class OrdersService {
       });
       await this.paymentRepository.save(newPayment);
     }
-
-    console.log(
-      { id: newOrderItem.id },
-      {
-        price: price,
-        apartment_id: apartment?.id,
-        order_id: updateOrderDto.order_id,
-      },
-      { id: orderItem.id },
-      {
-        price: new_price,
-        apartment_id: newapartment?.id,
-        order_id: updateOrderDto.new_order_id,
-      },
-    );
+    //
+    // console.log(
+    //   { id: newOrderItem.id },
+    //   {
+    //     price: price,
+    //     apartment_id: apartment?.id,
+    //     order_id: updateOrderDto.order_id,
+    //   },
+    //   { id: orderItem.id },
+    //   {
+    //     price: new_price,
+    //     apartment_id: newapartment?.id,
+    //     order_id: updateOrderDto.new_order_id,
+    //   },
+    // );
 
     const orderDto = {
       order_id: updateOrderDto.order_id,
@@ -1725,9 +1749,10 @@ export class OrdersService {
       .createQueryBuilder('order')
       .leftJoinAndSelect('order.orderItems', 'orderItems')
       .leftJoinAndSelect('orderItems.apartments', 'apartment')
-      // .leftJoinAndSelect('apartment.floor', 'floor')
-      // .leftJoinAndSelect('floor.entrance', 'entrance')
-      // .leftJoinAndSelect('entrance.towns', 'towns')
+      .leftJoinAndSelect('apartment.floor', 'floor')
+      .leftJoinAndSelect('floor.entrance', 'entrance')
+      .leftJoinAndSelect('entrance.buildings', 'buildings')
+      .leftJoinAndSelect('buildings.towns', 'towns')
       .leftJoinAndSelect('order.clients', 'clients')
       .leftJoinAndSelect('order.paymentMethods', 'paymentMethod')
       .leftJoinAndSelect('order.payments', 'payment')
