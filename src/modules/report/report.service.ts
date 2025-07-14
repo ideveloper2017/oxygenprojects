@@ -17,8 +17,9 @@ import { groupBy } from 'rxjs';
 import { Clients } from '../clients/entities/client.entity';
 
 interface PaymentMethodReport {
-  paymentMethodId: number;
-  paymentMethodName: string;
+  buildingId: number;
+  buildingName: string;
+  paymentMethod: string;
   orderCount: number;
   totalAmount: number;
   averageOrderAmount: number;
@@ -2615,48 +2616,105 @@ export class ReportService {
     message: string;
   }> {
     try {
-      // Query to group orders by payment method and calculate metrics
       const report = await this.orderRepo
-        .createQueryBuilder('order')
-        .select('order.payment_method_id', 'paymentMethodId')
-        .addSelect('paymentMethod.name', 'paymentMethodName')
-        .addSelect('COUNT(order.id)', 'orderCount')
-        .addSelect('SUM(order.total_amount)', 'totalAmount')
-        .addSelect('AVG(order.total_amount)', 'averageOrderAmount')
-        .addSelect(
-          'SUM(CASE WHEN order.order_status = :activeStatus THEN 1 ELSE 0 END)',
-          'activeOrderCount',
-        )
-        .leftJoin('order.paymentMethods', 'paymentMethod')
-        .where('order.is_deleted = :isDeleted', { isDeleted: false })
-        .groupBy('order.payment_method_id, paymentMethod.name')
-        .setParameter('activeStatus', OrderStatus.ACTIVE)
+        .createQueryBuilder('orders')
+        .select('building.id', 'buildingId')
+        .addSelect('building.name', 'buildingName')
+        // .addSelect('paymentMethod.name', 'paymentMethod') // Assuming payment_method is a string field
+        .addSelect('paymentMethod.name', 'payment_method') // Assuming payment_method is a string field
+        .addSelect('COUNT(orders.id)', 'orderCount')
+        .addSelect('SUM(orders.total_amount)', 'totalAmount')
+        .addSelect('town.name', 'townName')
+        .leftJoin('orders.orderItems', 'orderItems')
+        .leftJoin('orderItems.apartments', 'apartments')
+        .leftJoin('apartments.floor', 'floor')
+        .leftJoin('floor.entrance', 'entrance')
+        .leftJoin('entrance.buildings', 'building')
+        .leftJoin('building.towns', 'town')
+        .leftJoin('orders.payments', 'payment') // Assuming orders has a relation to a payment table
+        .leftJoin('orders.paymentMethods', 'paymentMethod')
+        .where('orders.is_deleted = :isDeleted', { isDeleted: false })
+        .groupBy('building.id,building.name, paymentMethod.name,town.name') // Group by payment method as well
+        .orderBy('building.name', 'ASC')
         .getRawMany();
 
-      // Format the report data
+
+      console.log(report);
       const formattedReport: PaymentMethodReport[] = report.map((item) => ({
-        paymentMethodId: item.paymentMethodId,
-        paymentMethodName: item.paymentMethodName || 'Unknown',
+        buildingId: item.buildingId,
+        buildingName: `${item.townName} ${item.buildingName}` || 'Unknown',
+        paymentMethod: item.payment_method || 'Unknown', // Handle null payment methods
         orderCount: Math.round(parseInt(item.orderCount, 10)),
         totalAmount: Math.round(parseFloat(item.totalAmount) || 0),
-        averageOrderAmount: Math.round(parseInt(item.averageOrderAmount) || 0),
+        averageOrderAmount: 0, // Fixed: Include actual average
         activeOrderCount: Math.round(parseInt(item.activeOrderCount, 10)),
       }));
 
       return {
         success: true,
         data: formattedReport,
-        message: 'Orders by payment method report generated successfully',
+        message: 'Orders by building and payment method report generated successfully',
       };
     } catch (error) {
       throw new HttpException(
         {
           success: false,
-          message: 'Failed to generate payment method report',
+          message: 'Failed to generate building report',
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
+
+  // async getOrdersByPaymentMethodReport(): Promise<{
+  //   success: boolean;
+  //   data: PaymentMethodReport[];
+  //   message: string;
+  // }> {
+  //   try {
+  //     // Query to group orders by payment method and calculate metrics
+  //     const report = await this.orderRepo
+  //       .createQueryBuilder('order')
+  //       .select('order.payment_method_id', 'paymentMethodId')
+  //       .addSelect('paymentMethod.name', 'paymentMethodName')
+  //       .addSelect('COUNT(order.id)', 'orderCount')
+  //       .addSelect('SUM(order.total_amount)', 'totalAmount')
+  //       .addSelect('AVG(order.total_amount)', 'averageOrderAmount')
+  //       .addSelect(
+  //         'SUM(CASE WHEN order.order_status = :activeStatus THEN 1 ELSE 0 END)',
+  //         'activeOrderCount',
+  //       )
+  //       .leftJoin('order.paymentMethods', 'paymentMethod')
+  //       .where('order.is_deleted = :isDeleted', { isDeleted: false })
+  //       .groupBy('order.payment_method_id, paymentMethod.name')
+  //       .setParameter('activeStatus', OrderStatus.ACTIVE)
+  //       .getRawMany();
+  //
+  //     // Format the report data
+  //     const formattedReport: PaymentMethodReport[] = report.map((item) => ({
+  //       paymentMethodId: item.paymentMethodId,
+  //       paymentMethodName: item.paymentMethodName || 'Unknown',
+  //       orderCount: Math.round(parseInt(item.orderCount, 10)),
+  //       totalAmount: Math.round(parseFloat(item.totalAmount) || 0),
+  //       averageOrderAmount: Math.round(parseInt(item.averageOrderAmount) || 0),
+  //       activeOrderCount: Math.round(parseInt(item.activeOrderCount, 10)),
+  //     }));
+  //
+  //     return {
+  //       success: true,
+  //       data: formattedReport,
+  //       message: 'Orders by payment method report generated successfully',
+  //     };
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       {
+  //         success: false,
+  //         message: 'Failed to generate payment method report',
+  //         error: error.message,
+  //       },
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
 }

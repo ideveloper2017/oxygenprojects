@@ -5,8 +5,9 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import * as moment from 'moment';
 
 interface PaymentMethodReport {
-  paymentMethodId: number;
-  paymentMethodName: string;
+  buildingId: number;
+  buildingName: string;
+  paymentMethod: string;
   orderCount: number;
   totalAmount: number;
   averageOrderAmount: number;
