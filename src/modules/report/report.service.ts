@@ -13,8 +13,6 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
-import { groupBy } from 'rxjs';
-import { Clients } from '../clients/entities/client.entity';
 
 interface PaymentMethodReport {
   buildingId: number;
@@ -274,6 +272,7 @@ export class ReportService {
         inType: Caishertype.IN,
         outType: Caishertype.OUT,
       })
+      .orderBy('payment_date', 'ASC')
       .getRawMany();
 
     return results.map((item) => ({
@@ -1814,191 +1813,107 @@ export class ReportService {
     }
   }
 
-  // res = await this.orderRepo.manager
-  //   .createQueryBuilder(Orders, 'orders')
-  //   .leftJoinAndSelect(
-  //     'orders.clients',
-  //     'clients',
-  //     'clients.id=orders.client_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'orders.orderItems',
-  //     'orderitems',
-  //     'orderitems.order_id=orders.id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'orderitems.apartments',
-  //     'apartments',
-  //     'apartments.id=orderitems.apartment_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'apartments.floor',
-  //     'floor',
-  //     'floor.id=apartments.floor_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'floor.entrance',
-  //     'entrance',
-  //     'entrance.id=floor.entrance_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'entrance.buildings',
-  //     'buildings',
-  //     'buildings.id=entrance.building_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'buildings.towns',
-  //     'towns',
-  //     'towns.id=buildings.town_id',
-  //   )
-  //   .select([
-  //     'orders.id as order_id',
-  //     'buildings.id as build_id',
-  //     'towns.name as townname',
-  //     'buildings.name as buildingname',
-  //     'apartments.room_space as room_space',
-  //     'orderitems.price as mk_price',
-  //     "TO_CHAR(orders.order_date,'DD.MM.YYYY') as order_date",
-  //   ])
-  //   .where('orders.order_status IN(:...orderStatus)', {
-  //     orderStatus: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
-  //   })
-  //   // .groupBy('towns.id')
-  //   // .groupBy('buildings.id')
-  //   // .addGroupBy("TO_CHAR(orders.order_date,'DD.MM.YYYY')")
-  //   .orderBy('buildings.id', 'ASC')
-  //   .addOrderBy('order_date', 'DESC')
-  //   .getRawMany();
-  //
-  // const { sum } = await this.orderRepo.manager
-  //   .getRepository(Apartments)
-  //   .createQueryBuilder('apartments')
-  //   .leftJoinAndSelect(
-  //     'apartments.floor',
-  //     'floor',
-  //     'floor.id=apartments.floor_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'floor.entrance',
-  //     'entrance',
-  //     'entrance.id=floor.entrance_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'entrance.buildings',
-  //     'buildings',
-  //     'buildings.id=entrance.building_id',
-  //   )
-  //   .leftJoinAndSelect(
-  //     'buildings.towns',
-  //     'towns',
-  //     'towns.id=buildings.town_id',
-  //   )
-  //   .select('SUM(apartments.room_space)', 'sum')
-  //   // .where('buildings.id = :id', { id: data.build_id })
-  //   .getRawOne();
-  //
-  // result = await Promise.all(
-  //   res.map(async (data) => {
-  //     let summa, summabank, initial_sum, return_sum;
-  //
-  //     summa = await this.allSaleSummaryPayment(
-  //       data.build_id,
-  //       Paymentmethods.CASH,
-  //       data.order_id,
-  //     ).then((data) => {
-  //       return data;
-  //     });
-  //     summabank = await this.allSaleSummaryPayment(
-  //       data.build_id,
-  //       Paymentmethods.BANK,
-  //       data.order_id,
-  //     ).then((data) => {
-  //       return data;
-  //     });
-  //   data['data_month'] = [
-  //       {
-  //         total_sum_cahs: Number(summa.total_sum),
-  //         total_sum_bank: Number(summabank.total_sum),
-  //         total_sum_due:
-  //           Number(summa.total_sum) + Number(summabank.total_sum),
-  //       },
-  //     ];
-  //     return data;
-  //   }),
-  // );
-  //
-  // if (result) {
-  //   return {
-  //     success: true,
-  //     data: result,
-  //     all_room_space: sum,
-  //     message: 'fetch all data!!!',
-  //   };
-  // } else {
-  //   return { success: true, message: 'not record data!!!' };
-  // }
-  // }
-
   async returnReport() {
-    const result = await this.orderRepo.manager
-      .createQueryBuilder(Orders, 'orders')
-      .innerJoin('orders.clients', 'clients', 'clients.id = orders.client_id')
-      .innerJoin(
-        'orders.orderItems',
-        'orderitems',
-        'orderitems.order_id = orders.id',
-      )
-      .innerJoin(
-        'orderitems.apartments',
-        'apartments',
-        'apartments.id = orderitems.apartment_id',
-      )
-      .innerJoin('apartments.floor', 'floor', 'floor.id = apartments.floor_id')
-      .innerJoin(
-        'floor.entrance',
-        'entrance',
-        'entrance.id = floor.entrance_id',
-      )
-      .innerJoin(
-        'entrance.buildings',
-        'buildings',
-        'buildings.id = entrance.building_id',
-      )
-      .innerJoin('buildings.towns', 'towns', 'towns.id = buildings.town_id')
-      .select([
-        'buildings.id AS building_id',
-        'buildings.name AS building_name',
-        'towns.id AS town_id',
-        'towns.name AS town_name',
-      ])
-      .where('orders.order_status = :orderStatus', {
-        orderStatus: OrderStatus.REFUNDED,
-      })
-      .groupBy('buildings.id')
-      .addGroupBy('towns.id')
-      .orderBy('buildings.name', 'ASC') // Sort by building name
-      .getRawMany();
+    let cancelledOrders;
+    cancelledOrders = await this.orderRepo.find({
+      where: {
+        order_status: In([OrderStatus.INACTIVE, OrderStatus.REFUNDED]),
+        payments: { caisher_type: Caishertype.OUT },
+      },
+      order: { order_status: 'ASC', updated_at: 'DESC' },
+      relations: [
+        'clients',
+        'payments',
+        'users',
+        'paymentMethods',
+        'orderItems.apartments',
+        'orderItems.apartments.floor',
+        'orderItems.apartments.floor.entrance',
+        'orderItems.apartments.floor.entrance.buildings',
+        'orderItems.apartments.floor.entrance.buildings.towns',
+      ],
+    });
 
-    const data = await Promise.all(
-      result.map(async (item) => {
-        const orders = await this.orderRepo.manager
-          .createQueryBuilder(Orders, 'orders')
-          .leftJoinAndSelect('orders.clients', 'clients')
-          .leftJoinAndSelect('orders.orderItems', 'orderItems')
-          .leftJoinAndSelect('orderItems.apartments', 'apartments')
-          .leftJoinAndSelect('apartments.floor', 'floor')
-          .leftJoinAndSelect('floor.entrance', 'entrance')
-          .leftJoinAndSelect('entrance.buildings', 'buildings')
-          .where('buildings.id = :clientId', { clientId: item.building_id })
-          .getOne();
-        item['orders'] = orders;
-       return {
-          ...item,
-        };
-      }),
-    );
+    cancelledOrders.forEach((order) => {
+      const {
+        cashoutgoingSum,
+        cashoutgoingCard,
+        cashoutgoingUsd,
+        cashoutgoingBank,
+      } = order.payments.reduce(
+        (accumulator, currentValue) => {
+          if (currentValue.paymentmethods === 'cash') {
+            accumulator.cashoutgoingSum += +currentValue.amount;
+          }
+          if (currentValue.paymentmethods === 'card') {
+            accumulator.cashoutgoingCard += +currentValue.amount;
+          }
+          if (currentValue.paymentmethods === 'usd') {
+            accumulator.cashoutgoingUsd += +currentValue.amount;
+          }
 
-    return data;
+          if (currentValue.paymentmethods === 'bank') {
+            accumulator.cashoutgoingBank += +currentValue.amount;
+          }
+          return accumulator;
+        },
+        {
+          cashoutgoingSum: 0,
+          cashoutgoingCard: 0,
+          cashoutgoingUsd: 0,
+          cashoutgoingBank: 0,
+        },
+      );
+      order.outgoingSum = Number(
+        cashoutgoingSum + cashoutgoingCard + cashoutgoingUsd,
+      );
+      order.outgoingBank = Number(cashoutgoingBank);
+      return order;
+    });
+
+    console.log(cancelledOrders);
+    // const data = await Promise.all(
+    //   result.map(async (item) => {
+    //     const orders = await this.orderRepo.manager
+    //       .createQueryBuilder(Orders, 'orders')
+    //       .leftJoinAndSelect('orders.clients', 'clients')
+    //       .leftJoinAndSelect('orders.orderItems', 'orderItems')
+    //       .leftJoinAndSelect('orderItems.apartments', 'apartments')
+    //       .leftJoinAndSelect('apartments.floor', 'floor')
+    //       .leftJoinAndSelect('floor.entrance', 'entrance')
+    //       .leftJoinAndSelect('entrance.buildings', 'buildings')
+    //       .leftJoinAndSelect('buildings.towns', 'towns')
+    //       .where('buildings.id = :clientId', { clientId: item.building_id })
+    //       // .orderBy('apartments.room_number', 'ASC')
+    //       .getOne();
+
+    //   const payments = await this.orderRepo.manager
+    //     .createQueryBuilder(Payments, 'payments')
+    //     .where('payments.order_id=:order_id', { order_id: orders.id })
+    //     .andWhere('payments.caisher_type = :caisher_type', {
+    //       caisher_type: Caishertype.OUT,
+    //     })
+    //     // .andWhere("payments.paymentmethods=IN(...:paymentmethod)", {paymentmehod:[Paymentmethods.CARD,Paymentmethods.CASH,Paymentmethods.CASH,Paymentmethods.BANK,Paymentmethods.CASH,Paymentmethods.CASH]}',')
+    //     .getMany();
+    //   const { totalSum, total_sum_usd } = payments.reduce(
+    //     (acc, payment) => ({
+    //       totalSum: acc.totalSum + Math.round(Number(payment.amount || 0)),
+    //       total_sum_usd:
+    //         acc.total_sum_usd + Math.round(Number(payment.amount_usd || 0)),
+    //     }),
+    //     { totalSum: 0, total_sum_usd: 0 },
+    //   );
+    //
+    //   item['orders'] = orders;
+    //   item['total_sum'] = totalSum;
+    //   item['total_sum_usd'] = total_sum_usd;
+    //   return {
+    //     ...item,
+    //   };
+    // }),
+    // );
+
+    return cancelledOrders;
   }
 
   async getApartment(building_id: number) {
@@ -2052,7 +1967,7 @@ export class ReportService {
       .addOrderBy('floor.floor_number', 'ASC') // Then by floor number
       .addOrderBy('apartments.room_number', 'ASC') // Then by room number
       .getRawMany();
-
+    console.log(result);
     result = await Promise.all(
       res.map(async (data) => {
         data['payments_cash'] = await this.returnPayment(

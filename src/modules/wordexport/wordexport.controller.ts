@@ -30,7 +30,8 @@ import { Response } from 'express';
 import { createReadStream, existsSync } from 'fs';
 import { join } from 'path';
 import { FileUploadService } from '../file-upload/file-upload.service';
-import { exists } from 'nestjs-i18n/dist/utils'; // ES6
+import { exists } from 'nestjs-i18n/dist/utils';
+import * as path from 'node:path'; // ES6
 
 @Controller('wordexport')
 export class WordexportController {
@@ -58,7 +59,10 @@ export class WordexportController {
     credits = await this.orderRepo.manager
       .createQueryBuilder(CreditTable, 'credits')
       .where('order_id= :order_id', { order_id: client_id })
-      .select(["TO_CHAR(due_date,'DD.MM.YYYY') as due_date", 'TO_CHAR(due_amount,\'fm9999999999\') as due_amount'])
+      .select([
+        "TO_CHAR(due_date,'DD.MM.YYYY') as due_date",
+        "TO_CHAR(due_amount,'fm9999999999') as due_amount",
+      ])
       .getRawMany();
 
     credits_usd = await this.orderRepo.manager
@@ -66,7 +70,7 @@ export class WordexportController {
       .where('order_id= :order_id', { order_id: client_id })
       .select([
         "TO_CHAR(due_date,'DD.MM.YYYY') as due_date",
-        "ROUND(usd_due_amount) as usd_due_amount",
+        'ROUND(usd_due_amount) as usd_due_amount',
       ])
       .getRawMany();
 
@@ -85,16 +89,41 @@ export class WordexportController {
       .getRawOne();
 
     const usdRate = await ExchangRates.findOne({ where: { is_default: true } });
-    initial_pay_usd = Math.round(Number(order.initial_pay) /Number(order.currency_value));
+    initial_pay_usd = Math.round(
+      Number(order.initial_pay) / Number(order.currency_value),
+    );
     percent = Number(order?.percent);
     // Get the first file ID from the apartments files array
     const file_id = order?.orderItems?.[0]?.apartments?.files?.[0]?.id || 0;
-    
+
+    const fallbackImagePath = path.join(
+      process.cwd(),
+      '/',
+      '/',
+      'uploads',
+      'images',
+      'noimage.jpg',
+    );
+
     const file = await this.fileService.getFileById(file_id);
+
+    let imagePath: string;
+    let format: string;
+
+    // Fayl mavjud va yo‘li mavjud bo‘lsa, o‘shani ishlatamiz
+    if (file && file.path && fs.existsSync(file.path)) {
+      imagePath = file.path;
+      format = file.mimetype;
+    } else {
+      imagePath = fallbackImagePath;
+      format = 'image/jpeg';
+    }
+
+    // Faylni o‘qiymiz (bu yerda readFileSync ishlatiladi)
     const fileobj = {
       _type: 'image',
-      source: existsSync(file.path) ? fs.readFileSync(file.path) : '',
-      format: file.mimetype,
+      source: fs.readFileSync(imagePath),
+      format,
       width: 550,
       height: 400,
     };
@@ -117,7 +146,11 @@ export class WordexportController {
         client_last_name: order?.clients?.last_name,
         client_middle_name: order?.clients?.middle_name,
         tin: order?.clients?.tin,
-        contact_number: order?.clients?.contact_number,
+        contact_number:
+          data?.apartments?.floor?.entrance?.buildings?.name +
+          '/' +
+          data?.apartments?.room_number +
+          '/Д',
         passport_seria: order?.clients?.passport_seria,
         given_from: order?.clients?.given_from,
         client_address: order?.clients?.address,

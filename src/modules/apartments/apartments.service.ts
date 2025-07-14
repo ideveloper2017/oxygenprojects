@@ -176,7 +176,7 @@ export class ApartmentsService {
   async getOneApartment(id: number) {
     const apartment = await this.apartmentRepository.findOne({
       where: { id: id },
-      relations: ['floor.entrance.buildings.towns', 'file'],
+      relations: ['floor.entrance.buildings.towns', 'files'],
     });
 
     return apartment;

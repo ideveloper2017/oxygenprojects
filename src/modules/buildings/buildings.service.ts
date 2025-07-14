@@ -97,7 +97,7 @@ export class BuildingsService {
           'towns',
           'entrances.floors.apartments',
           'buildingItems',
-          'file',
+          'files',
         ],
         order: {
           entrances: {
@@ -112,7 +112,7 @@ export class BuildingsService {
     } else {
       result = await this.buildingRepository.findOne({
         where: { id: id },
-        relations: ['entrances.floors.apartments', 'buildingItems', 'file'],
+        relations: ['entrances.floors.apartments', 'buildingItems', 'files'],
         order: {
           entrances: {
             entrance_number: 'asc',
@@ -199,10 +199,9 @@ export class BuildingsService {
 
   async getBuldingsOfTown(town_id: number) {
     const result = await this.buildingRepository.find({
-
       where: { town_id: town_id, buildingItems: { is_active: true } },
       order: { id: 'desc' },
-      relations: ['buildingItems', 'files'],
+      relations: ['buildingItems','entrances', 'files'],
     });
     // const result = await this.buildingRepository.manager
     //   .createQueryBuilder(Buildings, 'buildingItems')
