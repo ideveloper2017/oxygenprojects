@@ -13,6 +13,7 @@ import { Apartments } from '../apartments/entities/apartment.entity';
 import { Buildings } from '../buildings/entities/building.entity';
 import { OrderItems } from '../order-items/entities/order-item.entity';
 import { PaymentStatus } from '../../common/enums/payment-status';
+import {Clients} from "../clients/entities/client.entity";
 
 interface PaymentMethodReport {
   buildingId: number;
@@ -762,6 +763,7 @@ export class ReportService {
               apartment_id,
             ),
           ]);
+
           // Calculate and assign values to the apartmentData object
           apartmentData['clients_first_name'] = orders
             ? orders.clients_first_name
@@ -779,19 +781,18 @@ export class ReportService {
           apartmentData['price_usd'] = orders ? orders.price_usd : '';
           apartmentData['order_number'] = orders ? orders.order_number : '';
           apartmentData['phone'] = orders ? orders.phone : '';
-          apartmentData['total_sum_out'] = summa_out.total_sum_out;
+          apartmentData['total_sum_out'] = summa_out.total_sum_out-Math.round(Number(summa_out.total_sum_out_paymentout));
           apartmentData['total_sum_out_usd'] = summa_out.total_usd_out;
-          apartmentData['total_sum_cash'] = summa_cash.total_sum_out;
+          apartmentData['total_sum_cash'] = summa_cash.total_sum_out-Math.round(Number(summa_cash.total_sum_out_paymentout));
           apartmentData['total_sum_cash_usd'] = summa_cash.total_usd_out;
-          apartmentData['total_bank'] = Number(summa_bank.total_sum_out);
+          apartmentData['total_bank'] = Number(summa_bank.total_sum_out)-Math.round(Number(summa_bank.total_sum_out_paymentout));
           apartmentData['total_bank_usd'] = Number(summa_bank.total_usd_out);
           const total_amount = orders ? orders.total_amount : 0;
           apartmentData['total_amount'] = total_amount;
           apartmentData['total_amount_usd'] = Number(
             orders ? orders.total_amount_usd : 0,
           );
-          apartmentData['due_total_sum'] =
-            Number(total_amount) - Number(summa_out.total_sum_out);
+          apartmentData['due_total_sum'] =Math.round(Math.abs((Number(total_amount) - Number(summa_out.total_sum_out)))-Math.round(Number(summa_out.total_sum_out_paymentout)));
           apartmentData['due_total_usd'] =
             Math.round(Number(orders ? orders.total_amount_usd : 0)) -
             Math.round(Number(summa_out.total_usd_out));
@@ -846,64 +847,134 @@ export class ReportService {
 
     return orders;
   }
+
   async clientPayment(
-    order_id: number,
-    client_id: number,
-    paymentmethods: Paymentmethods[],
-    apartment_id: number,
+      order_id: number,
+      client_id: number,
+      paymentmethods: Paymentmethods[],
+      apartment_id: number,
   ) {
     const sumResults = {
       total_sum_out: 0,
       total_usd_out: 0,
+      total_sum_out_paymentout: 0,
+      total_usd_out_paymentout: 0,
     };
-    let result;
-    result = await this.orderRepo.manager
-      // .createQueryBuilder(Payments, 'payments')
-      .createQueryBuilder(Orders, 'orders')
-      .leftJoinAndSelect(
-        'orders.orderItems',
-        'orderItems',
-        'orderItems.order_id=orders.id',
-      )
-      .leftJoinAndSelect(
-        'orderItems.apartments',
-        'apartments',
-        'apartments.id=orderItems.apartment_id',
-      )
-      .leftJoinAndSelect(
-        'orders.payments',
-        'payments',
-        'orders.id=payments.order_id',
-      )
-      .leftJoinAndSelect(
-        'orders.clients',
-        'clients',
-        'clients.id=orders.client_id',
-      )
 
-      .select([
-        'SUM(payments.amount) AS total_sum',
-        'SUM(payments.amount_usd) AS total_usd',
-      ])
-      .where('payments.paymentmethods IN(:...paymethods)', {
-        paymethods: paymentmethods,
-      })
-      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
-      .andWhere('orders.order_status IN(:...status)', {
-        status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
-      })
-      //   .andWhere('orders.order_date= :order_date', { order_date })
-      .andWhere('orders.id= :order_id', { order_id })
-      .andWhere('orders.client_id= :client_id', { client_id })
-      .andWhere('apartments.id= :apartment_id', { apartment_id })
-      .getRawMany();
+    // payments - kirimlarni hisoblash
+    const paymentsIn = await this.orderRepo.manager
+        .createQueryBuilder(Orders, 'orders')
+        .leftJoin('orders.orderItems', 'orderItems')
+        .leftJoin('orderItems.apartments', 'apartments')
+        .leftJoin('orders.payments', 'payments')
+        .select([
+          'SUM(payments.amount) AS total_sum',
+          'SUM(payments.amount_usd) AS total_usd',
+        ])
+        .where('payments.paymentmethods IN(:...paymethods)', {
+          paymethods: paymentmethods,
+        })
+        .andWhere('payments.caisher_type = :cash', { cash: Caishertype.IN })
+        .andWhere('orders.order_status IN(:...status)', {
+          status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+        })
+        .andWhere('orders.id = :order_id', { order_id })
+        .andWhere('orders.client_id = :client_id', { client_id })
+        .andWhere('apartments.id = :apartment_id', { apartment_id })
+        .getRawOne();
 
-    result.forEach((item) => {
-      sumResults.total_sum_out = +item.total_sum;
-      sumResults.total_usd_out = +item.total_usd;
-    });
+    if (paymentsIn) {
+      sumResults.total_sum_out = +paymentsIn.total_sum || 0;
+      sumResults.total_usd_out = +paymentsIn.total_usd || 0;
+    }
+
+    // paymentsout - chiqimlarni hisoblash
+    const paymentsOut = await this.orderRepo.manager
+        .createQueryBuilder(Clients, 'clients')
+        .leftJoin('clients.paymentsout', 'paymentsout')
+        .select([
+          'SUM(paymentsout.amount) AS total_sum_out',
+          'SUM(paymentsout.amount_usd) AS total_usd_out',
+        ])
+        .where('clients.id = :client_id', { client_id })
+        .andWhere('paymentsout.paymentmethods IN(:...paymethods)', {
+          paymethods: paymentmethods,
+        })
+        .andWhere('paymentsout.caisher_type = :cash', { cash: Caishertype.OUT })
+        .getRawOne();
+
+    if (paymentsOut) {
+      sumResults.total_sum_out_paymentout = +paymentsOut.total_sum_out || 0;
+      sumResults.total_usd_out_paymentout = +paymentsOut.total_usd_out || 0;
+    }
+
     return sumResults;
   }
+
+  // async clientPayment(
+  //   order_id: number,
+  //   client_id: number,
+  //   paymentmethods: Paymentmethods[],
+  //   apartment_id: number,
+  // ) {
+  //   const sumResults = {
+  //     total_sum_out: 0,
+  //     total_usd_out: 0,
+  //   };
+  //   let result;
+  //   result = await this.orderRepo.manager
+  //     // .createQueryBuilder(Payments, 'payments')
+  //     .createQueryBuilder(Orders, 'orders')
+  //     .leftJoinAndSelect(
+  //       'orders.orderItems',
+  //       'orderItems',
+  //       'orderItems.order_id=orders.id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'orderItems.apartments',
+  //       'apartments',
+  //       'apartments.id=orderItems.apartment_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'orders.payments',
+  //       'payments',
+  //       'orders.id=payments.order_id',
+  //     )
+  //
+  //     .leftJoinAndSelect(
+  //       'orders.clients',
+  //       'clients',
+  //       'clients.id=orders.client_id',
+  //     )
+  //       .leftJoinAndSelect(
+  //           'clients.paymentsout',
+  //           'paymentsout',
+  //           'clients.id=paymentsout.client_id',
+  //       )
+  //
+  //     .select([
+  //       'SUM(payments.amount) AS total_sum',
+  //       'SUM(payments.amount_usd) AS total_usd',
+  //     ])
+  //     .where('payments.paymentmethods IN(:...paymethods)', {
+  //       paymethods: paymentmethods,
+  //     })
+  //     .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+  //     .andWhere('orders.order_status IN(:...status)', {
+  //       status: [OrderStatus.ACTIVE, OrderStatus.COMPLETED],
+  //     })
+  //     //   .andWhere('orders.order_date= :order_date', { order_date })
+  //     .andWhere('orders.id= :order_id', { order_id })
+  //     .andWhere('orders.client_id= :client_id', { client_id })
+  //     .andWhere('apartments.id= :apartment_id', { apartment_id })
+  //     .getRawMany();
+  //
+  //   result.forEach((item) => {
+  //     sumResults.total_sum_out = +item.total_sum;
+  //     sumResults.total_usd_out = +item.total_usd;
+  //   });
+  //   return sumResults;
+  // }
 
   async clientPaymentOut(
     order_id: number,
@@ -952,7 +1023,7 @@ export class ReportService {
       .where('payments.paymentmethods IN(:...paymethods)', {
         paymethods: paymentmethods,
       })
-      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.IN })
+      .andWhere('payments.caisher_type= :cash', { cash: Caishertype.OUT })
       .andWhere('orders.order_status IN(:...status)', {
         status: [OrderStatus.ACTIVE],
       })
@@ -1773,7 +1844,7 @@ export class ReportService {
                     Number(summabank.total_sum - summa_out_bank.total_sum),
                   ),
                   total_sum_due:
-                    Math.round(
+                     Math.abs(Math.round(
                       Number(summa.total_sum) +
                         Number(summa_usd.total_sum) +
                         Number(summabank.total_sum),
@@ -1782,7 +1853,7 @@ export class ReportService {
                       Number(summa_out.total_sum) +
                         Number(summa_out_usd.total_sum) +
                         Number(summa_out_bank.total_sum),
-                    ),
+                    )),
                 },
               ];
               return data;
@@ -2168,77 +2239,133 @@ export class ReportService {
   }
 
   async allSaleOutSummaryPayment(
-    build_id: number,
-    paymentMethod: Paymentmethods,
-    order_id: number,
+      build_id: number,
+      paymentMethod: Paymentmethods,
+      order_id: number,
   ) {
     const sumResults = {
       total_sum: 0,
       total_usd: 0,
+      paymentout_sum: 0,
+      paymentout_usd: 0,
     };
-    let result;
 
-    result = await this.orderRepo.manager
-      .createQueryBuilder(Payments, 'payments')
-      .leftJoinAndSelect(
-        'payments.caishers',
-        'caishers',
-        'caishers.id=payments.caisher_id',
-      )
-      .leftJoinAndSelect(
-        'payments.orders',
-        'orders',
-        'orders.id=payments.order_id',
-      )
-      .leftJoinAndSelect(
-        'orders.orderItems',
-        'orderitems',
-        'orderitems.order_id=orders.id',
-      )
-      .leftJoinAndSelect(
-        'orderitems.apartments',
-        'apartments',
-        'apartments.id=orderitems.apartment_id',
-      )
-      .leftJoinAndSelect(
-        'apartments.floor',
-        'floor',
-        'floor.id=apartments.floor_id',
-      )
-      .leftJoinAndSelect(
-        'floor.entrance',
-        'entrance',
-        'entrance.id=floor.entrance_id',
-      )
-      .leftJoinAndSelect(
-        'entrance.buildings',
-        'buildings',
-        'buildings.id=entrance.building_id',
-      )
-      .leftJoinAndSelect(
-        'buildings.towns',
-        'towns',
-        'towns.id=buildings.town_id',
-      )
-      .select([
-        'SUM(payments.amount) AS total_sum',
-        'SUM(payments.amount_usd) AS total_usd',
-      ])
+    const result = await this.orderRepo.manager
+        .createQueryBuilder(Payments, 'payments')
+        .leftJoin('payments.caishers', 'caishers', 'caishers.id=payments.caisher_id')
+        .leftJoin('payments.orders', 'orders', 'orders.id=payments.order_id')
+        .leftJoin('orders.clients', 'clients', 'orders.client_id=clients.id')
+        .leftJoin('clients.paymentsout', 'paymentsout', 'paymentsout.client_id=clients.id')
+        .leftJoin('orders.orderItems', 'orderitems', 'orderitems.order_id=orders.id')
+        .leftJoin('orderitems.apartments', 'apartments', 'apartments.id=orderitems.apartment_id')
+        .leftJoin('apartments.floor', 'floor', 'floor.id=apartments.floor_id')
+        .leftJoin('floor.entrance', 'entrance', 'entrance.id=floor.entrance_id')
+        .leftJoin('entrance.buildings', 'buildings', 'buildings.id=entrance.building_id')
+        .leftJoin('buildings.towns', 'towns', 'towns.id=buildings.town_id')
+        .select([
+          'SUM(payments.amount) AS total_sum',
+          'SUM(payments.amount_usd) AS total_usd',
+          // paymentout mavjud bo‘lsa summasini olish uchun CASE ishlatamiz
+          `SUM(CASE WHEN paymentsout.id IS NOT NULL THEN paymentsout.amount ELSE 0 END) AS paymentout_sum`,
+          `SUM(CASE WHEN paymentsout.id IS NOT NULL THEN paymentsout.amount_usd ELSE 0 END) AS paymentout_usd`,
+        ])
+        .where('payments.caisher_type = :cash', { cash: Caishertype.OUT })
+        .andWhere('buildings.id = :id', { id: build_id })
+        .andWhere('payments.paymentmethods = :paymethod', { paymethod: paymentMethod })
+        .andWhere('orders.id = :order_id', { order_id })
+        .getRawOne();
 
-      .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
-      .andWhere('buildings.id= :id', { id: build_id })
-      .andWhere('payments.paymentmethods= :paymethod', {
-        paymethod: paymentMethod,
-      })
-      .andWhere('orders.id= :order_id', { order_id })
-      .getRawMany();
+    if (result) {
+      sumResults.total_sum = Number(result.total_sum) || 0;
+      sumResults.total_usd = Number(result.total_usd) || 0;
+      sumResults.paymentout_sum = Number(result.paymentout_sum) || 0;
+      sumResults.paymentout_usd = Number(result.paymentout_usd) || 0;
+    }
 
-    result.forEach((item) => {
-      sumResults.total_sum = item.total_sum;
-      sumResults.total_usd = item.total_usd;
-    });
     return sumResults;
   }
+  // async allSaleOutSummaryPayment(
+  //   build_id: number,
+  //   paymentMethod: Paymentmethods,
+  //   order_id: number,
+  // ) {
+  //   const sumResults = {
+  //     total_sum: 0,
+  //     total_usd: 0,
+  //   };
+  //   let result;
+  //
+  //   result = await this.orderRepo.manager
+  //     .createQueryBuilder(Payments, 'payments')
+  //     .leftJoinAndSelect(
+  //       'payments.caishers',
+  //       'caishers',
+  //       'caishers.id=payments.caisher_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'payments.orders',
+  //       'orders',
+  //       'orders.id=payments.order_id',
+  //     )
+  //       .leftJoinAndSelect(
+  //           'orders.clients',
+  //           'clients',
+  //           'orders.client_id=clients.id',
+  //       )
+  //       .leftJoinAndSelect(
+  //           'clients.paymentout',
+  //           'paymentout',
+  //           'paymentout.client_id=clients.id',
+  //       )
+  //       .leftJoinAndSelect(
+  //       'orders.orderItems',
+  //       'orderitems',
+  //       'orderitems.order_id=orders.id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'orderitems.apartments',
+  //       'apartments',
+  //       'apartments.id=orderitems.apartment_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'apartments.floor',
+  //       'floor',
+  //       'floor.id=apartments.floor_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'floor.entrance',
+  //       'entrance',
+  //       'entrance.id=floor.entrance_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'entrance.buildings',
+  //       'buildings',
+  //       'buildings.id=entrance.building_id',
+  //     )
+  //     .leftJoinAndSelect(
+  //       'buildings.towns',
+  //       'towns',
+  //       'towns.id=buildings.town_id',
+  //     )
+  //     .select([
+  //       'SUM(payments.amount) AS total_sum',
+  //       'SUM(payments.amount_usd) AS total_usd',
+  //     ])
+  //
+  //     .where('payments.caisher_type= :cash', { cash: Caishertype.OUT })
+  //     .andWhere('buildings.id= :id', { id: build_id })
+  //     .andWhere('payments.paymentmethods= :paymethod', {
+  //       paymethod: paymentMethod,
+  //     })
+  //     .andWhere('orders.id= :order_id', { order_id })
+  //     .getRawMany();
+  //
+  //   result.forEach((item) => {
+  //     sumResults.total_sum = item.total_sum;
+  //     sumResults.total_usd = item.total_usd;
+  //   });
+  //   return sumResults;
+  // }
 
   async allSaleSummaryPayment(
     build_id: number,
