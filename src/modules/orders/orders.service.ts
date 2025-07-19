@@ -309,58 +309,120 @@ export class OrdersService {
           0,
         ) || 0;
 
+    OrderItems.update(
+      { order_id: updateOrderDto.order_id },
+      {
+        price: new_price,
+        apartment_id: newapartment.id,
+        order_id: updateOrderDto.new_order_id,
+      },
+    );
+
+    OrderItems.update(
+      { order_id: updateOrderDto.new_order_id },
+      {
+        price: price,
+        apartment_id: apartment.id,
+        order_id: updateOrderDto.order_id,
+      },
+    );
+
+    const new_order = await this.ordersRepository.findOne({
+      where: {
+        id: updateOrderDto.order_id,
+        client_id: updateOrderDto.client_id,
+      },
+      relations: [
+        'orderItems.apartments',
+        'payments',
+        'clients',
+        'paymentMethods',
+      ],
+    });
+    if (!order) {
+      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    }
+    const new_newOrder = await this.ordersRepository.findOne({
+      where: {
+        id: updateOrderDto.new_order_id,
+        client_id: updateOrderDto.new_client_id,
+      },
+      relations: [
+        'orderItems.apartments',
+        'payments',
+        'clients',
+        'paymentMethods',
+      ],
+    });
+
     Orders.update(
       { id: updateOrderDto.order_id },
       {
         user_id: users.userId,
-        total_amount: new_room_space * new_price,
+        total_amount: new_room_space * new_newOrder.orderItems?.[0].price || 0,
         total_amount_usd: Math.round(
-          (new_price * new_room_space) / newOrder.currency_value,
+          ((new_newOrder.orderItems?.[0].price || 0) * new_room_space) /
+            new_newOrder.currency_value,
         ),
-        client_id: newOrder.clients?.id,
-        payment_method_id: newOrder.paymentMethods?.id,
-        percent: newOrder.percent,
-        delivery_time: newOrder.delivery_time,
-        quantity: newOrder.quantity,
-        initial_pay: newOrder.initial_pay,
-        initial_month: newOrder.initial_month,
-        currency_value: newOrder.currency_value,
-        order_date: newOrder.order_date,
-        contract_number: newOrder.contract_number,
+        client_id: new_newOrder.clients?.id,
+        payment_method_id: new_newOrder.paymentMethods?.id,
+        percent: new_newOrder.percent,
+        delivery_time: new_newOrder.delivery_time,
+        quantity: new_newOrder.quantity,
+        initial_pay: new_newOrder.initial_pay,
+        initial_month: new_newOrder.initial_month,
+        currency_value: new_newOrder.currency_value,
+        order_date: new_newOrder.order_date,
+        contract_number: new_newOrder.contract_number,
       },
     );
     Orders.update(
       { id: updateOrderDto.new_order_id },
       {
         user_id: users.userId,
-        total_amount: room_space * price,
+        total_amount: room_space * new_order.orderItems?.[0].price || 0,
         total_amount_usd: Math.round(
-          (room_space * price) / order.currency_value,
+          (room_space * (new_order.orderItems?.[0].price || 0)) / new_order.currency_value,
         ),
-        client_id: order.clients?.id,
-        payment_method_id: order.paymentMethods?.id,
-        percent: order.percent || 0,
+        client_id: new_order.clients?.id,
+        payment_method_id: new_order.paymentMethods?.id,
+        percent: new_order.percent || 0,
         delivery_time: order.delivery_time,
-        quantity: order.quantity,
-        initial_pay: order.initial_pay,
-        initial_month: order.initial_month,
-        currency_value: order.currency_value,
-        order_date: order.order_date,
-        contract_number: order.contract_number,
+        quantity: new_order.quantity,
+        initial_pay: new_order.initial_pay,
+        initial_month: new_order.initial_month,
+        currency_value: new_order.currency_value,
+        order_date: new_order.order_date,
+        contract_number: new_order.contract_number,
       },
     );
 
-    OrderItems.update(
+    Payments.update(
       { order_id: updateOrderDto.order_id },
       {
-        price: new_price,
-        apartment_id: newapartment.id,
+        order_id: updateOrderDto.new_order_id,
       },
     );
 
-    OrderItems.update(
+    Payments.update(
       { order_id: updateOrderDto.new_order_id },
-      { price: price, apartment_id: apartment.id },
+      {
+        order_id: updateOrderDto.order_id,
+      },
+    );
+
+    CreditTable.update(
+      { order_id: updateOrderDto.new_order_id },
+      {
+        order_id: updateOrderDto.order_id,
+      },
+    );
+
+    CreditTable.update(
+      { order_id: updateOrderDto.order_id },
+      {
+        order_id: updateOrderDto.new_order_id,
+      },
     );
 
     // const orderItem = await OrderItems.findOne({
@@ -402,24 +464,14 @@ export class OrdersService {
     //   },
     // );
 
-    for (const payment of order.payments) {
-      const newPayment = this.paymentRepository.create({
-        ...payment,
-        order_id: updateOrderDto.new_order_id,
-        created_at: new Date(),
-      });
-      await this.paymentRepository.save(newPayment);
-    }
-
-    // Endi newOrder dagi paymentlar eski orderga ko'chiriladi
-    for (const payment of newOrder.payments) {
-      const newPayment = this.paymentRepository.create({
-        ...payment,
-        order_id: updateOrderDto.order_id,
-        created_at: new Date(),
-      });
-      await this.paymentRepository.save(newPayment);
-    }
+    // for (const payment of order.payments) {
+    //   Payments.update({ id: payment.id }, { order_id: payment.order_id });
+    // }
+    //
+    // // Endi newOrder dagi paymentlar eski orderga ko'chiriladi
+    // for (const payment of newOrder.payments) {
+    //   Payments.update({ id: payment.id }, { order_id: payment.order_id });
+    // }
     //
     // console.log(
     //   { id: newOrderItem.id },
@@ -436,35 +488,35 @@ export class OrdersService {
     //   },
     // );
 
-    const orderDto = {
-      order_id: updateOrderDto.order_id,
-      client_id: newOrder.clients?.id,
-      currency_value: newOrder.currency_value,
-      total_amount: newOrder.total_amount,
-      price: newOrder?.orderItems?.[0]?.price,
-      paid_amount: new_paid_summa,
-      paid_amount_usd: Math.round(new_paid_summa / newOrder.currency_value),
-      initial_pay: newOrder.initial_pay,
-      initial_month: newOrder.initial_month,
-      order_date: newOrder.order_date,
-      installment_month: newOrder.initial_month,
-    };
-    await this.reCreateOrder(orderDto, users);
-
-    const orderDto2 = {
-      order_id: updateOrderDto.new_order_id,
-      client_id: order.clients?.id,
-      currency_value: order.currency_value,
-      total_amount: order.total_amount,
-      price: order?.orderItems?.[0]?.price,
-      paid_amount: new_paid_summa,
-      paid_amount_usd: Math.round(summa_in / order.currency_value),
-      initial_pay: order.initial_pay,
-      initial_month: order.initial_month,
-      order_date: order.order_date,
-      installment_month: order.initial_month,
-    };
-    await this.reCreateOrder(orderDto2, users);
+    // const orderDto = {
+    //   order_id: updateOrderDto.order_id,
+    //   client_id: newOrder.clients?.id,
+    //   currency_value: newOrder.currency_value,
+    //   total_amount: newOrder.total_amount,
+    //   price: newOrder?.orderItems?.[0]?.price,
+    //   paid_amount: new_paid_summa,
+    //   paid_amount_usd: Math.round(new_paid_summa / newOrder.currency_value),
+    //   initial_pay: newOrder.initial_pay,
+    //   initial_month: newOrder.initial_month,
+    //   order_date: newOrder.order_date,
+    //   installment_month: newOrder.initial_month,
+    // };
+    // await this.reCreateOrder(orderDto, users);
+    //
+    // const orderDto2 = {
+    //   order_id: updateOrderDto.new_order_id,
+    //   client_id: order.clients?.id,
+    //   currency_value: order.currency_value,
+    //   total_amount: order.total_amount,
+    //   price: order?.orderItems?.[0]?.price,
+    //   paid_amount: new_paid_summa,
+    //   paid_amount_usd: Math.round(summa_in / order.currency_value),
+    //   initial_pay: order.initial_pay,
+    //   initial_month: order.initial_month,
+    //   order_date: order.order_date,
+    //   installment_month: order.initial_month,
+    // };
+    // await this.reCreateOrder(orderDto2, users);
 
     // await this.exchangeClientToClient(
     //   {
