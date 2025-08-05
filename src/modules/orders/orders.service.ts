@@ -247,293 +247,457 @@ export class OrdersService {
   }
 
   async exchangeClient(updateOrderDto: ExchangeclientDto, users: any) {
-    const order = await this.ordersRepository.findOne({
-      where: {
-        id: updateOrderDto.order_id,
-        client_id: updateOrderDto.client_id,
-      },
-      relations: [
-        'orderItems.apartments',
-        'payments',
-        'clients',
-        'paymentMethods',
-      ],
-    });
-    if (!order) {
-      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+    // Validate input
+    if (
+        !updateOrderDto.order_id ||
+        !updateOrderDto.new_order_id ||
+        updateOrderDto.order_id === updateOrderDto.new_order_id ||
+        !updateOrderDto.client_id ||
+        !updateOrderDto.new_client_id ||
+        !users?.userId
+    ) {
+      throw new HttpException('Invalid input data', HttpStatus.BAD_REQUEST);
     }
-    const newOrder = await this.ordersRepository.findOne({
-      where: {
-        id: updateOrderDto.new_order_id,
-        client_id: updateOrderDto.new_client_id,
-      },
-      relations: [
-        'orderItems.apartments',
-        'payments',
-        'clients',
-        'paymentMethods',
-      ],
-    });
 
-    const apartment = await Apartments.findOne({
-      where: { id: order.orderItems?.[0].apartment_id },
-    });
+    const queryRunner =await this.ordersRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const newapartment = await Apartments.findOne({
-      where: { id: newOrder.orderItems?.[0].apartment_id },
-    });
+    try {
+      // Fetch both orders with relations
+      const [orderA, orderB] = await Promise.all([
+        queryRunner.manager.findOne(Orders, {
+          where: { id: updateOrderDto.new_order_id, client_id: updateOrderDto.new_client_id },
+          relations: ['orderItems.apartments', 'payments', 'clients', 'paymentMethods'],
+        }),
+        queryRunner.manager.findOne(Orders, {
+          where: { id: updateOrderDto.order_id, client_id: updateOrderDto.client_id },
+          relations: ['orderItems.apartments', 'payments', 'clients', 'paymentMethods'],
+        }),
+      ]);
 
-    const price = order.orderItems?.[0].price || 0;
-    const room_space = order.orderItems?.[0].apartments?.room_space || 0;
-    const summa_in =
-      order?.payments
-        ?.filter((payment) => payment.caisher_type === 'in')
-        ?.reduce(
-          (acc, payment) => acc + Math.round(Number(payment.amount)),
-          0,
-        ) || 0;
-    const summa_out =
-      order?.payments
-        ?.filter((payment) => payment.caisher_type === 'out')
-        ?.reduce(
-          (acc, payment) => acc + Math.round(Number(payment.amount)),
-          0,
-        ) || 0;
-    const new_price = newOrder.orderItems?.[0].price || 0;
-    const new_room_space = newOrder.orderItems?.[0].apartments?.room_space || 0;
-    const new_paid_summa =
-      newOrder?.payments
-        ?.filter((payment) => payment.caisher_type === 'in')
-        ?.reduce(
-          (acc, payment) => acc + Math.round(Number(payment.amount)),
-          0,
-        ) || 0;
+      // if (!orderA || !orderB) {
+      //   throw new HttpException('One or both orders not found', HttpStatus.NOT_FOUND);
+      // }
+      //
+      // // Validate orderItems existence
+      // if (!orderA.orderItems?.length || !orderB.orderItems?.length) {
+      //   throw new HttpException('One or both orders have no order items', HttpStatus.BAD_REQUEST);
+      // }
 
-    OrderItems.update(
-      { order_id: updateOrderDto.order_id },
-      {
-        price: new_price,
-        apartment_id: newapartment.id,
-        order_id: updateOrderDto.new_order_id,
-      },
-    );
+       // Fetch apartments within transaction
+      const [apartmentA, apartmentB] = await Promise.all([
+        queryRunner.manager.findOne(Apartments, {
+          where: { id: orderA.orderItems?.[0].apartment_id },
+        }),
+        queryRunner.manager.findOne(Apartments, {
+          where: { id: orderB.orderItems?.[0].apartment_id },
+        }),
+      ]);
 
-    OrderItems.update(
-      { order_id: updateOrderDto.new_order_id },
-      {
-        price: price,
-        apartment_id: apartment.id,
-        order_id: updateOrderDto.order_id,
-      },
-    );
+      if (!apartmentA || !apartmentB) {
+        throw new HttpException('One or both apartments not found', HttpStatus.NOT_FOUND);
+      }
 
-    const new_order = await this.ordersRepository.findOne({
-      where: {
-        id: updateOrderDto.order_id,
-        client_id: updateOrderDto.client_id,
-      },
-      relations: [
-        'orderItems.apartments',
-        'payments',
-        'clients',
-        'paymentMethods',
-      ],
-    });
-    if (!order) {
-      throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+      // Validate prices
+      const priceA = orderA.orderItems[0].price ?? 0;
+      const priceB = orderB.orderItems[0].price ?? 0;
+
+      // Swap OrderItems (keep order_id, swap price and apartment_id)
+      await Promise.all([
+        queryRunner.manager.update(
+            OrderItems,
+            { order_id: orderA.id },
+            {
+             // price: priceB,
+              apartment_id: apartmentB.id,
+            },
+        ),
+        queryRunner.manager.update(
+            OrderItems,
+            { order_id: orderB.id },
+            {
+             // price: priceA,
+              apartment_id: apartmentA.id,
+            },
+        ),
+      ]);
+
+      Payments.update(
+          { order_id: updateOrderDto.order_id },
+          {
+            order_id: updateOrderDto.new_order_id,
+          },
+      );
+
+      Payments.update(
+          { order_id: updateOrderDto.new_order_id },
+          {
+            order_id: updateOrderDto.order_id,
+          },
+      );
+
+      CreditTable.update(
+          { order_id: updateOrderDto.new_order_id },
+          {
+            order_id: updateOrderDto.order_id,
+          },
+      );
+
+      CreditTable.update(
+          { order_id: updateOrderDto.order_id },
+          {
+            order_id: updateOrderDto.new_order_id,
+          },
+      );
+      // Swap Payments
+//       const tempOrderId = 'TEMP_' + Date.now(); // vaqtincha ID
+//
+//       await Promise.all([
+//         // 1. eski order_id ni vaqtincha qiymatga o'zgartirish
+//         queryRunner.manager.update(Payments, { order_id: updateOrderDto.order_id }, { order_id: tempOrderId }),
+//         queryRunner.manager.update(Payments, { order_id: updateOrderDto.new_order_id }, { order_id: updateOrderDto.order_id }),
+//       ]);
+//
+//       await queryRunner.manager.update(Payments, { order_id: tempOrderId }, { order_id: updateOrderDto.new_order_id });
+//
+// // Xuddi shunday CreditTable uchun
+//       await Promise.all([
+//         queryRunner.manager.update(CreditTable, { order_id: updateOrderDto.order_id }, { order_id: tempOrderId }),
+//         queryRunner.manager.update(CreditTable, { order_id: updateOrderDto.new_order_id }, { order_id: updateOrderDto.order_id }),
+//       ]);
+//
+//       await queryRunner.manager.update(CreditTable, { order_id: tempOrderId }, { order_id: updateOrderDto.new_order_id });
+
+      // Swap Order details (keep client_id, swap other fields)
+      await Promise.all([
+        queryRunner.manager.update(Orders, { id: orderA.id }, {
+          // user_id: users.userId,
+          client_id:orderB.client_id,
+          // total_amount: orderB.total_amount ?? 0,
+          // total_amount_usd: orderB.total_amount_usd ?? 0,
+          // payment_method_id: orderB.paymentMethods?.id ?? null,
+          // percent: orderB.percent ?? 0,
+          // delivery_time: orderB.delivery_time ?? null,
+          // quantity: orderB.quantity ?? 0,
+          // initial_pay: orderB.initial_pay ?? 0,
+          // initial_month: orderB.initial_month ?? 0,
+          // currency_value: orderB.currency_value ?? 0,
+          // order_date: orderB.order_date ?? null,
+          // contract_number: orderB.contract_number ?? null,
+        }),
+        queryRunner.manager.update(Orders, { id: orderB.id }, {
+          // user_id: users.userId,
+          client_id:orderA.client_id,
+          // total_amount: orderA.total_amount ?? 0,
+          // total_amount_usd: orderA.total_amount_usd ?? 0,
+          // payment_method_id: orderA.paymentMethods?.id ?? null,
+          // percent: orderA.percent ?? 0,
+          // delivery_time: orderA.delivery_time ?? null,
+          // quantity: orderA.quantity ?? 0,
+          // initial_pay: orderA.initial_pay ?? 0,
+          // initial_month: orderA.initial_month ?? 0,
+          // currency_value: orderA.currency_value ?? 0,
+          // order_date: orderA.order_date ?? null,
+          // contract_number: orderA.contract_number ?? null,
+        }),
+      ]);
+
+      await queryRunner.commitTransaction();
+
+      // Return updated orders for verification
+      const [updatedOrderA, updatedOrderB] = await Promise.all([
+        this.ordersRepository.findOne({
+          where: { id: updateOrderDto.order_id },
+          relations: ['orderItems.apartments', 'payments', 'clients', 'paymentMethods'],
+        }),
+        this.ordersRepository.findOne({
+          where: { id: updateOrderDto.new_order_id },
+          relations: ['orderItems.apartments', 'payments', 'clients', 'paymentMethods'],
+        }),
+      ]);
+
+      return {
+        success: true,
+        message: 'Orders and related data exchanged successfully',
+        data: { orderA: updatedOrderA, orderB: updatedOrderB },
+      };
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new HttpException(
+          error.message || 'Failed to exchange orders',
+          error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    } finally {
+      await queryRunner.release();
     }
-    const new_newOrder = await this.ordersRepository.findOne({
-      where: {
-        id: updateOrderDto.new_order_id,
-        client_id: updateOrderDto.new_client_id,
-      },
-      relations: [
-        'orderItems.apartments',
-        'payments',
-        'clients',
-        'paymentMethods',
-      ],
-    });
-
-    Orders.update(
-      { id: updateOrderDto.order_id },
-      {
-        user_id: users.userId,
-        total_amount: new_room_space * new_newOrder.orderItems?.[0].price || 0,
-        total_amount_usd: Math.round(
-          ((new_newOrder.orderItems?.[0].price || 0) * new_room_space) /
-            new_newOrder.currency_value,
-        ),
-        client_id: new_newOrder.clients?.id,
-        payment_method_id: new_newOrder.paymentMethods?.id,
-        percent: new_newOrder.percent,
-        delivery_time: new_newOrder.delivery_time,
-        quantity: new_newOrder.quantity,
-        initial_pay: new_newOrder.initial_pay,
-        initial_month: new_newOrder.initial_month,
-        currency_value: new_newOrder.currency_value,
-        order_date: new_newOrder.order_date,
-        contract_number: new_newOrder.contract_number,
-      },
-    );
-    Orders.update(
-      { id: updateOrderDto.new_order_id },
-      {
-        user_id: users.userId,
-        total_amount: room_space * new_order.orderItems?.[0].price || 0,
-        total_amount_usd: Math.round(
-          (room_space * (new_order.orderItems?.[0].price || 0)) / new_order.currency_value,
-        ),
-        client_id: new_order.clients?.id,
-        payment_method_id: new_order.paymentMethods?.id,
-        percent: new_order.percent || 0,
-        delivery_time: order.delivery_time,
-        quantity: new_order.quantity,
-        initial_pay: new_order.initial_pay,
-        initial_month: new_order.initial_month,
-        currency_value: new_order.currency_value,
-        order_date: new_order.order_date,
-        contract_number: new_order.contract_number,
-      },
-    );
-
-    Payments.update(
-      { order_id: updateOrderDto.order_id },
-      {
-        order_id: updateOrderDto.new_order_id,
-      },
-    );
-
-    Payments.update(
-      { order_id: updateOrderDto.new_order_id },
-      {
-        order_id: updateOrderDto.order_id,
-      },
-    );
-
-    CreditTable.update(
-      { order_id: updateOrderDto.new_order_id },
-      {
-        order_id: updateOrderDto.order_id,
-      },
-    );
-
-    CreditTable.update(
-      { order_id: updateOrderDto.order_id },
-      {
-        order_id: updateOrderDto.new_order_id,
-      },
-    );
-
-    // const orderItem = await OrderItems.findOne({
-    //   where: { order_id: updateOrderDto.order_id },
-    // });
-    // const newOrderItem = await OrderItems.findOne({
-    //   where: { order_id: updateOrderDto.new_order_id },
-    // });
-    //
-    // const changeOrder = await Orders.findOne({
-    //   where: {
-    //     id: updateOrderDto.order_id,
-    //     client_id: updateOrderDto.new_client_id,
-    //   },
-    // });
-    //
-    // const newchangeOrder = await Orders.findOne({
-    //   where: {
-    //     id: updateOrderDto.new_order_id,
-    //     client_id: updateOrderDto.client_id,
-    //   },
-    // });
-    //
-    // await OrderItems.update(
-    //   { id: orderItem.id },
-    //   {
-    //     price: new_price,
-    //     apartment_id: newapartment?.id,
-    //     order_id: newchangeOrder.id,
-    //   },
-    // );
-    //
-    // await OrderItems.update(
-    //   { id: newOrderItem.id },
-    //   {
-    //     price: price,
-    //     apartment_id: apartment?.id,
-    //     order_id: changeOrder.id,
-    //   },
-    // );
-
-    // for (const payment of order.payments) {
-    //   Payments.update({ id: payment.id }, { order_id: payment.order_id });
-    // }
-    //
-    // // Endi newOrder dagi paymentlar eski orderga ko'chiriladi
-    // for (const payment of newOrder.payments) {
-    //   Payments.update({ id: payment.id }, { order_id: payment.order_id });
-    // }
-    //
-    // console.log(
-    //   { id: newOrderItem.id },
-    //   {
-    //     price: price,
-    //     apartment_id: apartment?.id,
-    //     order_id: updateOrderDto.order_id,
-    //   },
-    //   { id: orderItem.id },
-    //   {
-    //     price: new_price,
-    //     apartment_id: newapartment?.id,
-    //     order_id: updateOrderDto.new_order_id,
-    //   },
-    // );
-
-    // const orderDto = {
-    //   order_id: updateOrderDto.order_id,
-    //   client_id: newOrder.clients?.id,
-    //   currency_value: newOrder.currency_value,
-    //   total_amount: newOrder.total_amount,
-    //   price: newOrder?.orderItems?.[0]?.price,
-    //   paid_amount: new_paid_summa,
-    //   paid_amount_usd: Math.round(new_paid_summa / newOrder.currency_value),
-    //   initial_pay: newOrder.initial_pay,
-    //   initial_month: newOrder.initial_month,
-    //   order_date: newOrder.order_date,
-    //   installment_month: newOrder.initial_month,
-    // };
-    // await this.reCreateOrder(orderDto, users);
-    //
-    // const orderDto2 = {
-    //   order_id: updateOrderDto.new_order_id,
-    //   client_id: order.clients?.id,
-    //   currency_value: order.currency_value,
-    //   total_amount: order.total_amount,
-    //   price: order?.orderItems?.[0]?.price,
-    //   paid_amount: new_paid_summa,
-    //   paid_amount_usd: Math.round(summa_in / order.currency_value),
-    //   initial_pay: order.initial_pay,
-    //   initial_month: order.initial_month,
-    //   order_date: order.order_date,
-    //   installment_month: order.initial_month,
-    // };
-    // await this.reCreateOrder(orderDto2, users);
-
-    // await this.exchangeClientToClient(
-    //   {
-    //     order_id: updateOrderDto.new_order_id,
-    //   },
-    //   users,
-    // );
-    //
-    // await this.exchangeClientToClient(
-    //   {
-    //     order_id: updateOrderDto.order_id,
-    //   },
-    //   users,
-    // );
-
-    return updateOrderDto;
   }
+
+
+  // async exchangeClient(updateOrderDto: ExchangeclientDto, users: any) {
+  //   const order = await this.ordersRepository.findOne({
+  //     where: {
+  //       id: updateOrderDto.order_id,
+  //       client_id: updateOrderDto.client_id,
+  //     },
+  //     relations: [
+  //       'orderItems.apartments',
+  //       'payments',
+  //       'clients',
+  //       'paymentMethods',
+  //     ],
+  //   });
+  //   if (!order) {
+  //     throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+  //   }
+  //   const newOrder = await this.ordersRepository.findOne({
+  //     where: {
+  //       id: updateOrderDto.new_order_id,
+  //       client_id: updateOrderDto.new_client_id,
+  //     },
+  //     relations: [
+  //       'orderItems.apartments',
+  //       'payments',
+  //       'clients',
+  //       'paymentMethods',
+  //     ],
+  //   });
+  //
+  //   const apartment = await Apartments.findOne({
+  //     where: { id: order.orderItems?.[0].apartment_id },
+  //   });
+  //
+  //   const newapartment = await Apartments.findOne({
+  //     where: { id: newOrder.orderItems?.[0].apartment_id },
+  //   });
+  //
+  //   const price = order.orderItems?.[0].price || 0;
+  //   const room_space = order.orderItems?.[0].apartments?.room_space || 0;
+  //
+  //   const new_price = newOrder.orderItems?.[0].price || 0;
+  //   const new_room_space = newOrder.orderItems?.[0].apartments?.room_space || 0;
+  //
+  //   OrderItems.update(
+  //     { order_id: updateOrderDto.order_id },
+  //     {
+  //       price: new_price,
+  //       apartment_id: newapartment.id,
+  //       order_id: updateOrderDto.new_order_id,
+  //     },
+  //   );
+  //
+  //   OrderItems.update(
+  //     { order_id: updateOrderDto.new_order_id },
+  //     {
+  //       price: price,
+  //       apartment_id: apartment.id,
+  //       order_id: updateOrderDto.order_id,
+  //     },
+  //   );
+  //
+  //   const new_order = await this.ordersRepository.findOne({
+  //     where: {
+  //       id: updateOrderDto.order_id,
+  //       client_id: updateOrderDto.client_id,
+  //     },
+  //     relations: [
+  //       'orderItems.apartments',
+  //       'payments',
+  //       'clients',
+  //       'paymentMethods',
+  //     ],
+  //   });
+  //   if (!order) {
+  //     throw new HttpException('Order not found', HttpStatus.NOT_FOUND);
+  //   }
+  //   const new_newOrder = await this.ordersRepository.findOne({
+  //     where: {
+  //       id: updateOrderDto.new_order_id,
+  //       client_id: updateOrderDto.new_client_id,
+  //     },
+  //     relations: [
+  //       'orderItems.apartments',
+  //       'payments',
+  //       'clients',
+  //       'paymentMethods',
+  //     ],
+  //   });
+  //
+  //   Orders.update(
+  //     { id: updateOrderDto.order_id },
+  //     {
+  //       user_id: users.userId,
+  //       total_amount: new_newOrder.total_amount || 0,
+  //       total_amount_usd: new_newOrder.total_amount_usd || 0,
+  //       client_id: new_newOrder.clients?.id,
+  //       payment_method_id: new_newOrder.paymentMethods?.id,
+  //       percent: new_newOrder.percent,
+  //       delivery_time: new_newOrder.delivery_time,
+  //       quantity: new_newOrder.quantity,
+  //       initial_pay: new_newOrder.initial_pay,
+  //       initial_month: new_newOrder.initial_month,
+  //       currency_value: new_newOrder.currency_value,
+  //       order_date: new_newOrder.order_date,
+  //       contract_number: new_newOrder.contract_number,
+  //     },
+  //   );
+  //   Orders.update(
+  //     { id: updateOrderDto.new_order_id },
+  //     {
+  //       user_id: users.userId,
+  //       total_amount: new_order.total_amount,
+  //       total_amount_usd: new_order.total_amount_usd,
+  //       client_id: new_order.clients?.id,
+  //       payment_method_id: new_order.paymentMethods?.id,
+  //       percent: new_order.percent || 0,
+  //       delivery_time: order.delivery_time,
+  //       quantity: new_order.quantity,
+  //       initial_pay: new_order.initial_pay,
+  //       initial_month: new_order.initial_month,
+  //       currency_value: new_order.currency_value,
+  //       order_date: new_order.order_date,
+  //       contract_number: new_order.contract_number,
+  //     },
+  //   );
+  //
+  //   Payments.update(
+  //     { order_id: updateOrderDto.order_id },
+  //     {
+  //       order_id: updateOrderDto.new_order_id,
+  //     },
+  //   );
+  //
+  //   Payments.update(
+  //     { order_id: updateOrderDto.new_order_id },
+  //     {
+  //       order_id: updateOrderDto.order_id,
+  //     },
+  //   );
+  //
+  //   CreditTable.update(
+  //     { order_id: updateOrderDto.new_order_id },
+  //     {
+  //       order_id: updateOrderDto.order_id,
+  //     },
+  //   );
+  //
+  //   CreditTable.update(
+  //     { order_id: updateOrderDto.order_id },
+  //     {
+  //       order_id: updateOrderDto.new_order_id,
+  //     },
+  //   );
+  //
+  //   // const orderItem = await OrderItems.findOne({
+  //   //   where: { order_id: updateOrderDto.order_id },
+  //   // });
+  //   // const newOrderItem = await OrderItems.findOne({
+  //   //   where: { order_id: updateOrderDto.new_order_id },
+  //   // });
+  //   //
+  //   // const changeOrder = await Orders.findOne({
+  //   //   where: {
+  //   //     id: updateOrderDto.order_id,
+  //   //     client_id: updateOrderDto.new_client_id,
+  //   //   },
+  //   // });
+  //   //
+  //   // const newchangeOrder = await Orders.findOne({
+  //   //   where: {
+  //   //     id: updateOrderDto.new_order_id,
+  //   //     client_id: updateOrderDto.client_id,
+  //   //   },
+  //   // });
+  //   //
+  //   // await OrderItems.update(
+  //   //   { id: orderItem.id },
+  //   //   {
+  //   //     price: new_price,
+  //   //     apartment_id: newapartment?.id,
+  //   //     order_id: newchangeOrder.id,
+  //   //   },
+  //   // );
+  //   //
+  //   // await OrderItems.update(
+  //   //   { id: newOrderItem.id },
+  //   //   {
+  //   //     price: price,
+  //   //     apartment_id: apartment?.id,
+  //   //     order_id: changeOrder.id,
+  //   //   },
+  //   // );
+  //
+  //   // for (const payment of order.payments) {
+  //   //   Payments.update({ id: payment.id }, { order_id: payment.order_id });
+  //   // }
+  //   //
+  //   // // Endi newOrder dagi paymentlar eski orderga ko'chiriladi
+  //   // for (const payment of newOrder.payments) {
+  //   //   Payments.update({ id: payment.id }, { order_id: payment.order_id });
+  //   // }
+  //   //
+  //   // console.log(
+  //   //   { id: newOrderItem.id },
+  //   //   {
+  //   //     price: price,
+  //   //     apartment_id: apartment?.id,
+  //   //     order_id: updateOrderDto.order_id,
+  //   //   },
+  //   //   { id: orderItem.id },
+  //   //   {
+  //   //     price: new_price,
+  //   //     apartment_id: newapartment?.id,
+  //   //     order_id: updateOrderDto.new_order_id,
+  //   //   },
+  //   // );
+  //
+  //   // const orderDto = {
+  //   //   order_id: updateOrderDto.order_id,
+  //   //   client_id: newOrder.clients?.id,
+  //   //   currency_value: newOrder.currency_value,
+  //   //   total_amount: newOrder.total_amount,
+  //   //   price: newOrder?.orderItems?.[0]?.price,
+  //   //   paid_amount: new_paid_summa,
+  //   //   paid_amount_usd: Math.round(new_paid_summa / newOrder.currency_value),
+  //   //   initial_pay: newOrder.initial_pay,
+  //   //   initial_month: newOrder.initial_month,
+  //   //   order_date: newOrder.order_date,
+  //   //   installment_month: newOrder.initial_month,
+  //   // };
+  //   // await this.reCreateOrder(orderDto, users);
+  //   //
+  //   // const orderDto2 = {
+  //   //   order_id: updateOrderDto.new_order_id,
+  //   //   client_id: order.clients?.id,
+  //   //   currency_value: order.currency_value,
+  //   //   total_amount: order.total_amount,
+  //   //   price: order?.orderItems?.[0]?.price,
+  //   //   paid_amount: new_paid_summa,
+  //   //   paid_amount_usd: Math.round(summa_in / order.currency_value),
+  //   //   initial_pay: order.initial_pay,
+  //   //   initial_month: order.initial_month,
+  //   //   order_date: order.order_date,
+  //   //   installment_month: order.initial_month,
+  //   // };
+  //   // await this.reCreateOrder(orderDto2, users);
+  //
+  //   // await this.exchangeClientToClient(
+  //   //   {
+  //   //     order_id: updateOrderDto.new_order_id,
+  //   //   },
+  //   //   users,
+  //   // );
+  //   //
+  //   // await this.exchangeClientToClient(
+  //   //   {
+  //   //     order_id: updateOrderDto.order_id,
+  //   //   },
+  //   //   users,
+  //   // );
+  //
+  //   return updateOrderDto;
+  // }
 
   /**
    * Swaps apartments between two clients including all related data and payments
@@ -1640,22 +1804,24 @@ export class OrdersService {
 
     order = order?.map((orderItem) => {
       // Calculate total_amount as sum of (orderItems.price * apartments.room_space)
-      const total_amount = orderItem.orderItems.reduce((accumulator, item) => {
-        const price = Number(item.price) || 0;
-        const room_space = Number(item.apartments?.room_space) || 0;
-        return accumulator + price * room_space;
-      }, 0);
+      const total_amount = orderItem.total_amount;
+      //     orderItem.orderItems.reduce((accumulator, item) => {
+      //   const price = Number(item.price) || 0;
+      //   const room_space = Number(item.apartments?.room_space) || 0;
+      //   return accumulator + price * room_space;
+      // }, 0);
 
       // Calculate total_amount_usd (assuming a similar field or conversion)
       // If you have a price_usd field in OrderItems, use it; otherwise, adjust as needed
-      const total_amount_usd = orderItem.orderItems.reduce(
-        (accumulator, item) => {
-          const price_usd = Number(item.price_usd) || 0; // Replace with actual field or conversion logic
-          const room_space = Number(item.apartments?.room_space) || 0;
-          return accumulator + price_usd * room_space;
-        },
-        0,
-      );
+      const total_amount_usd = orderItem.total_amount_usd;
+      //     orderItem.orderItems.reduce(
+      //   (accumulator, item) => {
+      //     const price_usd = Number(item.price_usd) || 0; // Replace with actual field or conversion logic
+      //     const room_space = Number(item.apartments?.room_space) || 0;
+      //     return accumulator + price_usd * room_space;
+      //   },
+      //   0,
+      // );
 
       // Calculate payment sums
       const sumOfPayments = orderItem.payments.reduce(
@@ -1700,7 +1866,7 @@ export class OrdersService {
       return {
         ...orderItem,
         total_amount: total_amount,
-        total_amount_usd: total_amount_usd,
+        total_amount_usd: order.total_amount_usd,
         sumOfPayments: sumOfPayments || 0,
         sumOfPayments_usd: sumOfPayments_usd || 0,
         sumOfOutPayments: sumOfOutPayments || 0,
