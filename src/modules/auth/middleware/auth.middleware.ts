@@ -19,10 +19,16 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     try {
-      const { userId: id, roles }: AccessTokenPayload = verify(
+      const decoded = verify(
         accessToken,
         process.env.ACCESS_TOKEN_SECRET,
-      );
+      ) as AccessTokenPayload;
+      
+      if (typeof decoded === 'string') {
+        throw new Error('Invalid access token');
+      }
+      
+      const { userId: id, roles } = decoded;
       user = await this.userService.findOneById(id);
     } catch (error) {
       throw new ForbiddenException('Please register or sign in.');

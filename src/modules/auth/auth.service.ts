@@ -47,7 +47,6 @@ export class AuthService {
   }
 
   async getLoggedUser(user: number) {
-
     const loggedUser = await Users.findOne({
       where: {
         id: user,
@@ -86,7 +85,12 @@ export class AuthService {
     const decodedRefreshToken = verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET,
-    );
+    ) as RefreshTokenPayload;
+
+    if (typeof decodedRefreshToken === 'string') {
+      throw new Error('Invalid refresh token');
+    }
+
     const user = await this.userService.findOneById(decodedRefreshToken.userId);
     if (!user || user.tokenVersion !== decodedRefreshToken.tokenVersion) {
       throw new Error('Please register or sign in.');
